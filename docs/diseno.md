@@ -85,15 +85,34 @@ Un contexto es el átomo del sistema — indivisible y autocontenido.
 La gramática de helix usa indentación (como Python) y palabras clave legibles.
 No hay operadores simbólicos excepto `->` para indicar consecuencia.
 
+### Declaración de datos
+
+Los datos se declaran fuera de los contextos. Son estructura pura — sin
+comportamiento. Un dato es "lo que algo es"; un rol en un contexto es
+"lo que algo hace aquí".
+
+```
+data <nombre>:
+    <campo>: <tipo>
+```
+
+Esta separación elimina el problema de la herencia en diamante: los datos
+no heredan comportamiento, y los roles no heredan estructura. "Es un..."
+(capa Data) y "se comporta como..." (capa Context) son ortogonales y nunca
+se mezclan en una misma jerarquía.
+
 ### Estructura de un contexto
 
 ```
 context <nombre>:
     [requires: <condiciones>]
 
-    role <nombre_rol>:
+    role <nombre_rol>: <tipo_dato>
         on <evento> -> <acción>
         [on <evento> -> ignorar]
+
+    [context <nombre_hijo>:       -- contexto anidado (máx. 2 niveles)
+        ...]
 
     [transitions:
         on <evento> -> <otro_contexto>]
@@ -105,17 +124,21 @@ context <nombre>:
 ### Reglas sintácticas
 
 - Los nombres de contexto empiezan con mayúscula: `ModoEdicion`, `SesionActiva`.
+- Los nombres de dato empiezan con mayúscula: `TipoTarea`, `Actividad`.
 - Los nombres de rol empiezan con minúscula: `tarjeta`, `pestaña_actividad`.
 - Los eventos empiezan con minúscula: `tap`, `doble_tap`, `mantener`.
 - Las acciones empiezan con minúscula: `mostrarModal`, `iniciarTarea`.
 - La palabra `ignorar` significa "este evento está contemplado y no hace nada".
 - Los comentarios usan `--` (doble guion, como SQL y Haskell).
+- Los roles se vinculan a un tipo de dato con `:`. El `self` dentro del rol
+  refiere a las propiedades de ese dato.
 
 ### Vocabulario reservado
 
 | Palabra | Significado |
 |---------|-------------|
 | `system` | Declara el sistema completo con sus contextos |
+| `data` | Declara un tipo de dato (estructura sin comportamiento) |
 | `context` | Declara un contexto (caso de uso) |
 | `role` | Declara un rol dentro de un contexto |
 | `on` | Declara un manejador de evento |
@@ -134,27 +157,47 @@ context <nombre>:
 El cronómetro-psp tiene cinco condicionales dispersos que dependen del booleano
 `AppState.modoEdicion` (ver `frontend/js/app.js`, líneas 286, 323, 411, 651, 662).
 
-En helix, esos cinco condicionales desaparecen. En su lugar hay dos contextos:
+En helix, esos cinco condicionales desaparecen. Primero se declaran los datos
+(estructura pura), luego los contextos (comportamiento puro):
 
 ```
+-- Capa Data: qué son las cosas (sin comportamiento)
+data TipoTarea:
+    tipoId: Id
+    nombre: Texto
+    icono: Texto
+
+data Tarea:
+    tareaId: Id
+    tipoId: Id
+
+data Actividad:
+    id: Id
+    nombre: Texto
+    color: Color
+
+data Pestaña:
+    id: Id
+
+-- Capa System: declaración del sistema
 system CronometroPSP:
     initial: ModoNormal
-    roles: tipo_tarea, tarea, pestaña_actividad, pestaña_frecuentes
-    events: tap, iniciar
+    events: tap
 
--- Contexto: uso normal del cronómetro
+-- Capa Context: qué hacen las cosas aquí (sin estructura)
+
 context ModoNormal:
 
-    role tipo_tarea:
+    role tipo_tarea: TipoTarea
         on tap -> seleccionarTipo(self.tipoId)
 
-    role tarea:
+    role tarea: Tarea
         on tap -> iniciarTarea(self.tareaId)
 
-    role pestaña_actividad:
+    role pestaña_actividad: Actividad
         on tap -> cambiarPestaña(self.id)
 
-    role pestaña_frecuentes:
+    role pestaña_frecuentes: Pestaña
         on tap -> cambiarPestaña('frecuentes')
 
     transitions:
@@ -164,19 +207,18 @@ context ModoNormal:
         iniciarTarea -> POST /api/sesiones { tipoTareaId, comentario }
         cambiarPestaña -> actualizarUI()
 
--- Contexto: edición de actividades y tareas
 context ModoEdicion:
 
-    role tipo_tarea:
+    role tipo_tarea: TipoTarea
         on tap -> mostrarModalEditar(self.tipoId)
 
-    role tarea:
+    role tarea: Tarea
         on tap -> mostrarModalEditar(self.tipoId)
 
-    role pestaña_actividad:
+    role pestaña_actividad: Actividad
         on tap -> mostrarModalEditarActividad(self.id)
 
-    role pestaña_frecuentes:
+    role pestaña_frecuentes: Pestaña
         on tap -> ignorar                         -- explícito: no se puede editar
 
     transitions:
@@ -222,47 +264,80 @@ Cada contexto helix genera tres artefactos — las tres hebras de la hélice:
 
 ### Hebra 1: Implementación
 
-Para el contexto `ModoEdicion`, el generador produce (en JavaScript):
+Para el sistema completo, el generador produce Rust. Los contextos se
+traducen a un enum, y cada combinación rol+evento se convierte en una
+función con `match` exhaustivo:
 
-```javascript
-const ModoEdicion = {
-    tipo_tarea: {
-        onTap(self) { mostrarModalEditar(self.tipoId); }
-    },
-    tarea: {
-        onTap(self) { mostrarModalEditar(self.tipoId); }
-    },
-    pestaña_actividad: {
-        onTap(self) { mostrarModalEditarActividad(self.id); }
-    },
-    pestaña_frecuentes: {
-        onTap(self) { /* ignorar */ }
+```rust
+pub enum Contexto {
+    ModoNormal,
+    ModoEdicion,
+}
+
+pub fn handle_tipo_tarea_tap(ctx: &Contexto, tipo_tarea: &TipoTarea) -> Accion {
+    match ctx {
+        Contexto::ModoNormal => Accion::SeleccionarTipo(tipo_tarea.tipo_id),
+        Contexto::ModoEdicion => Accion::MostrarModalEditar(tipo_tarea.tipo_id),
     }
-};
+}
+
+pub fn handle_pestaña_frecuentes_tap(ctx: &Contexto) -> Accion {
+    match ctx {
+        Contexto::ModoNormal => Accion::CambiarPestaña("frecuentes"),
+        Contexto::ModoEdicion => Accion::Ignorar,
+    }
+}
+
+// Añadir un nuevo contexto al enum sin actualizar estos match
+// produce un error de compilación. Rust impone la completitud.
 ```
+
+La elección de Rust como destino no es casual. El `match` exhaustivo
+de Rust impone la misma regla de completitud que el verificador de helix,
+pero a nivel de compilación del código generado. Es verificación doble:
+helix verifica la especificación; `rustc` verifica la implementación.
+
+El código generado se compila a WASM para despliegue en frontend y backend,
+alineándose con el principio de autocontención: un módulo `.wasm` lleva
+todo lo que necesita, sin runtime externo.
 
 ### Hebra 2: Tests
 
-Para el mismo contexto, el reverso algebraico:
+Para el mismo sistema, el reverso algebraico:
 
-```javascript
-describe('ModoEdicion', () => {
-    test('tipo_tarea: tap -> mostrarModalEditar', () => {
-        dado({ contexto: ModoEdicion, rol: 'tipo_tarea' });
-        cuando('tap', { tipoId: 42 });
-        entonces(mostrarModalEditar).fueInvocadoCon(42);
-    });
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    test('pestaña_frecuentes: tap -> ignorar', () => {
-        dado({ contexto: ModoEdicion, rol: 'pestaña_frecuentes' });
-        cuando('tap');
-        entonces(ningunaAccion).fueInvocada();
-    });
-});
+    #[test]
+    fn modo_edicion_tipo_tarea_tap_muestra_modal() {
+        let ctx = Contexto::ModoEdicion;
+        let tipo = TipoTarea { tipo_id: 42, nombre: "Test".into(), icono: "📝".into() };
+        let resultado = handle_tipo_tarea_tap(&ctx, &tipo);
+        assert_eq!(resultado, Accion::MostrarModalEditar(42));
+    }
+
+    #[test]
+    fn modo_edicion_pestaña_frecuentes_tap_ignora() {
+        let ctx = Contexto::ModoEdicion;
+        let resultado = handle_pestaña_frecuentes_tap(&ctx);
+        assert_eq!(resultado, Accion::Ignorar);
+    }
+
+    #[test]
+    fn modo_normal_tipo_tarea_tap_selecciona() {
+        let ctx = Contexto::ModoNormal;
+        let tipo = TipoTarea { tipo_id: 7, nombre: "Debug".into(), icono: "🔧".into() };
+        let resultado = handle_tipo_tarea_tap(&ctx, &tipo);
+        assert_eq!(resultado, Accion::SeleccionarTipo(7));
+    }
+}
 ```
 
-Cada pareja evento-acción produce exactamente un test. No hay tests
-que escribir manualmente: si la especificación cambia, los tests cambian.
+Cada pareja evento-acción produce exactamente un test por contexto.
+No hay tests que escribir manualmente: si la especificación cambia,
+los tests cambian.
 
 ### Hebra 3: Esquemático
 
@@ -432,16 +507,16 @@ el runtime la implementa.
 
 ```
 context ModoEdicion:
-    role tipo_tarea:
+    role tipo_tarea: TipoTarea
         on tap -> mostrarModalEditar(self.tipoId)
 
     effects:
-        mostrarModalEditar -> external cargarDatosTarea(tipoId)
+        mostrarModalEditar -> external cargar_datos_tarea(tipo_id)
 ```
 
-La palabra `external` indica que `cargarDatosTarea` es una función
-convencional (JavaScript, Python, etc.) que el código generado invoca.
-Helix no la genera — espera encontrarla en el entorno destino.
+La palabra `external` indica que `cargar_datos_tarea` es una función
+Rust convencional que el código generado invoca. Helix no la genera —
+espera encontrarla en el entorno destino.
 
 Esto resuelve la segunda pregunta abierta: los efectos se declaran en
 helix pero se implementan fuera de helix. El DSL define *qué* efectos
@@ -458,37 +533,252 @@ gobernar la lógica de estados y eventos, delegando el resto.
 
 ```
 external module cronometro_api:
-    cargarDatosTarea(tipoId) -> TipoTarea
-    guardarEdicion(tipoId, datos) -> Resultado
-    iniciarSesion(tareaId, comentario) -> Sesion
+    cargar_datos_tarea(tipo_id: Id) -> TipoTarea
+    guardar_edicion(tipo_id: Id, datos: DatosEdicion) -> Resultado
+    iniciar_sesion(tarea_id: Id, comentario: Texto) -> Sesion
 ```
 
-El bloque `external` declara funciones que existen en código convencional.
-Helix las trata como cajas negras: conoce su firma pero no su implementación.
+El bloque `external` declara funciones que existen en código Rust
+convencional. Helix las trata como cajas negras: conoce su firma
+pero no su implementación. El código generado produce un `trait`
+que el código convencional debe implementar:
 
-Los tests generados usan mocks para estas funciones. Los tests de
-integración (que verifican el `external` real) están fuera del alcance
-de helix — pertenecen al código convencional.
+```rust
+// Generado por helix
+pub trait CronometroApi {
+    fn cargar_datos_tarea(&self, tipo_id: Id) -> TipoTarea;
+    fn guardar_edicion(&self, tipo_id: Id, datos: DatosEdicion) -> Resultado;
+    fn iniciar_sesion(&self, tarea_id: Id, comentario: &str) -> Sesion;
+}
+```
+
+Los tests generados usan mocks para este trait. Los tests de
+integración (que verifican la implementación real) están fuera del
+alcance de helix — pertenecen al código convencional.
 
 ---
 
-## Decisiones pendientes
+## Capa de datos: separación de estructura y comportamiento
 
-1. **Compilación destino**: ¿JavaScript como primer target? ¿TypeScript?
-   El cronómetro-psp sugiere JS vanilla, pero TypeScript daría verificación
-   de tipos en el código generado.
+La capa de datos resuelve la quinta pregunta abierta y evita el
+problema clásico de la herencia en diamante.
 
-2. **Formato de archivo**: ¿`.hlx`? ¿Un archivo por contexto o un archivo
-   por sistema?
+### El problema
 
-3. **Herramienta de verificación**: ¿CLI? ¿Plugin de editor? ¿Integración
-   con CI/CD?
+En OO clásico, la herencia mezcla dos preguntas distintas:
 
-4. **Generación incremental**: Cuando cambia un contexto, ¿se regenera
-   todo el sistema o solo los artefactos afectados?
+- "¿Qué es esto?" — estructura, propiedades (herencia de datos).
+- "¿Qué hace esto aquí?" — comportamiento en contexto (herencia funcional).
 
-5. **Sintaxis para datos del rol**: `self.tipoId` asume que los roles
-   tienen propiedades. ¿Cómo se declaran? ¿Se infieren del código destino?
+Cuando ambas viven en la misma jerarquía (`class Tarjeta extends
+ElementoUI implements Editable`), la herencia múltiple produce
+el diamante: ¿de quién hereda `Tarjeta` su método `onClick`?
+
+### La solución DCI en helix
+
+Helix no tiene este problema porque las dos preguntas viven en
+capas separadas que nunca se cruzan:
+
+| Capa | Pregunta | Mecanismo | Herencia |
+|------|----------|-----------|----------|
+| `data` | "¿Qué es?" | Declaración de campos | No hay. Datos planos. |
+| `context` + `role` | "¿Qué hace aquí?" | Manejadores de eventos | No hay. Contextos aislados. |
+
+Un rol no *es* un TipoTarea — *actúa sobre* un TipoTarea en un
+contexto dado. Fuera de ese contexto, el TipoTarea es un dato sin
+comportamiento. No hay jerarquía que pueda formar un diamante.
+
+Si dos roles necesitan las mismas propiedades, se vinculan al
+mismo tipo de dato — no heredan de una clase base común:
+
+```
+context ModoEdicion:
+    role tipo_tarea: TipoTarea        -- mismo dato, distinto rol
+        on tap -> mostrarModalEditar(self.tipoId)
+
+    role tarea: Tarea                 -- dato diferente, mismo evento
+        on tap -> mostrarModalEditar(self.tipoId)
+```
+
+---
+
+## Contextos anidados
+
+Los contextos pueden anidarse para expresar sub-estados dentro de un
+contexto padre. Esto se alinea con los statecharts jerárquicos de Harel
+(1987) que XState implementa hoy.
+
+### Ejemplo
+
+`ModoEdicion` tiene dos sub-estados: editando una tarea o editando
+una actividad. Los sub-contextos heredan los manejadores del padre
+y pueden sobreescribir los que necesiten:
+
+```
+context ModoEdicion:
+
+    role pestaña_frecuentes: Pestaña
+        on tap -> ignorar
+
+    transitions:
+        on desactivarEdicion -> ModoNormal
+
+    -- Sub-contexto: editando una tarea específica
+    context EditandoTarea:
+        role campo_nombre: CampoTexto
+            on cambio -> actualizarNombre(self.valor)
+        role boton_guardar: Boton
+            on tap -> guardarEdicion()
+
+        transitions:
+            on guardarEdicion -> ModoEdicion     -- vuelve al padre
+            on cancelar -> ModoEdicion
+
+    -- Sub-contexto: editando una actividad
+    context EditandoActividad:
+        role campo_nombre: CampoTexto
+            on cambio -> actualizarNombreActividad(self.valor)
+        role selector_color: SelectorColor
+            on seleccion -> actualizarColor(self.valor)
+
+        transitions:
+            on guardarEdicionActividad -> ModoEdicion
+            on cancelar -> ModoEdicion
+```
+
+### Reglas de encapsulamiento
+
+1. **Herencia de manejadores**: Un contexto hijo hereda los manejadores
+   de su padre para roles que no redeclara. `EditandoTarea` no dice
+   nada sobre `pestaña_frecuentes`, así que hereda el `ignorar` de
+   `ModoEdicion`.
+
+2. **Ámbito cerrado**: Un contexto hijo solo puede transicionar a su
+   padre o a un hermano del mismo nivel. No puede saltar directamente
+   a un contexto de otro padre. `EditandoTarea` no puede ir a
+   `ModoNormal` — debe pasar por `ModoEdicion`.
+
+3. **Verificación independiente**: Cada contexto anidado es verificable
+   por sí mismo. Las cinco reglas se aplican dentro de su ámbito.
+
+4. **Profundidad limitada**: Máximo dos niveles de anidamiento. Si se
+   necesita más, el sistema probablemente necesita descomponerse en
+   subsistemas, no en contextos más profundos.
+
+---
+
+## Formato de archivo y paquetes
+
+### Extensión
+
+La extensión `.hlx` está ocupada (HLX Deterministic Language, presets de
+Line 6 Helix, namespace de Adobe AEM). La extensión elegida es **`.helix`**
+para archivos fuente individuales.
+
+### Estructura: un archivo por contexto
+
+Cada contexto vive en su propio archivo `.helix`. Esto permite:
+
+- **Generación incremental**: al modificar un contexto, solo se
+  regeneran sus artefactos.
+- **Trabajo paralelo**: distintos desarrolladores (o LLMs) pueden
+  trabajar en contextos distintos sin conflictos.
+- **Verificación parcial**: se puede verificar un solo contexto sin
+  procesar el sistema completo.
+
+### Paquete: archivo ZIP autocontenido
+
+Inspirado en formatos como .3mf, .epub y .docx, un sistema helix
+completo se empaqueta como un archivo ZIP con extensión `.helixpkg`:
+
+```
+cronometro-psp.helixpkg  (ZIP)
+│
+├── mimetype                          -- "application/helix-dsl" (sin comprimir)
+├── manifest.json                     -- mapa de partes, checksums, versión
+│
+├── system.helix                      -- declaración del sistema (punto de entrada)
+├── data.helix                        -- declaraciones de datos
+│
+├── contexts/
+│   ├── ModoNormal.helix              -- un archivo por contexto
+│   ├── ModoEdicion.helix
+│   └── ModoEdicion/
+│       ├── EditandoTarea.helix       -- contextos anidados
+│       └── EditandoActividad.helix
+│
+├── external/
+│   └── cronometro_api.helix          -- módulos external
+│
+├── generated/
+│   ├── impl/
+│   │   └── cronometro_psp.rs         -- hebra 1: implementación Rust
+│   ├── tests/
+│   │   └── cronometro_psp_test.rs    -- hebra 2: tests Rust
+│   └── schematics/
+│       └── system.mermaid            -- hebra 3: esquemático
+│
+└── verification/
+    └── report.json                   -- resultado de las 5 reglas
+```
+
+El `manifest.json` contiene checksums de cada archivo. Al modificar un
+contexto, la herramienta compara checksums para regenerar solo los
+artefactos afectados.
+
+La estructura de directorios refleja la jerarquía de contextos:
+`contexts/ModoEdicion/EditandoTarea.helix` es hijo de
+`contexts/ModoEdicion.helix`.
+
+Este formato encarna el principio de Cohen: el paquete contiene
+especificación, implementación, tests, esquemático y verificación.
+Un solo archivo `.helixpkg` se copia, se versiona y se despliega
+como una unidad.
+
+---
+
+## Herramienta de verificación: CLI
+
+La herramienta de verificación es un CLI — la interfaz mínima sobre
+la que se construye todo lo demás:
+
+```
+helix verify ModoEdicion.helix       -- verifica un contexto
+helix verify cronometro.helixpkg     -- verifica el sistema completo
+helix generate cronometro.helixpkg   -- genera las tres hebras
+helix check cronometro.helixpkg      -- verifica + genera + ejecuta tests
+```
+
+La salida del verificador usa las mismas reglas legibles documentadas
+en la sección de verificación:
+
+```
+$ helix verify cronometro.helixpkg
+
+  completitud ............ OK
+  determinismo ........... OK
+  alcanzabilidad ......... OK
+  retorno ................ OK
+  exhaustividad .......... OK
+
+  5/5 reglas cumplidas. Sistema verificado.
+```
+
+Un plugin de editor invoca el CLI por debajo. Una acción de CI/CD
+es el CLI en un contenedor. Si el CLI es sólido, todo lo demás
+viene gratis.
+
+---
+
+## Decisiones tomadas
+
+| # | Decisión | Resolución | Razonamiento |
+|---|----------|------------|--------------|
+| 1 | Compilación destino | **Rust + WASM** | `match` exhaustivo impone completitud; WASM es autocontenido; alineado con la intención de la arquitectura del proyecto |
+| 2 | Formato de archivo | **`.helix`** (fuente) + **`.helixpkg`** (paquete ZIP) | `.hlx` ocupada; un archivo por contexto; paquete autocontenido tipo .3mf |
+| 3 | Herramienta | **CLI primero** (`helix verify`, `helix generate`) | Base sobre la que se construyen plugins y CI/CD |
+| 4 | Generación incremental | **Por contexto**, con checksums en `manifest.json` | Consecuencia natural de un archivo por contexto |
+| 5 | Datos del rol | **Capa `data` separada**, roles vinculados por tipo | Evita herencia en diamante; separación DCI de estructura y comportamiento |
 
 ---
 
@@ -500,6 +790,20 @@ Para referencia, las preguntas de `concepto-inicial.md` y su estado actual:
 |---|----------|--------|
 | 1 | ¿Unidad mínima de especificación? | **Respondida**: el contexto |
 | 2 | ¿Efectos secundarios? | **Respondida**: declarados con `effects`, implementados con `external` |
-| 3 | ¿Compila o interpreta? | **Parcial**: compila a lenguaje destino (propuesto JS/TS) |
-| 4 | ¿Interop con código existente? | **Respondida**: módulos `external` con firma declarada |
-| 5 | ¿Composición de estados? | **Respondida**: contextos coexistentes con reglas de prioridad |
+| 3 | ¿Compila o interpreta? | **Respondida**: compila a Rust + WASM |
+| 4 | ¿Interop con código existente? | **Respondida**: módulos `external` generan traits Rust |
+| 5 | ¿Composición de estados? | **Respondida**: contextos coexistentes con reglas de prioridad + anidamiento encapsulado |
+
+---
+
+## Decisiones pendientes
+
+1. **Implementación de la herramienta**: ¿Se escribe el CLI de helix en Rust
+   (coherente con el target) o en un lenguaje de prototipado más rápido?
+
+2. **Formato del manifest.json**: ¿Esquema exacto? ¿Seguir OPC (Open Packaging
+   Conventions) o un esquema propio más simple?
+
+3. **Datos compartidos entre contextos anidados**: Cuando un contexto hijo
+   hereda manejadores del padre, ¿hereda también los roles y sus vínculos
+   a datos, o debe redeclararlos?
