@@ -1,0 +1,39 @@
+# Base de datos
+data/*.db
+data/*.db-journal
+data/*.db-shm
+data/*.db-wal
+
+# Mantener directorio data
+!data/.gitkeep
+
+# Archivos de configuración local
+backend/config-local.php
+frontend/js/config-local.js
+
+# Logs
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-*
+
+# Backups
+*.backup
+*.bak
+*~
+
+# Temporales
+tmp/
+temp/
+*.tmp
+
+# Memoria interna de Claude (no es parte del proyecto)
+memory/
+.claude/
