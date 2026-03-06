@@ -1,8 +1,9 @@
 # Diseño del lenguaje — helix-dsl-verified
 
-**Estado**: propuesta de diseño — en revisión
-**Fecha**: 4 de marzo de 2026
-**Participantes**: desarrollador + Claude Sonnet 4.6 + Claude Opus 4.6
+**Estado**: propuesta de diseño — en revisión (actualizado con Seguridad por Diseño)
+**Fecha**: 4–6 de marzo de 2026
+**Participantes**: desarrollador + Claude Sonnet 4.6 + Claude Opus 4.6 + Gemini 2.0 Pro
+**Referencias de diseño**: Parnas & Clements (A Rational Design Process: How and Why to Fake It, 1986); Reenskaug (DCI)
 
 ---
 
@@ -80,6 +81,64 @@ Un contexto es el átomo del sistema — indivisible y autocontenido.
 
 ---
 
+## Seguridad y privacidad por diseño (compliance estructural)
+
+La legislación actual (RGPD Art. 25, ENS, CRA, NIS2) exige responsabilidad
+sobre la seguridad y privacidad de los sistemas. Sin embargo, las herramientas
+de desarrollo tradicionales no ofrecen trazabilidad de estas exigencias,
+generando una "deuda técnica" donde la responsabilidad es jurídicamente
+exigible pero técnicamente inescrutable.
+
+Helix convierte parte de estas aspiraciones legislativas en verificaciones
+del compilador, haciendo que el cumplimiento normativo sea estructural y
+demostrable — no documental. Esto no resuelve la deuda técnica acumulada,
+pero crea el tipo de artefacto sobre el que puede construirse responsabilidad
+formal trazable.
+
+### Mínimo privilegio estructural (ENS / CRA)
+
+En helix, si un evento no está cableado a una acción en un contexto
+específico, no existe. No es una política de control de acceso que pueda
+fallar por omisión — es topología pura. El uso explícito de `bloqueado`
+documenta y garantiza la denegación por defecto. La Regla de Completitud
+garantiza que ningún evento queda sin manejador declarado.
+
+### Resiliencia y recuperación segura (CRA / NIS2)
+
+Al ser una máquina de estados estricta, el sistema siempre arranca en el
+contexto `initial` declarado. No existen estados intermedios huérfanos
+derivados de variables booleanas inconsistentes — el bug original del
+cronómetro que motivó este proyecto.
+
+### Cadena de custodia criptográfica
+
+El paquete `.helixpkg` con `manifest.json` y checksums vincula
+matemáticamente la especificación (`.helix`), la implementación generada
+(`.wasm`) y los tests. Si el código en producción no corresponde a la
+especificación firmada, el checksum lo evidencia. Es un artefacto firmable
+legalmente y auditable antes de que el código se ejecute.
+
+### Trazabilidad de auditoría (RGPD Art. 30)
+
+Como todas las transiciones de estado ocurren a través del DSL, el
+compilador *puede* inyectar automáticamente llamadas a un módulo de
+auditoría en el código Rust generado. Para ello, `system.helix` debe
+declarar el módulo de auditoría destino:
+
+```
+system MiSistema:
+    audit: external modulo_auditoria
+```
+
+Cuando se declara, ningún desarrollador puede olvidar auditar una
+transición de contexto — el código de auditoría es generado, no escrito.
+
+### Clasificación de datos y conformidad de flujo (RGPD Art. 25.1)
+
+Ver sección "Declaración de datos" y Regla 6 en "Verificación".
+
+---
+
 ## Gramática del DSL
 
 La gramática de helix usa indentación (como Python) y palabras clave legibles.
@@ -92,14 +151,14 @@ comportamiento. Un dato es "lo que algo es"; un rol en un contexto es
 "lo que algo hace aquí".
 
 ```
-data <nombre>:
+data <nombre> [clasificacion: <etiqueta>]:
     <campo>: <tipo>
 ```
 
-Esta separación elimina el problema de la herencia en diamante: los datos
-no heredan comportamiento, y los roles no heredan estructura. "Es un..."
-(capa Data) y "se comporta como..." (capa Context) son ortogonales y nunca
-se mezclan en una misma jerarquía.
+La anotación `[clasificacion:]` es opcional pero verificada: si un dato
+tiene `[clasificacion: personal]`, el verificador aplicará la Regla 6
+para garantizar que solo fluye hacia módulos `external` explícitamente
+autorizados para esa clasificación.
 
 ### Estructura de un contexto
 
@@ -453,12 +512,34 @@ ERROR [exhaustividad]: rol pestaña_frecuentes declarado en el sistema
 **Qué previene**: Roles olvidados — elementos del interfaz cuyo
 comportamiento en un contexto no fue considerado.
 
+### Regla 6: Conformidad de datos (RGPD Art. 25.1)
+
+**Enunciado**: Ningún dato con `[clasificacion: X]` puede pasarse como
+parámetro a una acción `external` que no declare explícitamente
+`[autorizado_para: X]`.
+
+**Ejemplo**: Si `DatosSesion` está marcado como `[clasificacion: personal]`
+y un contexto intenta pasarlo a un módulo sin autorización:
+
+```
+ERROR [conformidad]: DatosSesion [clasificacion: personal] fluye hacia
+                     modulo_analytics que no declara [autorizado_para: personal]
+```
+
+**Qué previene**: Violaciones de finalidad y fugas de datos por diseño —
+el compilador hace imposible enviar datos personales a un destino no
+autorizado, incluso por error u omisión.
+
 ### Nota sobre equivalencia formal
 
-Estas cinco reglas son equivalentes a las propiedades que se expresarían
+Estas seis reglas son equivalentes a las propiedades que se expresarían
 con lógica temporal en TLA+ o con invariantes en Alloy. La diferencia es
 que un ingeniero de software puede leerlas, discutirlas con su equipo, y
 verificarlas con una herramienta que emite mensajes en lenguaje natural.
+
+Las reglas 1–5 verifican corrección de comportamiento. La regla 6 verifica
+conformidad normativa. Ambas clases de propiedad son ciudadanos de primera
+clase en el verificador.
 
 ---
 
@@ -760,8 +841,10 @@ $ helix verify cronometro.helixpkg
   alcanzabilidad ......... OK
   retorno ................ OK
   exhaustividad .......... OK
+  conformidad de datos ... OK
 
-  5/5 reglas cumplidas. Sistema verificado.
+  6/6 reglas cumplidas. Sistema verificado.
+  Checksum del artefacto: a7f8b9...
 ```
 
 Un plugin de editor invoca el CLI por debajo. Una acción de CI/CD
