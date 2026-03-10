@@ -136,7 +136,7 @@ Eiffel (diseño por contrato), Idris (tipos dependientes).
 
 ## Próximos pasos sugeridos
 
-- Definir la gramática mínima del DSL (ver `docs/diseno.md`)
+- Definir la gramática mínima del DSL (ver `docs/2026-03-04-02-diseno.md`)
 - Elegir un caso de uso concreto como banco de pruebas
   (el sistema de modos de mi-cronometro-psp es un candidato ideal)
 - Evaluar si una sesión con Claude Opus aportaría profundidad en el diseño formal

@@ -285,4 +285,4 @@ En software, todavía no.
 Revisar este documento con César a su vuelta el lunes, incorporar la
 perspectiva de Gemini, y decidir si el mapeo legislativo-técnico merece
 un documento más formal o si su lugar natural es como sección de
-`diseno.md`.
+`2026-03-04-02-diseno.md`.

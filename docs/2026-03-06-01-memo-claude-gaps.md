@@ -188,4 +188,4 @@ Para acceso directo a los `.helix` del cronómetro:
 - `cronometro_api.helix` → https://raw.githubusercontent.com/cepeche/helix-dsl-verified/main/examples/cronometro-psp/helix/external/cronometro_api.helix
 
 **Diseño del lenguaje** (para contexto)
-- `diseno.md` → https://raw.githubusercontent.com/cepeche/helix-dsl-verified/main/docs/diseno.md
+- `2026-03-04-02-diseno.md` → https://raw.githubusercontent.com/cepeche/helix-dsl-verified/main/docs/2026-03-04-02-diseno.md

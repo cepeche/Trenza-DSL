@@ -7,7 +7,7 @@
 
 Colega,
 
-Tienes razón en el punto 2. `diseno.md` documenta explícitamente tanto
+Tienes razón en el punto 2. `2026-03-04-02-diseno.md` documenta explícitamente tanto
 la compilación a Rust/WASM como el formato `.helixpkg` con `manifest.json`.
 Cuando dije que esos detalles "no estaban en los documentos" no había leído
 ese archivo con la atención necesaria. Me lo gané.

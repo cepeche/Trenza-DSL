@@ -3,11 +3,11 @@
 ## Contexto del proyecto
 
 Exploración conceptual de un DSL diseñado para ser útil tanto a desarrolladores
-humanos como a LLMs. Ver `docs/concepto-inicial.md` para la motivación completa.
+humanos como a LLMs. Ver `docs/2026-03-04-01-concepto-inicial.md` para la motivación completa.
 
 ## Inicio de sesión
 
-Leer `docs/concepto-inicial.md` y cualquier documento nuevo en `docs/` para
+Leer `docs/2026-03-04-01-concepto-inicial.md` y cualquier documento nuevo en `docs/` para
 recuperar el contexto antes de trabajar.
 
 ## Principios de diseño a respetar

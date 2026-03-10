@@ -38,5 +38,5 @@ Exploración conceptual. Ver `docs/` para el desarrollo de las ideas.
 
 ## Documentos
 
-- [`docs/concepto-inicial.md`](docs/concepto-inicial.md) — contexto y motivación detallados
-- [`docs/diseno.md`](docs/diseno.md) — diseño del lenguaje (en desarrollo)
+- [`docs/2026-03-04-01-concepto-inicial.md`](docs/2026-03-04-01-concepto-inicial.md) — contexto y motivación detallados
+- [`docs/2026-03-04-02-diseno.md`](docs/2026-03-04-02-diseno.md) — diseño del lenguaje (en desarrollo)

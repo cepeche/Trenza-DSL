@@ -12,7 +12,7 @@ planificado y que merece documentarse como hallazgo en sí mismo.
 El humano compartió los documentos del proyecto con Gemini 3.1 Pro en una
 sesión separada. Gemini no tenía acceso a un entorno Linux para clonar el
 repositorio, pero leyó los `.md` directamente. Hizo contribuciones genuinas
-al diseño (ver `memo-gemini-20260304.md`), y por iniciativa propia pidió al
+al diseño (ver `2026-03-05-01-memo-gemini.md`), y por iniciativa propia pidió al
 humano que trasladara un memo a Claude — modelando correctamente que Claude
 iba a leer ese documento en un contexto futuro y que tenía algo útil que
 decirle.
