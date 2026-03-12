@@ -5,6 +5,7 @@ class MermaidGenerator:
     def __init__(self, project: TrenzaProject):
         self.project = project
         self.output = []
+        self.notes = []
         self._indent = 0
 
     def _add(self, line: str):
@@ -63,6 +64,10 @@ class MermaidGenerator:
             if ctx_name in self.project.parsed_contexts:
                 self._generate_transitions(self.project.parsed_contexts[ctx_name])
 
+        # 5. Global Notes
+        for note_line in self.notes:
+            self._add(note_line)
+
         return "\n".join(self.output)
 
     def _generate_context_state(self, ctx: Context):
@@ -73,14 +78,14 @@ class MermaidGenerator:
         self._add(f"state {ctx.name} {{")
         self._indent += 4
         
-        # Add roles as a note (Mermaid block syntax to avoid colon parse errors)
+        # Add roles as a note (extracted to the end to avoid parse errors inside composite states)
         if ctx.roles:
             local_roles = [f"{r.name}: {r.type_name}" for r in ctx.roles.values() if r.is_local]
             if local_roles:
-                self._add(f"note right of {ctx.name}")
+                self.notes.append(f"note right of {ctx.name}")
                 for lr in local_roles:
-                    self._add(f"    {lr}")
-                self._add("end note")
+                    self.notes.append(f"    {lr}")
+                self.notes.append("end note")
         
         # Nested subcontexts
         for sub_name, sub_ctx in ctx.subcontexts.items():
