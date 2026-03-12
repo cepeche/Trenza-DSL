@@ -13,14 +13,14 @@ class MermaidGenerator:
 
     def generate(self) -> str:
         self.output = []
-        self._add("stateDiagram-v2")
+        self._add("graph TD")
         self._indent += 4
         
         system_nodes = []
         
         # 1. Base Contexts (mutually exclusive inside the System)
         sys_name = self.project.system_decl.name
-        self._add(f"state {sys_name} {{")
+        self._add(f"subgraph {sys_name}")
         self._indent += 4
         
         for ctx_name in self.project.system_decl.contexts:
@@ -30,34 +30,33 @@ class MermaidGenerator:
                 
         initial = self.project.system_decl.initial
         if initial:
-            self._add(f"[*] --> {initial}")
+            # Flowchart doesn't have `[*]` but we can make a start node
+            self._add(f"Start((Inicio)) --> {initial}")
             
         self._indent -= 4
-        self._add("}")
+        self._add("end")
         
         # 2. Concurrent Contexts
         if self.project.system_decl.concurrent:
-            self._add(f"state CO_{sys_name} {{") # A parallel state representation
+            self._add(f"subgraph CO_{sys_name} [Concurrent Contexts]")
             self._indent += 4
-            self._add(f"note left of CO_{sys_name}: Concurrent Contexts")
             for ctx_name in self.project.system_decl.concurrent:
                 if ctx_name in self.project.parsed_contexts:
                     self._generate_context_state(self.project.parsed_contexts[ctx_name])
                     system_nodes.append(ctx_name)
             self._indent -= 4
-            self._add("}")
+            self._add("end")
             
         # 3. Overlays
         if self.project.system_decl.overlays:
-            self._add(f"state OV_{sys_name} {{") 
+            self._add(f"subgraph OV_{sys_name} [Overlay Contexts]") 
             self._indent += 4
-            self._add(f"note left of OV_{sys_name}: Overlay Contexts")
             for ctx_name in self.project.system_decl.overlays:
                 if ctx_name in self.project.parsed_contexts:
                     self._generate_context_state(self.project.parsed_contexts[ctx_name])
                     system_nodes.append(ctx_name)
             self._indent -= 4
-            self._add("}")
+            self._add("end")
 
         # 4. Global Transitions
         for ctx_name in system_nodes:
@@ -71,37 +70,51 @@ class MermaidGenerator:
         return "\n".join(self.output)
 
     def _generate_context_state(self, ctx: Context):
-        if not ctx.subcontexts and not ctx.roles:
-            self._add(f"{ctx.name}")
-            return
+        # We need a node representation for the context. In graph, subgraphs group things, nodes are states.
+        if not ctx.subcontexts:
+            # It's a leaf node
+            roles_html = ""
+            if ctx.roles:
+                local_roles = [f"{r.name}: {r.type_name}" for r in ctx.roles.values() if r.is_local]
+                if local_roles:
+                    roles_html = "<br/>" + "<br/>".join(local_roles)
+            self._add(f'{ctx.name}["{ctx.name}{roles_html}"]')
+        else:
+            # It's a composite state (subgraph)
+            self._add(f"subgraph {ctx.name}")
+            self._indent += 4
             
-        self._add(f"state {ctx.name} {{")
-        self._indent += 4
-        
-        # Add roles as a note (extracted to the end to avoid parse errors inside composite states)
-        if ctx.roles:
-            local_roles = [f"{r.name}: {r.type_name}" for r in ctx.roles.values() if r.is_local]
-            if local_roles:
-                self.notes.append(f"note right of {ctx.name}")
-                for lr in local_roles:
-                    self.notes.append(f"    {lr}")
-                self.notes.append("end note")
-        
-        # Nested subcontexts
-        for sub_name, sub_ctx in ctx.subcontexts.items():
-            self._generate_context_state(sub_ctx)
+            # Roles for this subgraph, attached to a dummy node because subgraphs can't have notes/labels easily in all renderers
+            if ctx.roles:
+                local_roles = [f"{r.name}: {r.type_name}" for r in ctx.roles.values() if r.is_local]
+                if local_roles:
+                    roles_html = "<br/>".join(local_roles)
+                    self._add(f'{ctx.name}_roles["{roles_html}"]')
+                    self._add(f"style {ctx.name}_roles fill:#f9f,stroke:#333,stroke-width:2px")
             
-        self._indent -= 4
-        self._add("}")
+            # Nested subcontexts
+            for sub_name, sub_ctx in ctx.subcontexts.items():
+                self._generate_context_state(sub_ctx)
+                
+            self._indent -= 4
+            self._add("end")
+
+    def _safe_node(self, name: str) -> str:
+        if name.startswith("[") and name.endswith("]"):
+            safe_id = "SYS_" + name[1:-1]
+            return f'{safe_id}(("{name}"))'
+        return name
 
     def _generate_transitions(self, ctx: Context):
         # We only generate transitions between contexts (not effects)
         for t in ctx.transitions:
             # We can label transitions with the event
-            self._add(f"{ctx.name} --> {t.target_state} : {t.on_event}")
+            target = self._safe_node(t.target_state)
+            self._add(f"{ctx.name} -->|{t.on_event}| {target}")
             
         # Also generate transitions for subcontexts
         for sub_name, sub_ctx in ctx.subcontexts.items():
             for t in sub_ctx.transitions:
-                self._add(f"{ctx.name} --> {t.target_state} : {t.on_event}")
+                target = self._safe_node(t.target_state)
+                self._add(f"{ctx.name} -->|{t.on_event}| {target}")
             self._generate_transitions(sub_ctx)

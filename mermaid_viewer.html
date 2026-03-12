@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador AST - Trenza DSL</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 20px; background: #fff; }
+        .mermaid { display: flex; justify-content: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Árbol de Sintaxis Abstracta (AST) de Trenza</h1>
+    <p>Este archivo usa la versión más reciente de la librería oficial de Mermaid.js para renderizar el AST compilado de tu proyecto <code>.trz</code>.</p>
+    
+    <div class="mermaid">
+graph TD
+    subgraph CronometroPSP
+        ModoEdicion["ModoEdicion<br/>tarjeta_tipo: TipoTarea<br/>tarjeta_tarea: Tarea<br/>pestana_actividad: Actividad<br/>pestana_frecuentes: Pestaña<br/>boton_edicion: Boton<br/>boton_nuevo: Boton<br/>boton_configuracion: Boton"]
+        ModoNormal["ModoNormal<br/>tarjeta_tipo: TipoTarea<br/>tarjeta_tarea: Tarea<br/>pestana_actividad: Actividad<br/>pestana_frecuentes: Pestaña<br/>boton_edicion: Boton<br/>boton_nuevo: Boton<br/>boton_configuracion: Boton"]
+        Start((Inicio)) --> ModoNormal
+    end
+    subgraph CO_CronometroPSP [Concurrent Contexts]
+        SesionActiva["SesionActiva<br/>display_timer: Boton<br/>checkbox_sustituir: Checkbox"]
+    end
+    subgraph OV_CronometroPSP [Overlay Contexts]
+        MenuConfiguracion["MenuConfiguracion<br/>item_nueva_actividad: ItemMenu<br/>item_historial: ItemMenu<br/>item_acerca_de: ItemMenu<br/>item_reset: ItemMenu<br/>overlay: Boton"]
+        ModalComentario["ModalComentario<br/>campo_comentario: CampoTexto<br/>campo_retroactivo: CampoNumerico<br/>boton_confirmar: Boton<br/>boton_cancelar: Boton"]
+        ModalSeleccionActividad["ModalSeleccionActividad<br/>boton_actividad: Actividad<br/>boton_cancelar: Boton"]
+        ModalCrearTarea["ModalCrearTarea<br/>campo_nombre: CampoTexto<br/>campo_busqueda_icono: CampoTexto<br/>selector_icono: SelectorIcono<br/>checkbox_actividad: Actividad<br/>boton_guardar: Boton<br/>boton_cancelar: Boton"]
+        ModalEditarTarea["ModalEditarTarea<br/>campo_nombre: CampoTexto<br/>campo_busqueda_icono: CampoTexto<br/>selector_icono: SelectorIcono<br/>boton_guardar: Boton<br/>boton_cancelar: Boton"]
+        ModalEditarActividad["ModalEditarActividad<br/>campo_nombre: CampoTexto<br/>selector_color: SelectorColor<br/>checkbox_permanente: Checkbox<br/>boton_guardar: Boton<br/>boton_cancelar: Boton"]
+        ModalCrearActividad["ModalCrearActividad<br/>campo_nombre: CampoTexto<br/>selector_color: SelectorColor<br/>checkbox_permanente: Checkbox<br/>boton_guardar: Boton<br/>boton_cancelar: Boton"]
+        subgraph ModalHistorial
+            ModalHistorial_roles["boton_cerrar: Boton"]
+            style ModalHistorial_roles fill:#f9f,stroke:#333,stroke-width:2px
+            Historial7Dias["Historial7Dias<br/>boton_7dias: Boton<br/>boton_30dias: Boton"]
+            Historial30Dias["Historial30Dias<br/>boton_7dias: Boton<br/>boton_30dias: Boton"]
+        end
+        subgraph ModalReset
+            ModalReset_roles["boton_cancelar: Boton"]
+            style ModalReset_roles fill:#f9f,stroke:#333,stroke-width:2px
+            ResetFase1["ResetFase1<br/>boton_continuar: Boton<br/>boton_exportar_csv: Boton"]
+            ResetFase2["ResetFase2<br/>checkbox_actividad: OpcionActividad<br/>boton_continuar: Boton<br/>boton_atras: Boton"]
+            ResetFase3["ResetFase3<br/>campo_confirmacion: CampoTexto<br/>boton_ejecutar: Boton<br/>boton_atras: Boton"]
+        end
+        ModalAcercaDe["ModalAcercaDe<br/>boton_cerrar: Boton"]
+    end
+    ModoEdicion -->|desactivarEdicion| ModoNormal
+    ModoEdicion -->|abrirEditarTarea| ModalEditarTarea
+    ModoEdicion -->|abrirEditarActividad| ModalEditarActividad
+    ModoEdicion -->|abrirCrearTarea| ModalCrearTarea
+    ModoEdicion -->|abrirMenuConfiguracion| MenuConfiguracion
+    ModoNormal -->|activarEdicion| ModoEdicion
+    ModoNormal -->|abrirCrearTarea| ModalCrearTarea
+    ModoNormal -->|abrirMenuConfiguracion| MenuConfiguracion
+    ModoNormal -->|seleccionarTipoTarea| ModalComentario
+    SesionActiva -->|sesionFinalizada| SYS_desactivar(("[desactivar]"))
+    MenuConfiguracion -->|abrirCrearActividad| ModalCrearActividad
+    MenuConfiguracion -->|abrirHistorial| ModalHistorial
+    MenuConfiguracion -->|abrirAcercaDe| ModalAcercaDe
+    MenuConfiguracion -->|abrirReset| ModalReset
+    MenuConfiguracion -->|cerrar| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ModalComentario -->|confirmarInicio| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ModalComentario -->|cancelar| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ModalSeleccionActividad -->|elegirActividad| ModalComentario
+    ModalSeleccionActividad -->|cancelar| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ModalCrearTarea -->|guardarNuevaTarea| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ModalCrearTarea -->|cancelar| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ModalEditarTarea -->|guardarEdicion| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ModalEditarTarea -->|cancelar| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ModalEditarActividad -->|guardarEdicionActividad| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ModalEditarActividad -->|cancelar| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ModalCrearActividad -->|guardarNuevaActividad| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ModalCrearActividad -->|cancelar| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ModalHistorial -->|cerrar| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ModalHistorial -->|cambiarA30Dias| Historial30Dias
+    ModalHistorial -->|cerrar| ModalHistorial
+    Historial7Dias -->|cambiarA30Dias| Historial30Dias
+    Historial7Dias -->|cerrar| ModalHistorial
+    ModalHistorial -->|cambiarA7Dias| Historial7Dias
+    ModalHistorial -->|cerrar| ModalHistorial
+    Historial30Dias -->|cambiarA7Dias| Historial7Dias
+    Historial30Dias -->|cerrar| ModalHistorial
+    ModalReset -->|cerrar| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ModalReset -->|avanzarAFase2| ResetFase2
+    ModalReset -->|cerrar| ModalReset
+    ResetFase1 -->|avanzarAFase2| ResetFase2
+    ResetFase1 -->|cerrar| ModalReset
+    ModalReset -->|avanzarAFase3| ResetFase3
+    ModalReset -->|retrocederAFase1| ResetFase1
+    ResetFase2 -->|avanzarAFase3| ResetFase3
+    ResetFase2 -->|retrocederAFase1| ResetFase1
+    ModalReset -->|ejecutarReset| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ModalReset -->|retrocederAFase2| ResetFase2
+    ResetFase3 -->|ejecutarReset| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    ResetFase3 -->|retrocederAFase2| ResetFase2
+    ModalAcercaDe -->|cerrar| SYS_cerrar_overlay(("[cerrar_overlay]"))
+    </div>
+
+    <script type="module">
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+      mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>
