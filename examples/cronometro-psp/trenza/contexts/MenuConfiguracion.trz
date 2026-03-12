@@ -1,0 +1,34 @@
+-- contexts/MenuConfiguracion.trz
+-- Overlay: menú desplegable del botón de configuración.
+-- Se cierra al hacer tap fuera de él.
+-- Accesible desde ModoNormal y ModoEdicion.
+-- Convertido de MenuConfiguracion.helix (6 marzo 2026) a .trz (12 marzo 2026)
+
+context MenuConfiguracion:
+
+    role item_nueva_actividad: ItemMenu
+        on tap -> abrirCrearActividad
+
+    role item_historial: ItemMenu
+        on tap -> abrirHistorial
+
+    role item_acerca_de: ItemMenu
+        on tap -> abrirAcercaDe
+
+    role item_reset: ItemMenu
+        on tap -> abrirReset
+
+    role overlay: Boton                  -- tap fuera del menú lo cierra
+        on tap -> cerrar
+
+    transitions:
+        on abrirCrearActividad -> ModalCrearActividad
+        on abrirHistorial      -> ModalHistorial
+        on abrirAcercaDe       -> ModalAcercaDe
+        on abrirReset          -> ModalReset
+        on cerrar              -> [cerrar_overlay]
+
+    -- PROPUESTA GAP-2 (detalle): cuando un ítem del menú abre otro overlay,
+    -- ¿el menú se cierra primero o el nuevo overlay se apila sobre él?
+    -- En app.js: el menú se cierra y el modal se abre (no se apilan).
+    -- El modelo de pila necesita soporte para "cerrar y abrir" en una transición.

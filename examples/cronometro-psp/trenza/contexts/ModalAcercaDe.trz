@@ -1,0 +1,17 @@
+-- contexts/ModalAcercaDe.trz
+-- Overlay: información sobre la aplicación y estado de conexión.
+-- Es el contexto más simple: solo lectura, un botón de cierre.
+-- Convertido de ModalAcercaDe.helix (6 marzo 2026) a .trz (12 marzo 2026)
+
+context ModalAcercaDe:
+
+    role boton_cerrar: Boton
+        on tap -> cerrar
+
+    transitions:
+        on cerrar -> [cerrar_overlay]
+
+    effects:
+        -- PROPUESTA GAP-7: efectos de ciclo de vida
+        [al_entrar] -> external verificar_conexion()
+        [al_entrar] -> external cargar_tiempo_acumulado()
