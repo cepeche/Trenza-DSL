@@ -73,9 +73,9 @@ class MermaidGenerator:
         self._add(f"state {ctx.name} {{")
         self._indent += 4
         
-        # Add roles as a note
+        # Add roles as a note (Mermaid uses <br/> for newlines in notes, not \n)
         if ctx.roles:
-            roles_str = "\\n".join([f"{r.name}: {r.type_name}" for r in ctx.roles.values() if r.is_local])
+            roles_str = "<br/>".join([f"{r.name}: {r.type_name}" for r in ctx.roles.values() if r.is_local])
             if roles_str:
                 self._add(f"note right of {ctx.name}: {roles_str}")
         
