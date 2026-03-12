@@ -1,9 +1,18 @@
-# helix-dsl-verified — instrucciones para Claude
+# Trenza-DSL — instrucciones para Claude
+
+> Anteriormente conocido como "Helix" (ver docs anteriores a marzo 2026).
 
 ## Contexto del proyecto
 
-Exploración conceptual de un DSL diseñado para ser útil tanto a desarrolladores
-humanos como a LLMs. Ver `docs/2026-03-04-01-concepto-inicial.md` para la motivación completa.
+Exploración conceptual de un DSL ("Trenza") diseñado para ser útil tanto a
+desarrolladores humanos como a LLMs. Ver `docs/2026-03-04-01-concepto-inicial.md`
+para la motivación completa. Ver `docs/2026-03-12-01-nombre-helix-vs-trenza.md`
+para la justificación del cambio de nombre.
+
+## Extensiones oficiales
+
+- `.trz` — archivos fuente Trenza
+- `.tzp` — paquetes verificables Trenza
 
 ## Inicio de sesión
 
