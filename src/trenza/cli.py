@@ -82,5 +82,14 @@ def main():
     
     print(f"\nAST exportado con éxito a {out_file}")
 
+    # Generación Mermaid
+    from .mermaid import MermaidGenerator
+    mermaid_gen = MermaidGenerator(project)
+    mermaid_out = out_file.with_suffix('.mermaid')
+    with open(mermaid_out, "w", encoding="utf-8") as f:
+        f.write(mermaid_gen.generate())
+        
+    print(f"Diagrama Mermaid exportado a {mermaid_out}")
+
 if __name__ == "__main__":
     main()
