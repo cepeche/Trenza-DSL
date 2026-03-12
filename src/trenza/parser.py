@@ -77,13 +77,16 @@ class TrenzaParser:
         lines = content.split('\n')
         return self._parse_context_block(lines, 0)[0]
 
-    def _parse_context_block(self, lines: List[str], start_idx: int) -> tuple[Context, int]:
+    def _parse_context_block(self, lines: List[str], start_idx: int, base_indent: int = -1) -> tuple[Context, int]:
         ctx_name = ""
         
         # Read the context header
         for i in range(start_idx, len(lines)):
-            line = self._strip_comments(lines[i])
+            raw_line = lines[i]
+            line = self._strip_comments(raw_line)
             if line.startswith('context '):
+                if base_indent == -1:
+                    base_indent = len(raw_line) - len(raw_line.lstrip())
                 m = re.match(r'context\s+([^:]+):', line)
                 if m:
                     ctx_name = m.group(1).strip()
@@ -113,7 +116,11 @@ class TrenzaParser:
             # inner contexts are deeper. If we hit another 'context' and it's less/same indent, we are done
             # But Trenza contexts can be nested:
             if line.startswith('context '):
-                subctx, new_i = self._parse_context_block(lines, i)
+                if base_indent != -1 and indent <= base_indent:
+                    # Sibling or parent context, we must exit this context parsing
+                    break
+                    
+                subctx, new_i = self._parse_context_block(lines, i, indent)
                 subctx.parent_name = ctx.name
                 ctx.subcontexts[subctx.name] = subctx
                 i = new_i
