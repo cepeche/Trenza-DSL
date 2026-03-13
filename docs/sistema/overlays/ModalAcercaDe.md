@@ -1,20 +1,30 @@
 # ModalAcercaDe
 
-**Tipo**: contexto overlays
+**Tipo**: overlay
+**Propósito**: información de la aplicación y estado de conexión. Solo lectura.
+Fuente: [`ModalAcercaDe.trz`](../../../examples/cronometro-psp/trenza/contexts/ModalAcercaDe.trz)
+
+---
 
 ## Roles
 
-| Rol | Tipo | Origen |
-|-----|------|--------|
-| boton_cerrar | Boton | Local |
+| Rol | Tipo | Evento | Acción |
+|-----|------|--------|--------|
+| boton_cerrar | [Boton](../data.md) | tap | cerrar |
 
 ## Transiciones
 
-```mermaid
-stateDiagram-v2
-    ModalAcercaDe --> SYS_cerrar_overlay : cerrar
-```
-
 | Evento | Destino |
 |--------|---------|
-| cerrar | [cerrar_overlay] |
+| cerrar | **[cerrar_overlay]** |
+
+## Effects (GAP-7)
+
+| Trigger | Acción |
+|---------|--------|
+| [al_entrar] | external [verificar_conexion](../external/cronometro_api.md)() |
+| [al_entrar] | external [cargar_tiempo_acumulado](../external/cronometro_api.md)() |
+
+---
+
+↑ [CronometroPSP](../index.md) · ← abierto desde [MenuConfiguracion](MenuConfiguracion.md)
