@@ -91,5 +91,15 @@ def main():
         
     print(f"Diagrama Mermaid exportado a {mermaid_out}")
 
+    # Generación del árbol Markdown (QA / DocGen)
+    from .docgen import DocGenerator
+    # Para el prototipo, asumimos que estamos en <repo>/examples/cronometro-psp/trenza
+    # y queremos escribir en <repo>/docs/sistema
+    docs_out = base_dir.parent.parent.parent / "docs" / "sistema"
+    print(f"\nGenerando árbol de documentación en {docs_out}...")
+    doc_gen = DocGenerator(project, str(docs_out))
+    doc_gen.generate()
+    print("Generación documental Markdown completada: OK")
+
 if __name__ == "__main__":
     main()

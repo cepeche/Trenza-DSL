@@ -1,39 +1,26 @@
 # ModalEditarTarea
 
-**Tipo**: overlay
-**Propósito**: editar nombre e icono de un TipoTarea existente.
-Fuente: [`ModalEditarTarea.trz`](../../../examples/cronometro-psp/trenza/contexts/ModalEditarTarea.trz)
-
----
+**Tipo**: contexto overlays
 
 ## Roles
 
-| Rol | Tipo | Evento | Acción |
-|-----|------|--------|--------|
-| campo_nombre | [CampoTexto](../data.md) | cambio | actualizarNombre(self.valor) |
-| campo_busqueda_icono | [CampoTexto](../data.md) | cambio | filtrarIconos(self.valor) |
-| selector_icono | [SelectorIcono](../data.md) | seleccion | seleccionarIcono(self.seleccionado) |
-| boton_guardar | [Boton](../data.md) | tap | guardarEdicion |
-| boton_cancelar | [Boton](../data.md) | tap | cancelar |
+| Rol | Tipo | Origen |
+|-----|------|--------|
+| campo_nombre | CampoTexto | Local |
+| campo_busqueda_icono | CampoTexto | Local |
+| selector_icono | SelectorIcono | Local |
+| boton_guardar | Boton | Local |
+| boton_cancelar | Boton | Local |
 
 ## Transiciones
 
+```mermaid
+stateDiagram-v2
+    ModalEditarTarea --> SYS_cerrar_overlay : guardarEdicion
+    ModalEditarTarea --> SYS_cerrar_overlay : cancelar
+```
+
 | Evento | Destino |
 |--------|---------|
-| guardarEdicion | **[cerrar_overlay]** |
-| cancelar | **[cerrar_overlay]** |
-
-## Effects
-
-| Trigger | Acción |
-|---------|--------|
-| guardarEdicion | external [editar_tipo_tarea](../external/cronometro_api.md)(...) |
-
-## Gaps abiertos
-
-- **GAP-1**: necesita recibir `tipoTareaId` para cargar datos actuales
-- **GAP-5**: guardar requiere nombre no vacío
-
----
-
-↑ [CronometroPSP](../index.md) · ← abierto desde [ModoEdicion](../base/ModoEdicion.md)
+| guardarEdicion | [cerrar_overlay] |
+| cancelar | [cerrar_overlay] |

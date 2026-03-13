@@ -1,40 +1,27 @@
 # ModalCrearTarea
 
-**Tipo**: overlay
-**Propósito**: crear un nuevo TipoTarea con nombre, icono y actividades permitidas.
-Fuente: [`ModalCrearTarea.trz`](../../../examples/cronometro-psp/trenza/contexts/ModalCrearTarea.trz)
-
----
+**Tipo**: contexto overlays
 
 ## Roles
 
-| Rol | Tipo | Evento | Acción |
-|-----|------|--------|--------|
-| campo_nombre | [CampoTexto](../data.md) | cambio | actualizarNuevoNombre(self.valor) |
-| campo_busqueda_icono | [CampoTexto](../data.md) | cambio | filtrarIconosCrear(self.valor) |
-| selector_icono | [SelectorIcono](../data.md) | seleccion | seleccionarIconoNuevo(self.seleccionado) |
-| checkbox_actividad | [Actividad](../data.md) | cambio | toggleActividadPermitida(self.id, self.marcado) |
-| boton_guardar | [Boton](../data.md) | tap | guardarNuevaTarea |
-| boton_cancelar | [Boton](../data.md) | tap | cancelar |
+| Rol | Tipo | Origen |
+|-----|------|--------|
+| campo_nombre | CampoTexto | Local |
+| campo_busqueda_icono | CampoTexto | Local |
+| selector_icono | SelectorIcono | Local |
+| checkbox_actividad | Actividad | Local |
+| boton_guardar | Boton | Local |
+| boton_cancelar | Boton | Local |
 
 ## Transiciones
 
+```mermaid
+stateDiagram-v2
+    ModalCrearTarea --> SYS_cerrar_overlay : guardarNuevaTarea
+    ModalCrearTarea --> SYS_cerrar_overlay : cancelar
+```
+
 | Evento | Destino |
 |--------|---------|
-| guardarNuevaTarea | **[cerrar_overlay]** |
-| cancelar | **[cerrar_overlay]** |
-
-## Effects
-
-| Trigger | Acción |
-|---------|--------|
-| guardarNuevaTarea | external [crear_tipo_tarea](../external/cronometro_api.md)(...) |
-
-## Gaps abiertos
-
-- **GAP-5**: guardar requiere nombre no vacío + al menos una actividad seleccionada
-- **GAP-6**: `checkbox_actividad` es uno por actividad existente (multiplicidad)
-
----
-
-↑ [CronometroPSP](../index.md)
+| guardarNuevaTarea | [cerrar_overlay] |
+| cancelar | [cerrar_overlay] |
