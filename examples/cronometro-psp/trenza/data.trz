@@ -8,8 +8,8 @@ data TipoTarea:
     tipoId: Id
     nombre: Texto
     icono: Texto
-    usos7d: Entero
-    actividades_permitidas: Lista<Id>
+    mutable usos7d: Entero
+    mutable actividades_permitidas: Lista<Id>
 
 data Tarea:
     tareaId: Id           -- compuesto: "{tipoId}_{actividadId}"
@@ -45,23 +45,23 @@ data CampoNumerico:
 data Boton:
     id: Id
     etiqueta: Texto
-    habilitado: Booleano
+    mutable habilitado: Booleano
 
 data Checkbox:
     id: Id
     etiqueta: Texto
-    marcado: Booleano
+    mutable marcado: Booleano
 
 data SelectorColor:
     id: Id
     opciones: Lista<Color>
-    seleccionado: Color
+    mutable seleccionado: Color
 
 data SelectorIcono:
     id: Id
     iconos: Lista<Texto>
-    seleccionado: Texto
-    filtro: Texto
+    mutable seleccionado: Texto
+    mutable filtro: Texto
 
 data Pestaña:
     id: Id

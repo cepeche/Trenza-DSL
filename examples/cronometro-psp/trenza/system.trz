@@ -28,19 +28,16 @@
 system CronometroPSP:
     initial: ModoNormal
 
-    -- (1) Contextos base — mutuamente excluyentes
+    -- (1) Contextos base — mutuamente excluyentes (exactamente uno activo)
     contexts:
         ModoEdicion
         ModoNormal          -- base por defecto
-    composition: exclusiva
 
-    -- (2) Contextos concurrentes — coexisten con el base
-    -- PROPUESTA GAP-3: nueva cláusula 'concurrent'
+    -- (2) Contextos concurrentes — coexisten ortogonalmente con el base
     concurrent:
         SesionActiva        -- activo cuando hay sesión en curso
 
-    -- (3) Contextos overlay — se apilan, preservan el base
-    -- PROPUESTA GAP-2: nueva cláusula 'overlays'
+    -- (3) Contextos overlay — apilables, suspenden la interacción con el base
     overlays:
         MenuConfiguracion
         ModalComentario

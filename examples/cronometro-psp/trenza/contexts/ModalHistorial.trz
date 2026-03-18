@@ -23,7 +23,7 @@ context ModalHistorial:
     context Historial7Dias:
 
         role boton_7dias: Boton
-            on tap -> ignorar              -- ya estamos en 7 días, no hace nada
+            on tap -> ignored              -- ya estamos en 7 días, no hace nada
 
         role boton_30dias: Boton
             on tap -> cambiarA30Dias
@@ -43,7 +43,7 @@ context ModalHistorial:
             on tap -> cambiarA7Dias
 
         role boton_30dias: Boton
-            on tap -> ignorar              -- ya estamos en 30 días
+            on tap -> ignored              -- ya estamos en 30 días
 
         transitions:
             on cambiarA7Dias -> Historial7Dias

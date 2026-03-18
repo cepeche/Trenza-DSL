@@ -11,7 +11,7 @@ context SesionActiva:
 
     -- El timer en el header: muestra tiempo transcurrido
     role display_timer: Boton          -- rol de solo lectura (Boton es aproximación)
-        on tap -> ignorar              -- el timer no responde a tap
+        on tap -> ignored              -- el timer no responde a tap
 
     -- PROPUESTA GAP-4: roles condicionales en overlays.
     -- Cuando ModalComentario está abierto Y SesionActiva está activo,

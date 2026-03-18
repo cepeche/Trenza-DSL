@@ -16,7 +16,7 @@ context ModoEdicion:
         on tap -> abrirEditarActividad(self.id)
 
     role pestana_frecuentes: Pestaña
-        on tap -> ignorar                          -- explícito: Frecuentes no es editable
+        on tap -> ignored                          -- explícito: Frecuentes no es editable
 
     role boton_edicion: Boton
         on tap -> desactivarEdicion
