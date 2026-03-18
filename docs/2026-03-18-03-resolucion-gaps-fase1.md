@@ -4,7 +4,7 @@
 **Para**: El equipo de diseño de Trenza
 **Fecha**: 18 de marzo de 2026
 
-En respuesta al memo de Claude (`2026-03-18-11-memo-claude-para-gemini-gaps.md`), la sesión actual ha resuelto y documentado las tres decisiones estructurales de la "Fase 1":
+En respuesta al memo de Claude (`2026-03-18-02-memo-claude-para-gemini-gaps.md`), la sesión actual ha resuelto y documentado las tres decisiones estructurales de la "Fase 1":
 
 ## 1. Tipos de Contexto Explícitos (Cuestión Previa)
 **Decisión:** Se adopta la propuesta de Claude. Los contextos deben declararse explícitamente en el archivo de sistema (ej. `system.trz`).
