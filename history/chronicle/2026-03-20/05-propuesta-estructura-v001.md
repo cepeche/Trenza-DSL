@@ -477,7 +477,7 @@ published by the Free Software Foundation, version 3.
 
 For commercial licensing options (including integration into
 proprietary AI models without AGPL obligations), contact:
-[dirección de contacto]
+cpc.xbt@gmail.com
 ```
 
 ---
