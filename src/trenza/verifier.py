@@ -66,6 +66,17 @@ class TrenzaVerifier:
                     copied_role.is_local = False
                     ctx.roles[role_name] = copied_role
 
+        # GAP-4: Verification of Slots and Fills
+        for fill in ctx.fills:
+            if fill.target_context not in self.project.parsed_contexts:
+                raise VerifierError(f"Contexto concurrent {ctx.name} intenta llenar slot en {fill.target_context}, pero el contexto no existe.")
+            
+            target_ctx = self.project.parsed_contexts[fill.target_context]
+            if not any(slot.name == fill.target_slot for slot in target_ctx.slots):
+                raise VerifierError(f"Contexto concurrent {ctx.name} intenta llenar slot {fill.target_slot} en {fill.target_context}, pero el slot no existe.")
+            
+            self.notes.append(f"INFO [slot]: {ctx.name} inyecta roles en {fill.target_context}.{fill.target_slot}")
+
         # Recursively verify children
         for sub_name, sub_ctx in ctx.subcontexts.items():
             sub_ctx.parent_name = ctx.name

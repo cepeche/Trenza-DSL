@@ -3,7 +3,7 @@ import re
 from typing import Dict, List, Optional
 from .ast import (
     AstNode, Action, Handler, Role, Transition, Effect, 
-    Context, SystemDecl, Manifest, TrenzaProject
+    Slot, Fills, Context, SystemDecl, Manifest, TrenzaProject
 )
 
 class TrenzaParser:
@@ -162,6 +162,71 @@ class TrenzaParser:
             elif line.startswith('effects:'):
                 current_section = 'effects'
                 current_role = None
+            elif line.startswith('slot '):
+                # slot name
+                m = re.match(r'slot\s+([a-zA-Z0-9_]+)', line)
+                if m:
+                    ctx.slots.append(Slot(name=m.group(1).strip()))
+            elif line.startswith('fills '):
+                # fills Context.slot:
+                m = re.match(r'fills\s+([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+):', line)
+                if m:
+                    target_ctx = m.group(1).strip()
+                    target_slot = m.group(2).strip()
+                    
+                    # We need to parse the indented block of fills
+                    # For a simple parser, we'll iterate lines until indent increases and then decreases
+                    fills_obj = Fills(target_context=target_ctx, target_slot=target_slot)
+                    ctx.fills.append(fills_obj)
+                    
+                    # Inside fills, we can have roles and effects
+                    # We'll use a sub-loop or state
+                    current_section = f"fills:{len(ctx.fills)-1}"
+                    current_role = None
+            elif current_section and current_section.startswith('fills:'):
+                idx = int(current_section.split(':')[1])
+                current_fills = ctx.fills[idx]
+                
+                if line.startswith('role '):
+                    m = re.match(r'role\s+([^:]+):\s*(.+)', line)
+                    if m:
+                        rname = m.group(1).strip()
+                        rtype = m.group(2).strip()
+                        current_role = Role(name=rname, type_name=rtype)
+                        current_fills.roles[rname] = current_role
+                elif line.startswith('effects:'):
+                    # nested effects header
+                    pass 
+                elif line.startswith('on ') and current_role:
+                    # handler inside fills role
+                    m = re.match(r'on\s+(.+?)\s*->\s*(.+)', line)
+                    if m:
+                        event = m.group(1).strip()
+                        action_raw = m.group(2).strip()
+                        action_name = action_raw
+                        args = []
+                        a_m = re.match(r'([^\(]+)\((.*)\)', action_raw)
+                        if a_m:
+                            action_name = a_m.group(1).strip()
+                            args_raw = a_m.group(2).strip()
+                            if args_raw:
+                                args = [arg.strip() for arg in args_raw.split(',')]
+                        current_role.handlers.append(Handler(event=event, action=Action(name=action_name, args=args)))
+                elif line.startswith('['):
+                    # effect inside fills
+                    m = re.match(r'\[(.*?)\]\s*->\s*(.+)', line)
+                    if m:
+                        event = m.group(1).strip()
+                        action_raw = m.group(2).strip()
+                        action_name = action_raw
+                        args = []
+                        if action_raw.startswith('external '): action_raw = action_raw[9:].strip()
+                        a_m = re.match(r'([^\(]+)\((.*)\)', action_raw)
+                        if a_m:
+                            action_name = a_m.group(1).strip()
+                            args_raw = a_m.group(2).strip()
+                            if args_raw: args = [arg.strip() for arg in args_raw.split(',')]
+                        current_fills.effects.append(Effect(on_event=event, action=Action(name=action_name, args=args)))
             elif current_section == 'transitions' and line.startswith('on '):
                 # on event -> state
                 m = re.match(r'on\s+(.+?)\s*->\s*(.+)', line)

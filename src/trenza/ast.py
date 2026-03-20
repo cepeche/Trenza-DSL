@@ -48,6 +48,17 @@ class Transition(AstNode):
     target_state: str
 
 @dataclass
+class Slot(AstNode):
+    name: str
+
+@dataclass
+class Fills(AstNode):
+    target_context: str
+    target_slot: str
+    roles: Dict[str, Role] = field(default_factory=dict)
+    effects: List[Effect] = field(default_factory=list)
+
+@dataclass
 class Effect(AstNode):
     on_event: str
     action: Action
@@ -58,6 +69,8 @@ class Context(AstNode):
     roles: Dict[str, Role] = field(default_factory=dict)
     transitions: List[Transition] = field(default_factory=list)
     effects: List[Effect] = field(default_factory=list)
+    slots: List[Slot] = field(default_factory=list)
+    fills: List[Fills] = field(default_factory=list)
     subcontexts: Dict[str, 'Context'] = field(default_factory=dict)
     parent_name: Optional[str] = None
 

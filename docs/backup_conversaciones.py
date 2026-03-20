@@ -11,16 +11,30 @@ def backup_conversations():
     os.makedirs(dest_dir, exist_ok=True)
     
     if not brain_dir.exists():
-        print(f"No se encontró el directorio de conversaciones en {brain_dir}")
-        return
+        print(f"No se encontró el directorio de Antigravity en {brain_dir}")
         
     date_str = datetime.datetime.now().strftime('%Y-%m-%d')
-    zip_path = dest_dir / f"{date_str}_antigravity_brain_backup"
+    zip_path_ag = dest_dir / f"{date_str}_antigravity_brain_backup"
     
-    print(f"Comprimiendo {brain_dir} en {zip_path}.zip ...")
-    shutil.make_archive(str(zip_path), 'zip', str(brain_dir))
+    if brain_dir.exists():
+        print(f"Comprimiendo {brain_dir} en {zip_path_ag}.zip ...")
+        shutil.make_archive(str(zip_path_ag), 'zip', str(brain_dir))
+        
+    # Claude Backups
+    claude_dir = user_home / ".claude"
+    claude_code_dir = user_home / ".claude-code"
     
-    print(f"\n¡Backup completado! Todo el cerebro de Antigravity está a salvo en {zip_path}.zip. Haz 'git commit' de este archivo para preservarlo en el repositorio.")
+    if claude_dir.exists():
+        zip_path_claude = dest_dir / f"{date_str}_claude_backup"
+        print(f"Comprimiendo {claude_dir} en {zip_path_claude}.zip ...")
+        shutil.make_archive(str(zip_path_claude), 'zip', str(claude_dir))
+        
+    if claude_code_dir.exists():
+        zip_path_clc = dest_dir / f"{date_str}_claude_code_backup"
+        print(f"Comprimiendo {claude_code_dir} en {zip_path_clc}.zip ...")
+        shutil.make_archive(str(zip_path_clc), 'zip', str(claude_code_dir))
+    
+    print(f"\n¡Backup completado! Los cerebros e historiales están a salvo en la carpeta {dest_dir}.")
 
 if __name__ == "__main__":
     backup_conversations()

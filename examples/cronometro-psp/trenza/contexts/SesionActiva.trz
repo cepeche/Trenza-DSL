@@ -13,19 +13,10 @@ context SesionActiva:
     role display_timer: Boton          -- rol de solo lectura (Boton es aproximación)
         on tap -> ignored              -- el timer no responde a tap
 
-    -- PROPUESTA GAP-4: roles condicionales en overlays.
-    -- Cuando ModalComentario está abierto Y SesionActiva está activo,
-    -- aparece un checkbox extra ("Sustituye a la tarea en curso").
-    -- El DSL actual no tiene sintaxis para "role X que solo existe
-    -- dentro del overlay Y cuando este contexto está activo".
-    --
-    -- Sintaxis propuesta:
-    --   role checkbox_sustituir: Checkbox en ModalComentario
-    --       on cambio -> marcarSustituir(self.marcado)
-    --
-    -- Por ahora lo declaramos aquí como aproximación:
-    role checkbox_sustituir: Checkbox
-        on cambio -> marcarSustituir(self.marcado)
+    -- GAP-4: Inyección de roles en overlays mediante slots explícitos
+    fills ModalComentario.sesion_opts:
+        role checkbox_sustituir: Checkbox
+            on cambio -> marcarSustituir(self.marcado)
 
     transitions:
         on sesionFinalizada -> [desactivar]    -- PROPUESTA GAP-3: sintaxis para

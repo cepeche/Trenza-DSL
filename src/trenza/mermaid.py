@@ -78,7 +78,12 @@ class MermaidGenerator:
                 local_roles = [f"{r.name}: {r.type_name}" for r in ctx.roles.values() if r.is_local]
                 if local_roles:
                     roles_html = "<br/>" + "<br/>".join(local_roles)
-            self._add(f'{ctx.name}["{ctx.name}{roles_html}"]')
+            
+            slots_html = ""
+            if ctx.slots:
+                slots_html = "<br/><i>Slots:</i><br/>" + "<br/>".join([f"({s.name})" for s in ctx.slots])
+                
+            self._add(f'{ctx.name}["{ctx.name}{roles_html}{slots_html}"]')
         else:
             # It's a composite state (subgraph)
             self._add(f"subgraph {ctx.name}")
@@ -111,6 +116,10 @@ class MermaidGenerator:
             # We can label transitions with the event
             target = self._safe_node(t.target_state)
             self._add(f"{ctx.name} -->|{t.on_event}| {target}")
+            
+        # Global: Fills (injections)
+        for fill in ctx.fills:
+            self._add(f"{ctx.name} -.fills.-> {fill.target_context}")
             
         # Also generate transitions for subcontexts
         for sub_name, sub_ctx in ctx.subcontexts.items():

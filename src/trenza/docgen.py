@@ -108,6 +108,20 @@ class DocGenerator:
             origen = "Local" if r.is_local else "Heredado"
             lines.append(f"| {r_name} | {r.type_name} | {origen} |")
             
+        if ctx.slots:
+            lines.extend(["", "## Puntos de Extensión (Slots)", ""])
+            for s in ctx.slots:
+                lines.append(f"- `({s.name})`")
+                
+        if ctx.fills:
+            lines.extend(["", "## Contribuciones (Fills)", ""])
+            for f in ctx.fills:
+                lines.append(f"- Llenando **{f.target_context}.{f.target_slot}** con:")
+                for rname, r in f.roles.items():
+                    lines.append(f"    - Rol `{rname}: {r.type_name}`")
+                for e in f.effects:
+                    lines.append(f"    - Efecto `[{e.on_event}] -> {e.action.name}`")
+
         lines.extend([
             "",
             "## Transiciones",

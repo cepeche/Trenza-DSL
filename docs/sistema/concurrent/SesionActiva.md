@@ -9,6 +9,10 @@
 | display_timer | Boton | Local |
 | checkbox_sustituir | Checkbox | Local |
 
+## Contribuciones (Fills)
+
+- Llenando **ModalComentario.sesion_opts** con:
+
 ## Transiciones
 
 ```mermaid

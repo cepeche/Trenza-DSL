@@ -11,6 +11,10 @@
 | boton_confirmar | Boton | Local |
 | boton_cancelar | Boton | Local |
 
+## Puntos de Extensión (Slots)
+
+- `(sesion_opts)`
+
 ## Transiciones
 
 ```mermaid

@@ -33,10 +33,8 @@ context ModalComentario:
     role boton_cancelar: Boton
         on tap -> cancelar
 
-    -- PROPUESTA GAP-4: el checkbox_sustituir solo existe
-    -- cuando SesionActiva está activo concurrentemente.
-    -- Referencia cruzada con SesionActiva.trz.
-    -- Por ahora lo omitimos aquí y lo definimos en SesionActiva.trz.
+    -- GAP-4: Punto de extensión para opciones dinámicas de sesión
+    slot sesion_opts
 
     -- PROPUESTA GAP-5: transición condicional basada en validación.
     -- confirmarInicio solo debe proceder si el estado del modal es válido
