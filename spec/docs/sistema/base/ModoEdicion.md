@@ -9,7 +9,7 @@
 | tarjeta_tipo | TipoTarea | Local |
 | tarjeta_tarea | Tarea | Local |
 | pestana_actividad | Actividad | Local |
-| pestana_frecuentes | Pestaña | Local |
+| pestana_frecuentes | PestaÃ±a | Local |
 | boton_edicion | Boton | Local |
 | boton_nuevo | Boton | Local |
 | boton_configuracion | Boton | Local |

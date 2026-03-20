@@ -5,7 +5,7 @@ description: Rutina de Cierre de Sesión y Backup de IA
 Esta es la rutina que los agentes (como Antigravity y Claude) deben seguir al cerrar cada iteración o día de trabajo (ej. cuando el humano dice "cierro por hoy", "haz backup", "sistematiza esto"):
 
 1. Ejecuta el recompilador de Python y el DocGen para sincronizar el código con el Markdown de documentación.
-   python -m src.trenza.cli examples\cronometro-psp\trenza
+   python -m src.trenza.cli spec\reference\cronometro-psp\trenza
 
 2. Ejecuta el script de respaldo local de las conversaciones de la IA a zip.
    python docs\backup_conversaciones.py
