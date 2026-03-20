@@ -324,9 +324,9 @@ context ModoEdicion:
 
 ---
 
-## Qué se genera: las tres hebras
+## Qué se genera: las cuatro hebras
 
-Cada contexto helix genera tres artefactos — las tres hebras de la hélice:
+Cada contexto trenza genera cuatro artefactos — las cuatro hebras de la trenza:
 
 ### Hebra 1: Implementación
 
@@ -430,8 +430,8 @@ stateDiagram-v2
     }
 ```
 
-Las tres hebras son proyecciones del mismo artefacto. Modificar una
-implica regenerar las otras dos. No pueden desincronizarse.
+Las cuatro hebras son proyecciones del mismo artefacto. Modificar una
+implica regenerar las otras tres. No pueden desincronizarse.
 
 ---
 

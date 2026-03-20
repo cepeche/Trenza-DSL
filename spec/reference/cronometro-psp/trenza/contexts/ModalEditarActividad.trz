@@ -1,7 +1,7 @@
--- contexts/ModalEditarActividad.trz
--- Overlay: edición de nombre, color y flag permanente de una Actividad.
--- Se abre desde ModoEdicion (tap en pestaña de actividad).
--- Convertido de ModalEditarActividad.helix (6 marzo 2026) a .trz (12 marzo 2026)
+﻿-- contexts/ModalEditarActividad.trz
+-- Overlay: ediciÃ³n de nombre, color y flag permanente de una Actividad.
+-- Se abre desde ModoEdicion (tap en pestaÃ±a de actividad).
+-- Convertido de ModalEditarActividad.trz (6 marzo 2026) a .trz (12 marzo 2026)
 --
 -- PROPUESTA GAP-1: necesita recibir el actividadId para cargar datos actuales.
 
@@ -27,7 +27,7 @@ context ModalEditarActividad:
         on tap -> cancelar
 
     -- PROPUESTA GAP-5: guardarEdicionActividad condicional
-    -- (campo_nombre no vacío)
+    -- (campo_nombre no vacÃ­o)
 
     transitions:
         on guardarEdicionActividad -> [cerrar_overlay]
@@ -35,3 +35,4 @@ context ModalEditarActividad:
 
     effects:
         guardarEdicionActividad -> external actualizar_actividad(actividadId, nombre, color, permanente)
+

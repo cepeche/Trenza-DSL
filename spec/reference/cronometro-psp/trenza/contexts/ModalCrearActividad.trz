@@ -1,7 +1,7 @@
--- contexts/ModalCrearActividad.trz
--- Overlay: creación de nueva Actividad.
+﻿-- contexts/ModalCrearActividad.trz
+-- Overlay: creaciÃ³n de nueva Actividad.
 -- Accesible desde MenuConfiguracion.
--- Convertido de ModalCrearActividad.helix (6 marzo 2026) a .trz (12 marzo 2026)
+-- Convertido de ModalCrearActividad.trz (6 marzo 2026) a .trz (12 marzo 2026)
 
 context ModalCrearActividad:
 
@@ -21,7 +21,7 @@ context ModalCrearActividad:
         on tap -> cancelar
 
     -- PROPUESTA GAP-5: guardarNuevaActividad condicional
-    -- (campo_nombre no vacío)
+    -- (campo_nombre no vacÃ­o)
 
     transitions:
         on guardarNuevaActividad -> [cerrar_overlay]
@@ -29,3 +29,4 @@ context ModalCrearActividad:
 
     effects:
         guardarNuevaActividad -> external crear_actividad(nombre, color, permanente)
+

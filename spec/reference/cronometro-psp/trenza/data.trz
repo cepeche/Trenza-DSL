@@ -1,6 +1,6 @@
--- data.trz — Capa de datos del CronometroPSP
+﻿-- data.trz â€” Capa de datos del CronometroPSP
 -- Solo estructura. Cero comportamiento.
--- Convertido de data.helix (6 marzo 2026) a .trz (12 marzo 2026)
+-- Convertido de data.trz (6 marzo 2026) a .trz (12 marzo 2026)
 
 -- Dominio principal
 
@@ -63,7 +63,7 @@ data SelectorIcono:
     mutable seleccionado: Texto
     mutable filtro: Texto
 
-data Pestaña:
+data PestaÃ±a:
     id: Id
     etiqueta: Texto
 
@@ -92,3 +92,4 @@ data OpcionActividad:
     color: Color
     permanente: Booleano
     conservar: Booleano     -- checkbox en fase 2
+

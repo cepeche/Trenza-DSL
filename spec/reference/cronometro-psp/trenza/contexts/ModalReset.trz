@@ -1,14 +1,14 @@
--- contexts/ModalReset.trz
+﻿-- contexts/ModalReset.trz
 -- Overlay: puesta a cero de datos. Proceso de 3 fases lineales.
--- Convertido de ModalReset.helix (6 marzo 2026) a .trz (12 marzo 2026)
+-- Convertido de ModalReset.trz (6 marzo 2026) a .trz (12 marzo 2026)
 --
--- CONFORMIDAD H1–H5 (12 marzo 2026):
+-- CONFORMIDAD H1â€“H5 (12 marzo 2026):
 -- - H1: las 3 fases heredan boton_cancelar del padre (con on tap -> cerrar).
 -- - H2: cada fase declara roles locales propios (boton_continuar, campo_confirmacion, etc.)
--- - H3: completitud por niveles — los roles locales de una fase no obligan a otra.
--- - H4: ResetFase1 RE-DECLARA boton_cancelar (misma acción, pero es sobrescritura
---        explícita conforme a la regla). El verificador emitiría una nota.
--- - H5: ninguna fase añade eventos nuevos a roles heredados del padre.
+-- - H3: completitud por niveles â€” los roles locales de una fase no obligan a otra.
+-- - H4: ResetFase1 RE-DECLARA boton_cancelar (misma acciÃ³n, pero es sobrescritura
+--        explÃ­cita conforme a la regla). El verificador emitirÃ­a una nota.
+-- - H5: ninguna fase aÃ±ade eventos nuevos a roles heredados del padre.
 
 context ModalReset:
 
@@ -18,12 +18,12 @@ context ModalReset:
     transitions:
         on cerrar -> [cerrar_overlay]
 
-    -- ─────────────────────────────────────────────────────────────
+    -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     -- Fase 1: aviso sobre lo que va a ocurrir
-    -- ─────────────────────────────────────────────────────────────
+    -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     context ResetFase1:
 
-        -- H4: sobrescribe boton_cancelar del padre (misma acción)
+        -- H4: sobrescribe boton_cancelar del padre (misma acciÃ³n)
         role boton_cancelar: Boton
             on tap -> cerrar
 
@@ -40,12 +40,12 @@ context ModalReset:
         effects:
             exportarCSV -> external descargar_csv()
 
-    -- ─────────────────────────────────────────────────────────────
+    -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     -- Fase 2: elegir actividades a conservar
-    -- ─────────────────────────────────────────────────────────────
+    -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     context ResetFase2:
 
-        -- PROPUESTA GAP-6: rol dinámico (uno por actividad existente)
+        -- PROPUESTA GAP-6: rol dinÃ¡mico (uno por actividad existente)
         -- role checkbox_actividad[]: OpcionActividad
         --     on cambio -> toggleConservar(self.id, self.marcado)
         role checkbox_actividad: OpcionActividad
@@ -61,9 +61,9 @@ context ModalReset:
             on avanzarAFase3   -> ResetFase3
             on retrocederAFase1 -> ResetFase1
 
-    -- ─────────────────────────────────────────────────────────────
-    -- Fase 3: confirmación escribiendo "BORRAR"
-    -- ─────────────────────────────────────────────────────────────
+    -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    -- Fase 3: confirmaciÃ³n escribiendo "BORRAR"
+    -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     context ResetFase3:
 
         role campo_confirmacion: CampoTexto
@@ -84,3 +84,4 @@ context ModalReset:
 
         effects:
             ejecutarReset -> external reset_datos(actividades_conservar)
+

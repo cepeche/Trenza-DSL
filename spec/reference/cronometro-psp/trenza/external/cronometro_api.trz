@@ -1,8 +1,8 @@
--- external/cronometro_api.trz
--- Declaración de funciones externas (código convencional que el
--- compilador Trenza NO genera, pero cuya firma sí conoce).
+﻿-- external/cronometro_api.trz
+-- DeclaraciÃ³n de funciones externas (cÃ³digo convencional que el
+-- compilador Trenza NO genera, pero cuya firma sÃ­ conoce).
 -- El compilador genera un trait Rust que el backend debe implementar.
--- Convertido de cronometro_api.helix (6 marzo 2026) a .trz (12 marzo 2026)
+-- Convertido de cronometro_api.trz (6 marzo 2026) a .trz (12 marzo 2026)
 
 external module cronometro_api:
 
@@ -48,7 +48,7 @@ external module cronometro_api:
     -- Historial
     cargar_historial(dias: Entero) -> Lista<DiaHistorial>
 
-    -- Diagnóstico
+    -- DiagnÃ³stico
     verificar_conexion() -> EstadoConexion
     cargar_tiempo_acumulado() -> Lista<ResumenActividad>
 
@@ -61,6 +61,7 @@ external module cronometro_api:
     actualizar_grid_visible() -> Resultado
 
     -- PROPUESTA GAP-8: tipos de retorno de error.
-    -- Las funciones externas pueden fallar (red, servidor caído, etc.).
+    -- Las funciones externas pueden fallar (red, servidor caÃ­do, etc.).
     -- El DSL actual no tiene sintaxis para declarar tipos de error
     -- ni para modelar el flujo de error.
+
