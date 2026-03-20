@@ -5,8 +5,8 @@
 ## Contexto del proyecto
 
 Exploración conceptual de un DSL ("Trenza") diseñado para ser útil tanto a
-desarrolladores humanos como a LLMs. Ver `docs/2026-03-04-01-concepto-inicial.md`
-para la motivación completa. Ver `docs/2026-03-12-01-nombre-helix-vs-trenza.md`
+desarrolladores humanos como a LLMs. Ver `history/chronicle/2026-03-04/01-concepto-inicial.md`
+para la motivación completa. Ver `history/chronicle/2026-03-12/01-nombre-helix-vs-trenza.md`
 para la justificación del cambio de nombre.
 
 ## Extensiones oficiales
@@ -16,8 +16,8 @@ para la justificación del cambio de nombre.
 
 ## Inicio de sesión
 
-Leer `docs/2026-03-04-01-concepto-inicial.md` y cualquier documento nuevo en `docs/` para
-recuperar el contexto antes de trabajar.
+Leer `history/chronicle/2026-03-04/01-concepto-inicial.md` y los documentos en
+`spec/language/` y `docs/design/` para recuperar el contexto antes de trabajar.
 
 ## Principios de diseño a respetar
 
