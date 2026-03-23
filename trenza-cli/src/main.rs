@@ -24,6 +24,7 @@ fn main() {
     
     let mut is_generate = false;
     let mut profile = "pre".to_string();
+    let mut concurrency = "composite".to_string();
     let mut filepath = "".to_string();
 
     for arg in &args[1..] {
@@ -31,6 +32,8 @@ fn main() {
             is_generate = true;
         } else if arg.starts_with("--profile=") {
             profile = arg.split('=').nth(1).unwrap().to_string();
+        } else if arg.starts_with("--concurrency=") {
+            concurrency = arg.split('=').nth(1).unwrap().to_string();
         } else {
             filepath = arg.to_string();
         }
@@ -52,7 +55,7 @@ fn main() {
                 Ok(_) => {
                     println!("- ✅ Verificación Semántica: Superada impecablemente.");
                     if is_generate {
-                        let rust_code = generator::generate_rust(&ast, &profile);
+                        let rust_code = generator::generate_rust(&ast, &profile, &concurrency);
                         let mermaid_code = generator::generate_mermaid(&ast);
                         let audit_doc = generator::generate_audit(&ast);
 
