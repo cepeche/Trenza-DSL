@@ -1,0 +1,37 @@
+-- TEST: Regla 4 (Return)
+-- Este sistema tiene un "estado sumidero" (ModoHuida) que no puede volver al inicio.
+
+system SistemaIncompleto:
+    initial: ModoCasa
+    
+    contexts:
+        ModoCasa
+        ModoBosque
+        ModoHuida
+
+data Recurso:
+    id: Id
+
+context ModoCasa:
+    input: r: Recurso
+    role explorador: Recurso (bind: r)
+        on salir -> ignored
+    transitions:
+        on salir -> ModoBosque
+
+context ModoBosque:
+    input: r: Recurso
+    role explorador: Recurso (bind: r)
+        on verLobo -> ignored
+        on volver  -> ignored
+    transitions:
+        on verLobo -> ModoHuida
+        on volver  -> ModoCasa
+
+context ModoHuida:
+    input: r: Recurso
+    role explorador: Recurso (bind: r)
+        on correr -> ignored
+    transitions:
+        on correr -> [stay]
+        -- ERROR: No hay transiciones a ModoCasa o ModoBosque (que lleva a ModoCasa)

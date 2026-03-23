@@ -170,6 +170,39 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
         }
     }
 
+    // Pass 6: Rule 4 (Return/No Sinks)
+    let mut reversed_adj: HashMap<String, Vec<String>> = HashMap::new();
+    for (src, targets) in &adjacency_list {
+        for dst in targets {
+            if dst != "[stay]" {
+                reversed_adj.entry(dst.clone()).or_default().push(src.clone());
+            }
+        }
+    }
+
+    let mut can_return = HashSet::new();
+    if !initial_context.is_empty() {
+        let mut stack = vec![initial_context.clone()];
+        while let Some(node) = stack.pop() {
+            if can_return.insert(node.clone()) {
+                if let Some(parents) = reversed_adj.get(&node) {
+                    for p in parents {
+                        stack.push(p.clone());
+                    }
+                }
+            }
+        }
+    }
+
+    for ctx_name in &all_contexts {
+        if !can_return.contains(ctx_name) {
+            errors.push(format!(
+                "ERROR [return]: context '{}' cannot return to the initial state '{}'",
+                ctx_name, initial_context
+            ));
+        }
+    }
+
     if errors.is_empty() {
         Ok(())
     } else {

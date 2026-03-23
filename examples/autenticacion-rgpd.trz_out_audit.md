@@ -32,6 +32,7 @@
 - [x] **Rule 1: Completeness** - verified by exhaustive match on Strand 1.
 - [x] **Rule 2: Determinism** - verified by DSL grammar and validator.
 - [x] **Rule 3: Reachability** - verified by topological analysis.
+- [x] **Rule 4: Return** - verified by reverse topological search (no sink states).
 - [x] **Rule 5: Role Exhaustiveness** - verified by cross-context role presence check.
 - [x] **Rule 6: Data Conformance (GDPR)** - verified by role access validation.
 
