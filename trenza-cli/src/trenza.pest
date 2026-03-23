@@ -1,0 +1,8 @@
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT = _{ "--" ~ (!"\n" ~ ANY)* }
+
+program = { SOI ~ (context_def)* ~ EOI }
+context_def = { "context" ~ ident ~ ":" ~ context_body? }
+context_body = { "transitions:" ~ transition_def* }
+transition_def = { ("[" ~ ident ~ "]" | ident) ~ "->" ~ ("[" ~ ident ~ "]" | ident) }
+ident = @{ ASCII_ALPHANUMERIC+ }
