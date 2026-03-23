@@ -1,9 +1,9 @@
-> Nota histórica: Trenza se llamó "Helix" hasta marzo de 2026. Los memos anteriores al renombramiento usan el nombre original. Ver `history/decisions/ADR-004-helix-to-trenza-rename.md` para la justificación del cambio.
+> Historical note: Trenza was called "Helix" until March 2026. Memos prior to the rename use the original name. See `history/decisions/ADR-004-helix-to-trenza-rename.md` for the rationale behind the change.
 
-# Seguridad por Diseño (RGPD Estructural)
+# Security by Design (Structural GDPR)
 
-Trenza transfiere las responsabilidades de observabilidad del flujo de la información privada a las verificaciones del AST en la capa de compilación.
+Trenza transfers the observability responsibilities of private information flow to AST checks at the compilation layer.
 
-## Conformidad en Privacidad
-Si la arquitectura central anota `[clasificacion: personal]` en una variable, el compilador verificador previene de base la inyección o salida de dicho parámetro hacia ninguna `external action` si este "puerto" objetivo carece de la bandera `[autorizado_para: personal]`.
-Esta aproximación garantiza topológicamente que ningún error por obviedad ni refactor imprevisto filtre PII (Personally Identifiable Information).
+## Privacy Compliance
+If the core architecture annotates `[classification: personal]` on a variable, the verifier compiler fundamentally prevents the injection or output of that parameter to any `external action` if the target "port" lacks the `[authorized_for: personal]` flag.
+This approach topologically guarantees that no oversight error or unexpected refactor can leak PII (Personally Identifiable Information).

@@ -1,13 +1,13 @@
-# El Paquete Trenza (.tzp)
+# The Trenza Package (.tzp)
 
-Trenza compila especificaciones en paquetes autocontenidos `.tzp` (Trenza Package), originalmente conocidos por la extensión legacy `.helixpkg`.
+Trenza compiles specifications into self-contained `.tzp` (Trenza Package) packages, originally known by the legacy extension `.helixpkg`.
 
-## Estructura del Paquete
-Un paquete `.tzp` es un contenedor zip protegido criptográficamente que incluye:
-- El código fuente `.trz` compilado.
-- Los test harnesses autogenerados.
-- Las implementaciones WASM embebidas.
-- Un `manifest.json` que firma y vincula matemáticamente todos los componentes desde el AST.
+## Package Structure
+A `.tzp` package is a cryptographically protected zip container that includes:
+- The compiled `.trz` source code.
+- The auto-generated test harnesses.
+- The embedded WASM implementations.
+- A `manifest.json` that mathematically signs and binds all components from the AST.
 
-## Ejecución Autónoma
-El compilador impone el principio arquitectónico de *soluciones autocontenidas* (rUv): el output distribuible es completamente autónomo. Cualquier sistema que consuma un `.tzp` hereda instantáneamente las garantías estáticas formadas en origen.
+## Autonomous Execution
+The compiler enforces the architectural principle of *self-contained solutions* (rUv): the distributable output is completely autonomous. Any system that consumes a `.tzp` instantly inherits the static guarantees formed at the source.

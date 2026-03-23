@@ -19,8 +19,8 @@ context SesionActiva:
             on cambio -> marcarSustituir(self.marcado)
 
     transitions:
-        on sesionFinalizada -> [desactivar]    -- PROPUESTA GAP-3: sintaxis para
-                                               -- desactivar un contexto concurrente
+        on sesionFinalizada -> [deactivate]    -- GAP-3: syntax for deactivating
+                                               -- a concurrent context
 
     effects:
         -- El timer se actualiza cada 60s vÃ­a efecto externo

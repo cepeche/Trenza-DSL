@@ -1,50 +1,14 @@
-# Diseño del lenguaje — Trenza DSL
+# Language Design — Trenza DSL
 
 
 
-**Estado**: propuesta de diseño — en revisión (actualizado con Seguridad por Diseño + decisiones pendientes resueltas)
+**Status**: design proposal — under review (updated with Security by Design + resolved pending decisions)
 
-**Fecha**: 4—6 de marzo de 2026; actualizado 12 de marzo de 2026
+**Date**: March 4–6, 2026; updated March 12, 2026
 
-**Participantes**: desarrollador + Claude Sonnet 4.6 + Claude Opus 4.6 + Gemini 3.1 Pro
+**Participants**: developer + Claude Sonnet 4.6 + Claude Opus 4.6 + Gemini 3.1 Pro
 
-**Referencias de diseño**: Parnas & Clements (A Rational Design Process: How and Why to Fake It, 1986); Reenskaug (DCI)
-
-
-
----
-
-
-
-## Principio rector: la legibilidad es un requisito formal
-
-
-
-Los métodos formales tienen un problema de adopción. No es que los ingenieros
-
-de software no necesiten razonamiento formal — es que la notación habitual
-
-(lógica temporal, álgebra relacional, tipos dependientes) aleja a la mayoría
-
-de profesionales que más se beneficiarían de ellos.
-
-
-
-Trenza toma una posición deliberada: **las propiedades formales se expresan
-
-como reglas legibles, no como fórmulas**. El rigor no viene de la notación
-
-sino de la estructura. Un DSL bien diseñado puede ser tan verificable como
-
-TLA+ sin necesitar que el usuario sepa qué es un operador temporal.
-
-
-
-Esto no es una concesión a la simplicidad. Es una decisión de diseño: si el
-
-DSL es ilegible para un ingeniero de software medio, ha fracasado en su
-
-objetivo, independientemente de cuán formalmente correcto sea.
+**Design references**: Parnas & Clements (A Rational Design Process: How and Why to Fake It, 1986); Reenskaug (DCI)
 
 
 
@@ -52,65 +16,23 @@ objetivo, independientemente de cuán formalmente correcto sea.
 
 
 
-## Influencia: soluciones autocontenidas
+## Guiding Principle: Readability Is a Formal Requirement
 
 
 
-El trabajo de Reuven Cohen (rUv) sobre soluciones autocontenidas aporta un
+Formal methods have an adoption problem. It is not that software engineers
+do not need formal reasoning — it is that the usual notation
+(temporal logic, relational algebra, dependent types) alienates most
+practitioners who would benefit from them the most.
 
-principio que encaja naturalmente con trenza.
+Trenza takes a deliberate stance: **formal properties are expressed
+as readable rules, not as formulas**. Rigor comes not from the notation
+but from the structure. A well-designed DSL can be as verifiable as
+TLA+ without requiring the user to know what a temporal operator is.
 
-
-
-Cohen construye sistemas que empaquetan todo lo necesario para funcionar y
-
-verificarse en un solo artefacto. Su proyecto RuView (captura de movimiento
-
-vía WiFi) es un ejemplo extremo: sensores ESP32 a 8 dólares que procesan
-
-señales WiFi localmente, sin internet, sin nube, sin dependencias externas.
-
-El artefacto incluye modelo, runtime de inferencia y verificación
-
-criptográfica — todo en un solo archivo binario (formato RVF).
-
-
-
-El principio relevante para trenza no es técnico sino arquitectónico:
-
-
-
-> Cada artefacto debe contener todo lo necesario para verificar su propia
-
-> corrección, sin depender de nada externo.
-
-
-
-En RuView, puedes ejecutar `./verify` con solo Python y numpy — sin hardware
-
-WiFi — y obtener una validación completa del pipeline de procesamiento.
-
-
-
-Trenza adopta este principio: **cada contexto es una unidad autocontenida**.
-
-Contiene su especificación, genera su implementación, sus tests y su
-
-esquemático, y puede verificarse en aislamiento. No necesitas ejecutar la
-
-aplicación completa para saber si un contexto está bien definido.
-
-
-
-Hay una conexión adicional con la metodología SPARC de Cohen (Specification,
-
-Pseudocode, Architecture, Refinement, Completion): ambas parten de que la
-
-especificación es el artefacto primario. Pero en SPARC, la especificación
-
-es un documento que humanos y LLMs leen. En trenza, **la especificación es
-
-el programa**. No hay brecha entre lo que se especifica y lo que se ejecuta.
+This is not a concession to simplicity. It is a design decision: if the
+DSL is unreadable for an average software engineer, it has failed its
+objective, regardless of how formally correct it is.
 
 
 
@@ -118,45 +40,38 @@ el programa**. No hay brecha entre lo que se especifica y lo que se ejecuta.
 
 
 
-## La unidad mínima de especificación: el contexto
+## Influence: Self-Contained Solutions
 
 
 
-La primera pregunta abierta del concepto inicial era: *Â¿qué es la unidad
+The work of Reuven Cohen (rUv) on self-contained solutions contributes a
+principle that fits naturally with Trenza.
 
-mínima de especificación?*
+Cohen builds systems that package everything needed to run and
+verify themselves in a single artifact. His RuView project (motion capture
+via WiFi) is an extreme example: $8 ESP32 sensors that process
+WiFi signals locally, without internet, without cloud, without external dependencies.
+The artifact includes the model, inference runtime, and cryptographic
+verification — all in a single binary file (RVF format).
 
+The relevant principle for Trenza is not technical but architectural:
 
+> Each artifact must contain everything necessary to verify its own
+> correctness, without depending on anything external.
 
-La respuesta es el **contexto** — en el sentido DCI de Reenskaug.
+In RuView, you can run `./verify` with just Python and numpy — without WiFi
+hardware — and get a complete validation of the processing pipeline.
 
+Trenza adopts this principle: **each context is a self-contained unit**.
+It contains its specification, generates its implementation, its tests and its
+schematics, and can be verified in isolation. You do not need to run the
+entire application to know whether a context is well defined.
 
-
-Un contexto es la menor porción de especificación que es autocontenida y
-
-verificable por sí misma. Contiene:
-
-
-
-- Un **nombre** que corresponde a un caso de uso del dominio.
-
-- Los **roles** que participan en ese caso de uso.
-
-- Los **eventos** que cada rol puede recibir.
-
-- Las **acciones** que resultan de cada evento.
-
-- Las **transiciones** a otros contextos.
-
-- Los **efectos** que se producen (llamadas API, cambios en DOM, etc.).
-
-
-
-No existe una especificación trenza más pequeña que un contexto. Un evento
-
-suelto no tiene significado. Un rol sin contexto no tiene comportamiento.
-
-Un contexto es el átomo del sistema — indivisible y autocontenido.
+There is an additional connection with Cohen's SPARC methodology (Specification,
+Pseudocode, Architecture, Refinement, Completion): both start from the premise that
+the specification is the primary artifact. But in SPARC, the specification is
+a document that humans and LLMs read. In Trenza, **the specification is
+the program**. There is no gap between what is specified and what is executed.
 
 
 
@@ -164,115 +79,94 @@ Un contexto es el átomo del sistema — indivisible y autocontenido.
 
 
 
-## Seguridad y privacidad por diseño (compliance estructural)
+## The Minimum Unit of Specification: The Context
 
 
 
-La legislación actual (RGPD Art. 25, ENS, CRA, NIS2) exige responsabilidad
+The first open question from the initial concept was: *What is the
+minimum unit of specification?*
 
-sobre la seguridad y privacidad de los sistemas. Sin embargo, las herramientas
+The answer is the **context** — in Reenskaug's DCI sense.
 
-de desarrollo tradicionales no ofrecen trazabilidad de estas exigencias,
+A context is the smallest portion of specification that is self-contained and
+verifiable on its own. It contains:
 
-generando una "deuda técnica" donde la responsabilidad es jurídicamente
+- A **name** corresponding to a domain use case.
+- The **roles** that participate in that use case.
+- The **events** each role can receive.
+- The **actions** that result from each event.
+- The **transitions** to other contexts.
+- The **effects** that are produced (API calls, DOM changes, etc.).
 
-exigible pero técnicamente inescrutable.
-
-
-
-Trenza convierte parte de estas aspiraciones legislativas en verificaciones
-
-del compilador, haciendo que el cumplimiento normativo sea estructural y
-
-demostrable — no documental. Esto no resuelve la deuda técnica acumulada,
-
-pero crea el tipo de artefacto sobre el que puede construirse responsabilidad
-
-formal trazable.
+There is no Trenza specification smaller than a context. A standalone event
+has no meaning. A role without a context has no behavior.
+A context is the atom of the system — indivisible and self-contained.
 
 
 
-### Mínimo privilegio estructural (ENS / CRA)
+---
 
 
 
-En trenza, si un evento no está cableado a una acción en un contexto
-
-específico, no existe. No es una política de control de acceso que pueda
-
-fallar por omisión — es topología pura. El uso explícito de `forbidden`
-
-documenta y garantiza la denegación por defecto. La Regla de Completitud
-
-garantiza que ningún evento queda sin manejador declarado.
+## Security and Privacy by Design (Structural Compliance)
 
 
 
-### Resiliencia y recuperación segura (CRA / NIS2)
+Current legislation (GDPR Art. 25, ENS, CRA, NIS2) demands accountability
+for the security and privacy of systems. However, traditional development tools
+offer no traceability of these requirements,
+generating "technical debt" where accountability is legally
+enforceable but technically inscrutable.
 
+Trenza turns part of these legislative aspirations into compiler
+checks, making regulatory compliance structural and
+demonstrable — not documentary. This does not resolve accumulated technical debt,
+but it creates the kind of artifact on which formally traceable accountability
+can be built.
 
+### Structural Least Privilege (ENS / CRA)
 
-Al ser una máquina de estados estricta, el sistema siempre arranca en el
+In Trenza, if an event is not wired to an action in a specific context,
+it simply does not exist. It is not an access-control policy that can
+fail by omission — it is pure topology. The explicit use of `forbidden`
+documents and guarantees denial by default. The Completeness Rule
+guarantees that no event is left without a declared handler.
 
-contexto `initial` declarado. No existen estados intermedios huérfanos
+### Resilience and Safe Recovery (CRA / NIS2)
 
-derivados de variables booleanas inconsistentes — el bug original del
+Being a strict state machine, the system always starts in the
+`initial` context declared. There are no orphaned intermediate states
+derived from inconsistent boolean variables — the original timer bug
+that motivated this project.
 
-cronómetro que motivó este proyecto.
+### Cryptographic Chain of Custody
 
+The `.tzp` package with `manifest.json` and checksums mathematically
+binds the specification (`.trz`), the generated implementation
+(`.wasm`), and the tests. If the code in production does not correspond to the
+signed specification, the checksum reveals it. It is a legally signable
+and auditable artifact before the code is executed.
 
+### Audit Traceability (GDPR Art. 30)
 
-### Cadena de custodia criptográfica
-
-
-
-El paquete `.tzp` con `manifest.json` y checksums vincula
-
-matemáticamente la especificación (`.trz`), la implementación generada
-
-(`.wasm`) y los tests. Si el código en producción no corresponde a la
-
-especificación firmada, el checksum lo evidencia. Es un artefacto firmable
-
-legalmente y auditable antes de que el código se ejecute.
-
-
-
-### Trazabilidad de auditoría (RGPD Art. 30)
-
-
-
-Como todas las transiciones de estado ocurren a través del DSL, el
-
-compilador *puede* inyectar automáticamente llamadas a un módulo de
-
-auditoría en el código Rust generado. Para ello, `system.trz` debe
-
-declarar el módulo de auditoría destino:
-
-
+Since all state transitions occur through the DSL, the
+compiler *can* automatically inject calls to an audit module
+in the generated Rust code. To do so, `system.trz` must
+declare the target audit module:
 
 ```
-
 system MiSistema:
 
     audit: external modulo_auditoria
 
 ```
 
+When declared, no developer can forget to audit a
+context transition — the audit code is generated, not written.
 
+### Data Classification and Flow Conformance (GDPR Art. 25.1)
 
-Cuando se declara, ningún desarrollador puede olvidar auditar una
-
-transición de contexto — el código de auditoría es generado, no escrito.
-
-
-
-### Clasificación de datos y conformidad de flujo (RGPD Art. 25.1)
-
-
-
-Ver sección "Declaración de datos" y Regla 6 en "Verificación".
+See the "Data Declaration" section and Rule 6 in "Verification".
 
 
 
@@ -280,69 +174,49 @@ Ver sección "Declaración de datos" y Regla 6 en "Verificación".
 
 
 
-## Gramática del DSL
+## DSL Grammar
 
 
 
-La gramática de trenza usa indentación (como Python) y palabras clave legibles.
+The Trenza grammar uses indentation (like Python) and readable keywords.
+There are no symbolic operators except `->` to indicate consequence.
 
-No hay operadores simbólicos excepto `->` para indicar consecuencia.
+### Data Declaration
 
+Data is declared outside contexts. It is pure structure — without
+behavior. Data is "what something is"; a role in a context is
+"what something does here".
 
+```
+data <name> [clasificacion: <label>]:
 
-### Declaración de datos
-
-
-
-Los datos se declaran fuera de los contextos. Son estructura pura — sin
-
-comportamiento. Un dato es "lo que algo es"; un rol en un contexto es
-
-"lo que algo hace aquí".
-
-
+    <field>: <type>
 
 ```
 
-data <nombre> [clasificacion: <etiqueta>]:
+The `[clasificacion:]` annotation is optional but verified: if data
+has `[clasificacion: personal]`, the verifier will apply Rule 6
+to ensure it only flows to `external` modules explicitly
+authorized for that classification.
 
-    <campo>: <tipo>
-
-```
-
-
-
-La anotación `[clasificacion:]` es opcional pero verificada: si un dato
-
-tiene `[clasificacion: personal]`, el verificador aplicará la Regla 6
-
-para garantizar que solo fluye hacia módulos `external` explícitamente
-
-autorizados para esa clasificación.
-
-
-
-### Estructura de un contexto
-
-
+### Context Structure
 
 ```
+context <name>:
 
-context <nombre>:
-
-    [requires: <condiciones>]
-
-
-
-    role <nombre_rol>: <tipo_dato>
-
-        on <evento> -> <acción>
-
-        [on <evento> -> ignored]
+    [requires: <conditions>]
 
 
 
-    [context <nombre_hijo>:       -- contexto anidado (máx. 2 niveles)
+    role <role_name>: <data_type>
+
+        on <event> -> <action>
+
+        [on <event> -> ignored]
+
+
+
+    [context <child_name>:       -- nested context (max 2 levels)
 
         ...]
 
@@ -350,73 +224,44 @@ context <nombre>:
 
     [transitions:
 
-        on <evento> -> <otro_contexto>]
+        on <event> -> <other_context>]
 
 
 
     [effects:
 
-        <acción> -> <descripción_del_efecto>]
+        <action> -> <effect_description>]
 
 ```
 
+### Syntactic Rules
 
+- Context names start with an uppercase letter: `ModoEdicion`, `SesionActiva`.
+- Data names start with an uppercase letter: `TipoTarea`, `Actividad`.
+- Role names start with a lowercase letter: `tarjeta`, `pestaña_actividad`.
+- Events start with a lowercase letter: `tap`, `doble_tap`, `mantener`.
+- Actions start with a lowercase letter: `mostrarModal`, `iniciarTarea`.
+- The keyword `ignored` means "this event is accounted for and does nothing".
+- Comments use `--` (double dash, like SQL and Haskell).
+- Roles are bound to a data type with `:`. The `self` inside a role
+  refers to the properties of that data.
 
-### Reglas sintácticas
+### Reserved Vocabulary
 
-
-
-- Los nombres de contexto empiezan con mayúscula: `ModoEdicion`, `SesionActiva`.
-
-- Los nombres de dato empiezan con mayúscula: `TipoTarea`, `Actividad`.
-
-- Los nombres de rol empiezan con minúscula: `tarjeta`, `pestaña_actividad`.
-
-- Los eventos empiezan con minúscula: `tap`, `doble_tap`, `mantener`.
-
-- Las acciones empiezan con minúscula: `mostrarModal`, `iniciarTarea`.
-
-- La palabra `ignored` significa "este evento está contemplado y no hace nada".
-
-- Los comentarios usan `--` (doble guion, como SQL y Haskell).
-
-- Los roles se vinculan a un tipo de dato con `:`. El `self` dentro del rol
-
-  refiere a las propiedades de ese dato.
-
-
-
-### Vocabulario reservado
-
-
-
-| Palabra | Significado |
-
-|---------|-------------|
-
-| `system` | Declara el sistema completo con sus contextos |
-
-| `data` | Declara un tipo de dato (estructura sin comportamiento) |
-
-| `context` | Declara un contexto (caso de uso) |
-
-| `role` | Declara un rol dentro de un contexto |
-
-| `on` | Declara un manejador de evento |
-
-| `->` | Indica consecuencia: evento -> acción |
-
-| `ignored` | El evento está contemplado pero no produce acción |
-
-| `forbidden` | El evento está explícitamente prohibido en este contexto |
-
-| `requires` | Condición necesaria para que el contexto esté activo |
-
-| `transitions` | Declara cambios de contexto |
-
-| `effects` | Declara efectos secundarios asociados a acciones |
-
-| `external` | Marca una acción implementada en código convencional |
+| Keyword | Meaning |
+|---------|---------|
+| `system` | Declares the complete system with its contexts |
+| `data` | Declares a data type (structure without behavior) |
+| `context` | Declares a context (use case) |
+| `role` | Declares a role within a context |
+| `on` | Declares an event handler |
+| `->` | Indicates consequence: event -> action |
+| `ignored` | The event is accounted for but produces no action |
+| `forbidden` | The event is explicitly prohibited in this context |
+| `requires` | Condition required for the context to be active |
+| `transitions` | Declares context changes |
+| `effects` | Declares side effects associated with actions |
+| `external` | Marks an action implemented in conventional code |
 
 
 
@@ -424,25 +269,18 @@ context <nombre>:
 
 
 
-## Ejemplo completo: el cronómetro PSP
+## Complete Example: The PSP Timer
 
 
 
-El cronómetro-psp tiene cinco condicionales dispersos que dependen del booleano
+The PSP timer has five scattered conditionals that depend on the boolean
+`AppState.modoEdicion` (see `frontend/js/app.js`, lines 286, 323, 411, 651, 662).
 
-`AppState.modoEdicion` (ver `frontend/js/app.js`, líneas 286, 323, 411, 651, 662).
-
-
-
-En trenza, esos cinco condicionales desaparecen. Primero se declaran los datos
-
-(estructura pura), luego los contextos (comportamiento puro):
-
-
+In Trenza, those five conditionals disappear. First the data
+(pure structure) is declared, then the contexts (pure behavior):
 
 ```
-
--- Capa Data: qué son las cosas (sin comportamiento)
+-- Data layer: what things are (no behavior)
 
 data TipoTarea:
 
@@ -478,7 +316,7 @@ data Pestaña:
 
 
 
--- Capa System: declaración del sistema
+-- System layer: system declaration
 
 system CronometroPSP:
 
@@ -488,7 +326,7 @@ system CronometroPSP:
 
 
 
--- Capa Context: qué hacen las cosas aquí (sin estructura)
+-- Context layer: what things do here (no structure)
 
 
 
@@ -558,7 +396,7 @@ context ModoEdicion:
 
     role pestaña_frecuentes: Pestaña
 
-        on tap -> ignored                         -- explícito: no se puede editar
+        on tap -> ignored                         -- explicit: cannot be edited in this mode
 
 
 
@@ -576,59 +414,32 @@ context ModoEdicion:
 
 ```
 
+### What This Specification Makes Visible
 
+1. **The five conditionals in the current code do not exist.** There is no `if (modoEdicion)`
+   anywhere. The factory (which generates the `system`) decides which context is
+   active; the rest is polymorphic.
 
-### Qué hace visible esta especificación
+2. **`pestaña_frecuentes` in `ModoEdicion` says `ignored`**, it does not simply omit it.
+   If it were omitted, the verifier would report: "role `pestaña_frecuentes` handles
+   event `tap` in `ModoNormal` but not in `ModoEdicion`". Forgetting is impossible.
 
+3. **The action `iniciarTarea` does not appear in `ModoEdicion`** because no path
+   leads to it from that context. A defensive guard
+   `if (modoEdicion) return` is not needed because the topology prevents it.
 
+4. **Effects are declarative.** The specification says *what* is communicated with
+   the outside, not *how*. The how lives in the generated code or in an `external` module.
 
-1. **Los cinco condicionales del código actual no existen.** No hay `if (modoEdicion)`
+### Side-by-Side Comparison
 
-   en ningún sitio. La factoría (que genera el `system`) decide qué contexto está
-
-   activo; el resto es polimórfico.
-
-
-
-2. **`pestaña_frecuentes` en `ModoEdicion` dice `ignored`**, no simplemente la omite.
-
-   Si fuera omitida, el verificador reportaría: "el rol `pestaña_frecuentes` maneja
-
-   el evento `tap` en `ModoNormal` pero no en `ModoEdicion`". El olvido es imposible.
-
-
-
-3. **La acción `iniciarTarea` no aparece en `ModoEdicion`** porque ningún camino
-
-   conduce a ella desde ese contexto. No hace falta un guard defensivo
-
-   `if (modoEdicion) return` porque la topología lo impide.
-
-
-
-4. **Los efectos son declarativos.** La especificación dice *qué* se comunica con el
-
-   exterior, no *cómo*. El cómo vive en el código generado o en un módulo `external`.
-
-
-
-### Comparación lado a lado
-
-
-
-| Código actual (app.js) | Trenza |
-
+| Current code (app.js) | Trenza |
 |---|---|
-
-| `if (AppState.modoEdicion)` en 5 sitios | 0 condicionales; 2 contextos |
-
-| Guard olvidado = bug silencioso | Rol sin manejador = error de verificación |
-
-| Efectos mezclados con lógica de control | Efectos declarados por separado |
-
-| Estado implícito en booleano global | Estado explícito como contexto activo |
-
-| Diagrama: solo si alguien lo dibuja | Esquemático Mermaid auto-generado |
+| `if (AppState.modoEdicion)` in 5 places | 0 conditionals; 2 contexts |
+| Forgotten guard = silent bug | Role without handler = verification error |
+| Effects mixed with control logic | Effects declared separately |
+| Implicit state in global boolean | Explicit state as active context |
+| Diagram: only if someone draws it | Auto-generated Mermaid schematic |
 
 
 
@@ -636,25 +447,17 @@ context ModoEdicion:
 
 
 
-## Qué se genera: las cuatro hebras
+## What Is Generated: The Four Strands
 
 
 
-Cada contexto trenza genera cuatro artefactos — las cuatro hebras de la trenza:
+Each Trenza context generates four artifacts — the four strands of the braid:
 
+### Strand 1: Implementation
 
-
-### Hebra 1: Implementación
-
-
-
-Para el sistema completo, el generador produce Rust. Los contextos se
-
-traducen a un enum, y cada combinación rol+evento se convierte en una
-
-función con `match` exhaustivo:
-
-
+For the complete system, the generator produces Rust. Contexts are
+translated into an enum, and each role+event combination becomes a
+function with an exhaustive `match`:
 
 ```rust
 
@@ -696,39 +499,24 @@ pub fn handle_pestaña_frecuentes_tap(ctx: &Contexto) -> Accion {
 
 
 
-// Añadir un nuevo contexto al enum sin actualizar estos match
+// Adding a new context to the enum without updating these matches
 
-// produce un error de compilación. Rust impone la completitud.
+// produces a compile error. Rust enforces completeness.
 
 ```
 
+The choice of Rust as the target is not arbitrary. Rust's exhaustive `match`
+enforces the same completeness rule as the Trenza verifier,
+but at the compilation level of the generated code. It is double verification:
+Trenza verifies the specification; `rustc` verifies the implementation.
 
+The generated code is compiled to WASM for deployment on frontend and backend,
+aligning with the self-containment principle: a `.wasm` module carries
+everything it needs, without an external runtime.
 
-La elección de Rust como destino no es casual. El `match` exhaustivo
+### Strand 2: Tests
 
-de Rust impone la misma regla de completitud que el verificador de trenza,
-
-pero a nivel de compilación del código generado. Es verificación doble:
-
-trenza verifica la especificación; `rustc` verifica la implementación.
-
-
-
-El código generado se compila a WASM para despliegue en frontend y backend,
-
-alineándose con el principio de autocontención: un módulo `.wasm` lleva
-
-todo lo que necesita, sin runtime externo.
-
-
-
-### Hebra 2: Tests
-
-
-
-Para el mismo sistema, el reverso algebraico:
-
-
+For the same system, the algebraic inverse:
 
 ```rust
 
@@ -742,11 +530,11 @@ mod tests {
 
     #[test]
 
-    fn modo_edicion_tipo_tarea_tap_muestra_modal() {
+    fn modo_edicion_tipo_tarea_tap_shows_modal() {
 
         let ctx = Contexto::ModoEdicion;
 
-        let tipo = TipoTarea { tipo_id: 42, nombre: "Test".into(), icono: "ðŸ“".into() };
+        let tipo = TipoTarea { tipo_id: 42, nombre: "Test".into(), icono: "🔑".into() };
 
         let resultado = handle_tipo_tarea_tap(&ctx, &tipo);
 
@@ -758,7 +546,7 @@ mod tests {
 
     #[test]
 
-    fn modo_edicion_pestaña_frecuentes_tap_ignora() {
+    fn modo_edicion_pestaña_frecuentes_tap_ignores() {
 
         let ctx = Contexto::ModoEdicion;
 
@@ -772,11 +560,11 @@ mod tests {
 
     #[test]
 
-    fn modo_normal_tipo_tarea_tap_selecciona() {
+    fn modo_normal_tipo_tarea_tap_selects() {
 
         let ctx = Contexto::ModoNormal;
 
-        let tipo = TipoTarea { tipo_id: 7, nombre: "Debug".into(), icono: "ðŸ”§".into() };
+        let tipo = TipoTarea { tipo_id: 7, nombre: "Debug".into(), icono: "🔧".into() };
 
         let resultado = handle_tipo_tarea_tap(&ctx, &tipo);
 
@@ -788,23 +576,13 @@ mod tests {
 
 ```
 
+Each event-action pair produces exactly one test per context.
+There are no tests to write manually: if the specification changes,
+the tests change.
 
+### Strand 3: Schematics
 
-Cada pareja evento-acción produce exactamente un test por contexto.
-
-No hay tests que escribir manualmente: si la especificación cambia,
-
-los tests cambian.
-
-
-
-### Hebra 3: Esquemático
-
-
-
-El diagrama Mermaid auto-generado para el sistema completo:
-
-
+The auto-generated Mermaid diagram for the complete system:
 
 ```mermaid
 
@@ -846,11 +624,8 @@ stateDiagram-v2
 
 ```
 
-
-
-Las cuatro hebras son proyecciones del mismo artefacto. Modificar una
-
-implica regenerar las otras tres. No pueden desincronizarse.
+The four strands are projections of the same artifact. Modifying one
+implies regenerating the other three. They cannot fall out of sync.
 
 
 
@@ -858,65 +633,40 @@ implica regenerar las otras tres. No pueden desincronizarse.
 
 
 
-## Verificación sin notación simbólica
+## Verification Without Symbolic Notation
 
 
 
-Trenza verifica propiedades formales expresándolas como reglas legibles.
+Trenza verifies formal properties by expressing them as readable rules.
+Each rule can be checked by inspection of the specification, without
+executing code.
 
-Cada regla puede comprobarse por inspección de la especificación, sin
+### Rule 1: Completeness
 
-ejecutar código.
+**Statement**: Every role that handles an event in any context must
+handle that same event in all contexts of the system, even if only
+with `ignored` or `forbidden`.
 
-
-
-### Regla 1: Completitud
-
-
-
-**Enunciado**: Todo rol que maneje un evento en algún contexto debe
-
-manejar ese mismo evento en todos los contextos del sistema, aunque sea
-
-con `ignored` o `forbidden`.
-
-
-
-**Ejemplo**: Si `pestaña_frecuentes` responde a `tap` en `ModoNormal`,
-
-debe responder a `tap` en `ModoEdicion`. Si no lo hace, el verificador
-
-reporta:
-
-
+**Example**: If `pestaña_frecuentes` responds to `tap` in `ModoNormal`,
+it must respond to `tap` in `ModoEdicion`. If it does not, the verifier
+reports:
 
 ```
 
-ERROR [completitud]: pestaña_frecuentes.tap definido en ModoNormal
+ERROR [completeness]: pestaña_frecuentes.tap defined in ModoNormal
 
-                     pero ausente en ModoEdicion
+                      but absent in ModoEdicion
 
 ```
 
+**What it prevents**: The original bug — an event without a handler in a context.
 
+### Rule 2: Determinism
 
-**Qué previene**: El bug original — un evento sin manejador en un contexto.
+**Statement**: In a given context, each event of each role produces
+exactly one action. There is no ambiguity.
 
-
-
-### Regla 2: Determinismo
-
-
-
-**Enunciado**: En un contexto dado, cada evento de cada rol produce
-
-exactamente una acción. No hay ambigüedad.
-
-
-
-**Ejemplo**: Si alguien escribe:
-
-
+**Example**: If someone writes:
 
 ```
 
@@ -928,159 +678,92 @@ role tarjeta:
 
 ```
 
-
-
-El verificador reporta:
-
-
+The verifier reports:
 
 ```
 
-ERROR [determinismo]: tarjeta.tap tiene dos acciones en ModoEdicion
+ERROR [determinism]: tarjeta.tap has two actions in ModoEdicion
 
 ```
 
+**What it prevents**: Unpredictable behavior due to duplicate handlers.
 
+### Rule 3: Reachability
 
-**Qué previene**: Comportamiento impredecible por manejadores duplicados.
+**Statement**: Every context must be reachable from the initial context
+through some sequence of transitions.
 
-
-
-### Regla 3: Alcanzabilidad
-
-
-
-**Enunciado**: Todo contexto debe poder alcanzarse desde el contexto
-
-inicial a través de alguna secuencia de transiciones.
-
-
-
-**Ejemplo**: Si se define un contexto `ModoMantenimiento` pero ningún
-
-otro contexto tiene una transición hacia él:
-
-
+**Example**: If a context `ModoMantenimiento` is defined but no
+other context has a transition to it:
 
 ```
 
-ERROR [alcanzabilidad]: ModoMantenimiento no es alcanzable desde
+ERROR [reachability]: ModoMantenimiento is not reachable from
 
-                        ModoNormal (contexto inicial)
-
-```
-
-
-
-**Qué previene**: Código muerto — contextos que se especifican pero
-
-nunca se activan.
-
-
-
-### Regla 4: Retorno
-
-
-
-**Enunciado**: Todo contexto no inicial debe tener al menos una
-
-transición que, directa o indirectamente, regrese al contexto inicial.
-
-
-
-**Qué previene**: Estados sumidero — contextos de los que no se puede
-
-salir.
-
-
-
-### Regla 5: Exhaustividad de roles
-
-
-
-**Enunciado**: Todo rol declarado en el bloque `system` debe aparecer
-
-en todos los contextos del sistema.
-
-
-
-**Ejemplo**: Si `system` declara el rol `pestaña_frecuentes` pero
-
-`ModoEdicion` no lo menciona:
-
-
+                      ModoNormal (initial context)
 
 ```
 
-ERROR [exhaustividad]: rol pestaña_frecuentes declarado en el sistema
+**What it prevents**: Dead code — contexts that are specified but
+never activated.
 
-                       pero ausente del contexto ModoEdicion
+### Rule 4: Return
+
+**Statement**: Every non-initial context must have at least one
+transition that, directly or indirectly, returns to the initial context.
+
+**What it prevents**: Sink states — contexts that cannot be exited.
+
+### Rule 5: Role Exhaustiveness
+
+**Statement**: Every role declared in the `system` block must appear
+in all contexts of the system.
+
+**Example**: If `system` declares the role `pestaña_frecuentes` but
+`ModoEdicion` does not mention it:
 
 ```
 
+ERROR [exhaustiveness]: role pestaña_frecuentes declared in the system
 
+                        but absent from context ModoEdicion
 
-**Qué previene**: Roles olvidados — elementos del interfaz cuyo
+```
 
-comportamiento en un contexto no fue considerado.
+**What it prevents**: Forgotten roles — interface elements whose
+behavior in a context was not considered.
 
+### Rule 6: Data Conformance (GDPR Art. 25.1)
 
-
-### Regla 6: Conformidad de datos (RGPD Art. 25.1)
-
-
-
-**Enunciado**: Ningún dato con `[clasificacion: X]` puede pasarse como
-
-parámetro a una acción `external` que no declare explícitamente
-
+**Statement**: No data with `[clasificacion: X]` may be passed as
+a parameter to an `external` action that does not explicitly declare
 `[autorizado_para: X]`.
 
-
-
-**Ejemplo**: Si `DatosSesion` está marcado como `[clasificacion: personal]`
-
-y un contexto intenta pasarlo a un módulo sin autorización:
-
-
+**Example**: If `DatosSesion` is marked as `[clasificacion: personal]`
+and a context attempts to pass it to an unauthorized module:
 
 ```
 
-ERROR [conformidad]: DatosSesion [clasificacion: personal] fluye hacia
+ERROR [conformance]: DatosSesion [clasificacion: personal] flows to
 
-                     modulo_analytics que no declara [autorizado_para: personal]
+                     modulo_analytics which does not declare [autorizado_para: personal]
 
 ```
 
+**What it prevents**: Purpose violations and data leaks by design —
+the compiler makes it impossible to send personal data to an unauthorized
+destination, even by accident or omission.
 
+### Note on Formal Equivalence
 
-**Qué previene**: Violaciones de finalidad y fugas de datos por diseño —
+These six rules are equivalent to the properties that would be expressed
+with temporal logic in TLA+ or with invariants in Alloy. The difference is
+that a software engineer can read them, discuss them with their team, and
+verify them with a tool that emits natural-language messages.
 
-el compilador hace imposible enviar datos personales a un destino no
-
-autorizado, incluso por error u omisión.
-
-
-
-### Nota sobre equivalencia formal
-
-
-
-Estas seis reglas son equivalentes a las propiedades que se expresarían
-
-con lógica temporal en TLA+ o con invariantes en Alloy. La diferencia es
-
-que un ingeniero de software puede leerlas, discutirlas con su equipo, y
-
-verificarlas con una herramienta que emite mensajes en lenguaje natural.
-
-
-
-Las reglas 1—5 verifican corrección de comportamiento. La regla 6 verifica
-
-conformidad normativa. Ambas clases de propiedad son ciudadanos de primera
-
-clase en el verificador.
+Rules 1–5 verify behavioral correctness. Rule 6 verifies
+regulatory compliance. Both classes of property are first-class
+citizens in the verifier.
 
 
 
@@ -1088,27 +771,18 @@ clase en el verificador.
 
 
 
-## Composición de contextos
+## Context Composition
 
 
 
-La quinta pregunta abierta era: *Â¿cómo se expresa `ModoEdicion + SesiónActiva`?*
+The fifth open question was: *How is `ModoEdicion + SesionActiva` expressed?*
 
+The DCI solution (documented in `2026-03-04-04-influencias-dci.md`) holds: contexts
+coexist, they do not merge. But composition needs priority rules
+when two active contexts assign different behaviors to the same role
+for the same event.
 
-
-La solución DCI (documentada en `2026-03-04-04-influencias-dci.md`) se mantiene: los contextos
-
-coexisten, no se combinan. Pero la composición necesita reglas de prioridad
-
-cuando dos contextos activos asignan comportamientos distintos al mismo rol
-
-para el mismo evento.
-
-
-
-### Reglas de composición
-
-
+### Composition Rules
 
 ```
 
@@ -1118,43 +792,32 @@ system CronometroPSP:
 
 
 
-    -- Los contextos se declaran en orden de prioridad descendente
+    -- Contexts are declared in descending priority order
 
     contexts:
 
-        SesionActiva        -- mayor prioridad
+        SesionActiva        -- highest priority
 
         ModoEdicion
 
-        ModoNormal          -- menor prioridad (base)
+        ModoNormal          -- lowest priority (base)
 
 
 
-    composition: prioridad  -- el contexto de mayor prioridad prevalece
+    composition: prioridad  -- the highest-priority context prevails
 
 ```
 
+If `SesionActiva` and `ModoEdicion` both define a handler for
+`tarea.tap`, the one from `SesionActiva` prevails. If `SesionActiva` does not define
+that handler, it is looked up in `ModoEdicion`, and then in `ModoNormal`.
 
+Alternative: `composition: exclusiva` — only the active context with the highest
+priority takes effect. The others are ignored entirely. This is
+simpler but less expressive.
 
-Si `SesionActiva` y `ModoEdicion` ambos definen un manejador para
-
-`tarea.tap`, prevalece el de `SesionActiva`. Si `SesionActiva` no define
-
-ese manejador, se busca en `ModoEdicion`, y luego en `ModoNormal`.
-
-
-
-Alternativa: `composition: exclusiva` — solo el contexto activo de mayor
-
-prioridad tiene efecto. Los demás se ignoran completamente. Esto es más
-
-simple pero menos expresivo.
-
-
-
-La elección entre prioridad y exclusiva es una decisión del diseñador del
-
-sistema, no del lenguaje. Trenza ofrece ambas.
+The choice between `prioridad` and `exclusiva` is a system designer's
+decision, not the language's. Trenza offers both.
 
 
 
@@ -1162,17 +825,13 @@ sistema, no del lenguaje. Trenza ofrece ambas.
 
 
 
-## Efectos secundarios
+## Side Effects
 
 
 
-Los efectos (llamadas API, modificaciones al DOM, navegación) se declaran
-
-en el contexto pero no se ejecutan por el DSL. El DSL genera la interfaz;
-
-el runtime la implementa.
-
-
+Effects (API calls, DOM modifications, navigation) are declared
+in the context but are not executed by the DSL. The DSL generates the interface;
+the runtime implements it.
 
 ```
 
@@ -1190,21 +849,13 @@ context ModoEdicion:
 
 ```
 
+The keyword `external` indicates that `cargar_datos_tarea` is a conventional
+Rust function that the generated code invokes. Trenza does not generate it —
+it expects to find it in the target environment.
 
-
-La palabra `external` indica que `cargar_datos_tarea` es una función
-
-Rust convencional que el código generado invoca. Trenza no la genera —
-
-espera encontrarla en el entorno destino.
-
-
-
-Esto resuelve la segunda pregunta abierta: los efectos se declaran en
-
-trenza pero se implementan fuera de trenza. El DSL define *qué* efectos
-
-ocurren; el código convencional define *cómo*.
+This resolves the second open question: effects are declared in
+Trenza but implemented outside of Trenza. The DSL defines *what* effects
+occur; the conventional code defines *how*.
 
 
 
@@ -1212,19 +863,14 @@ ocurren; el código convencional define *cómo*.
 
 
 
-## Interoperabilidad con código convencional
+## Interoperability With Conventional Code
 
 
 
-Trenza no pretende reemplazar todo el código de una aplicación. Pretende
+Trenza does not aim to replace all code in an application. It aims to
+govern state and event logic, delegating the rest.
 
-gobernar la lógica de estados y eventos, delegando el resto.
-
-
-
-### Módulos external
-
-
+### External Modules
 
 ```
 
@@ -1238,21 +884,14 @@ external module cronometro_api:
 
 ```
 
-
-
-El bloque `external` declara funciones que existen en código Rust
-
-convencional. Trenza las trata como cajas negras: conoce su firma
-
-pero no su implementación. El código generado produce un `trait`
-
-que el código convencional debe implementar:
-
-
+The `external` block declares functions that exist in conventional
+Rust code. Trenza treats them as black boxes: it knows their signature
+but not their implementation. The generated code produces a `trait`
+that the conventional code must implement:
 
 ```rust
 
-// Generado por trenza
+// Generated by Trenza
 
 pub trait CronometroApi {
 
@@ -1266,13 +905,9 @@ pub trait CronometroApi {
 
 ```
 
-
-
-Los tests generados usan mocks para este trait. Los tests de
-
-integración (que verifican la implementación real) están fuera del
-
-alcance de trenza — pertenecen al código convencional.
+The generated tests use mocks for this trait. Integration tests
+(which verify the real implementation) are outside the
+scope of Trenza — they belong to conventional code.
 
 
 
@@ -1280,83 +915,52 @@ alcance de trenza — pertenecen al código convencional.
 
 
 
-## Capa de datos: separación de estructura y comportamiento
+## Data Layer: Separation of Structure and Behavior
 
 
 
-La capa de datos resuelve la quinta pregunta abierta y evita el
+The data layer resolves the fifth open question and avoids the
+classic diamond inheritance problem.
 
-problema clásico de la herencia en diamante.
+### The Problem
 
+In classic OO, inheritance conflates two distinct questions:
 
+- "What is this?" — structure, properties (data inheritance).
+- "What does this do here?" — behavior in context (functional inheritance).
 
-### El problema
+When both live in the same hierarchy (`class Tarjeta extends
+ElementoUI implements Editable`), multiple inheritance produces
+the diamond: who does `Tarjeta` inherit its `onClick` method from?
 
+### The DCI Solution in Trenza
 
+Trenza does not have this problem because the two questions live in
+separate layers that never cross:
 
-En OO clásico, la herencia mezcla dos preguntas distintas:
+| Layer | Question | Mechanism | Inheritance |
+|-------|----------|-----------|-------------|
+| `data` | "What is it?" | Field declaration | None. Flat data. |
+| `context` + `role` | "What does it do here?" | Event handlers | None. Isolated contexts. |
 
+A role does not *is* a TipoTarea — it *acts on* a TipoTarea in a
+given context. Outside that context, the TipoTarea is data without
+behavior. There is no hierarchy that can form a diamond.
 
-
-- "Â¿Qué es esto?" — estructura, propiedades (herencia de datos).
-
-- "Â¿Qué hace esto aquí?" — comportamiento en contexto (herencia funcional).
-
-
-
-Cuando ambas viven en la misma jerarquía (`class Tarjeta extends
-
-ElementoUI implements Editable`), la herencia múltiple produce
-
-el diamante: Â¿de quién hereda `Tarjeta` su método `onClick`?
-
-
-
-### La solución DCI en trenza
-
-
-
-Trenza no tiene este problema porque las dos preguntas viven en
-
-capas separadas que nunca se cruzan:
-
-
-
-| Capa | Pregunta | Mecanismo | Herencia |
-
-|------|----------|-----------|----------|
-
-| `data` | "Â¿Qué es?" | Declaración de campos | No hay. Datos planos. |
-
-| `context` + `role` | "Â¿Qué hace aquí?" | Manejadores de eventos | No hay. Contextos aislados. |
-
-
-
-Un rol no *es* un TipoTarea — *actúa sobre* un TipoTarea en un
-
-contexto dado. Fuera de ese contexto, el TipoTarea es un dato sin
-
-comportamiento. No hay jerarquía que pueda formar un diamante.
-
-
-
-Si dos roles necesitan las mismas propiedades, se vinculan al
-
-mismo tipo de dato — no heredan de una clase base común:
-
-
+If two roles need the same properties, they are bound to the
+same data type — they do not inherit from a common base class:
 
 ```
 
 context ModoEdicion:
 
-    role tipo_tarea: TipoTarea        -- mismo dato, distinto rol
+    role tipo_tarea: TipoTarea        -- same data, different role
 
         on tap -> mostrarModalEditar(self.tipoId)
 
 
 
-    role tarea: Tarea                 -- dato diferente, mismo evento
+    role tarea: Tarea                 -- different data, same event
 
         on tap -> mostrarModalEditar(self.tipoId)
 
@@ -1368,29 +972,19 @@ context ModoEdicion:
 
 
 
-## Contextos anidados
+## Nested Contexts
 
 
 
-Los contextos pueden anidarse para expresar sub-estados dentro de un
+Contexts can be nested to express sub-states within a
+parent context. This aligns with Harel's hierarchical statecharts
+(1987) that XState implements today.
 
-contexto padre. Esto se alinea con los statecharts jerárquicos de Harel
+### Example
 
-(1987) que XState implementa hoy.
-
-
-
-### Ejemplo
-
-
-
-`ModoEdicion` tiene dos sub-estados: editando una tarea o editando
-
-una actividad. Los sub-contextos heredan los manejadores del padre
-
-y pueden sobreescribir los que necesiten:
-
-
+`ModoEdicion` has two sub-states: editing a task or editing
+an activity. Sub-contexts inherit the parent's handlers
+and can override those they need:
 
 ```
 
@@ -1410,7 +1004,7 @@ context ModoEdicion:
 
 
 
-    -- Sub-contexto: editando una tarea específica
+    -- Sub-context: editing a specific task
 
     context EditandoTarea:
 
@@ -1426,13 +1020,13 @@ context ModoEdicion:
 
         transitions:
 
-            on guardarEdicion -> ModoEdicion     -- vuelve al padre
+            on guardarEdicion -> ModoEdicion     -- returns to parent
 
             on cancelar -> ModoEdicion
 
 
 
-    -- Sub-contexto: editando una actividad
+    -- Sub-context: editing an activity
 
     context EditandoActividad:
 
@@ -1454,125 +1048,72 @@ context ModoEdicion:
 
 ```
 
+### Encapsulation Rules
 
+1. **Closed scope**: A child context can only transition to its
+   parent or to a sibling at the same level. It cannot jump directly
+   to a context under a different parent. `EditandoTarea` cannot go to
+   `ModoNormal` — it must go through `ModoEdicion`.
 
-### Reglas de encapsulamiento
+2. **Independent verification**: Each nested context is verifiable
+   on its own. The rules apply within its scope.
 
+3. **Limited depth**: Maximum two levels of nesting. If
+   more is needed, the system likely needs to be decomposed into
+   subsystems, not into deeper contexts.
 
+### Inheritance Rules in Nested Contexts (resolved March 12, 2026)
 
-1. **Ámbito cerrado**: Un contexto hijo solo puede transicionar a su
+> Decision documented in `2026-03-12-02-decisiones-pendientes-claude.md`
+> (Sonnet) and `2026-03-12-03-decisiones-pendientes-opus.md` (Opus).
 
-   padre o a un hermano del mismo nivel. No puede saltar directamente
+**Rule H1: Implicit role inheritance.**
+A child context automatically inherits all roles from the parent with their
+type bindings. `EditandoTarea` says nothing about `pestaña_frecuentes`,
+so it inherits the `ignored` from `ModoEdicion`. It cannot change the type
+binding of an inherited role.
 
-   a un contexto de otro padre. `EditandoTarea` no puede ir a
+**Rule H2: Local roles.**
+A child context can declare new roles that do not exist in the parent.
+These roles are local: they only exist in that child and its own children.
+They are not visible from the parent or from sibling contexts.
 
-   `ModoNormal` — debe pasar por `ModoEdicion`.
+**Rule H3: Completeness by level.**
+The Completeness Rule is applied independently at each nesting level.
+A local role of `EditandoTarea` does not need to appear in
+`EditandoActividad` or in `ModoEdicion`. Inherited roles keep
+the parent's handler unless explicitly overridden.
 
-
-
-2. **Verificación independiente**: Cada contexto anidado es verificable
-
-   por sí mismo. Las reglas se aplican dentro de su ámbito.
-
-
-
-3. **Profundidad limitada**: Máximo dos niveles de anidamiento. Si se
-
-   necesita más, el sistema probablemente necesita descomponerse en
-
-   subsistemas, no en contextos más profundos.
-
-
-
-### Reglas de herencia en contextos anidados (resuelto 12 marzo 2026)
-
-
-
-> Decisión documentada en `2026-03-12-02-decisiones-pendientes-claude.md`
-
-> (Sonnet) y `2026-03-12-03-decisiones-pendientes-opus.md` (Opus).
-
-
-
-**Regla H1: Herencia implícita de roles.**
-
-Un contexto hijo hereda automáticamente todos los roles del padre con sus
-
-vínculos de tipo. `EditandoTarea` no dice nada sobre `pestaña_frecuentes`,
-
-así que hereda el `ignored` de `ModoEdicion`. No puede cambiar el vínculo
-
-de tipo de un rol heredado.
-
-
-
-**Regla H2: Roles locales.**
-
-Un contexto hijo puede declarar roles nuevos que no existen en el padre.
-
-Estos roles son locales: solo existen en ese hijo y sus propios hijos.
-
-No son visibles desde el padre ni desde contextos hermanos.
-
-
-
-**Regla H3: Completitud por niveles.**
-
-La Regla de Completitud se aplica de forma independiente en cada nivel
-
-de anidamiento. Un rol local de `EditandoTarea` no tiene que aparecer en
-
-`EditandoActividad` ni en `ModoEdicion`. Los roles heredados mantienen
-
-el handler del padre salvo sobrescritura explícita.
-
-
-
-**Regla H4: Sobrescritura explícita.**
-
-Si un hijo quiere cambiar el handler de un rol heredado, debe re-declarar
-
-el rol completo con sus nuevos handlers. No se puede "mencionar" un rol
-
-sin handlers — sería ambiguo. El verificador emite una nota informativa
-
-cuando detecta una sobrescritura:
-
-
+**Rule H4: Explicit override.**
+If a child wants to change the handler of an inherited role, it must
+re-declare the full role with its new handlers. A role cannot be
+"mentioned" without handlers — that would be ambiguous. The verifier emits
+an informational note when it detects an override:
 
 ```
 
-NOTA [herencia]: EditandoTarea sobrescribe pestaña_frecuentes.tap
+NOTE [inheritance]: EditandoTarea overrides pestaña_frecuentes.tap
 
-                 (padre: ignored â†’ hijo: mostrarAyudaEdicion)
+                    (parent: ignored → child: mostrarAyudaEdicion)
 
 ```
 
-
-
-**Regla H5: Prohibición de eventos nuevos en roles heredados.**
-
-Un hijo no puede añadir handlers para eventos que el padre no declaró
-
-en un rol heredado. Si `pestaña_frecuentes` responde solo a `tap` en el
-
-padre, el hijo no puede añadirle `doble_tap`. Esto mantiene estable el
-
-catálogo de eventos por rol en toda la jerarquía. La alternativa es
-
-declarar un rol local con el mismo tipo de dato:
-
-
+**Rule H5: Prohibition of new events on inherited roles.**
+A child cannot add handlers for events that the parent did not declare
+on an inherited role. If `pestaña_frecuentes` responds only to `tap` in the
+parent, the child cannot add `doble_tap`. This keeps the event catalog per role stable
+throughout the hierarchy. The alternative is
+to declare a local role with the same data type:
 
 ```
 
 context EditandoTarea:
 
-    -- pestaña_frecuentes se hereda con on tap -> ignored
+    -- pestaña_frecuentes is inherited with on tap -> ignored
 
 
 
-    role pestana_edicion: Pestaña        -- rol local, mismo tipo
+    role pestana_edicion: Pestaña        -- local role, same type
 
         on doble_tap -> mostrarOpciones
 
@@ -1584,31 +1125,17 @@ context EditandoTarea:
 
 ```
 
+**Sibling independence.**
+Local roles of a sibling context do not obligate the other. If
+`EditandoTarea` and `EditandoActividad` both declare `campo_nombre:
+CampoTexto`, they are independent local roles. The Completeness Rule
+does not cross between siblings.
 
+### Inspection: Expanded View
 
-**Independencia entre hermanos.**
-
-Roles locales de un contexto hermano no obligan al otro. Si
-
-`EditandoTarea` y `EditandoActividad` declaran ambos `campo_nombre:
-
-CampoTexto`, son roles locales independientes. La Regla de Completitud
-
-no cruza entre hermanos.
-
-
-
-### Inspección: vista expandida
-
-
-
-El CLI incluye un comando de inspección que muestra la vista expandida
-
-de cualquier contexto, haciendo visible la herencia sin forzar al autor
-
-a repetirla en el código fuente:
-
-
+The CLI includes an inspect command that shows the expanded view
+of any context, making inheritance visible without forcing the author
+to repeat it in the source code:
 
 ```
 
@@ -1616,15 +1143,13 @@ trenza inspect contexts/ModoEdicion/EditandoTarea.trz
 
 ```
 
-
-
 ```
 
-context EditandoTarea (hijo de ModoEdicion):
+context EditandoTarea (child of ModoEdicion):
 
 
 
-  [heredado] role pestaña_frecuentes: Pestaña
+  [inherited] role pestaña_frecuentes: Pestaña
 
       on tap -> ignored
 
@@ -1656,139 +1181,104 @@ context EditandoTarea (hijo de ModoEdicion):
 
 
 
-## Formato de archivo y paquetes
+## File Format and Packages
 
 
 
-### Extensión
+### Extension
 
+The `.hlx` extension is taken (HLX Deterministic Language, Line 6 Trenza presets,
+Adobe AEM namespace). The chosen extension is **`.trz`**
+for individual source files.
 
+### Structure: One File Per Context
 
-La extensión `.hlx` está ocupada (HLX Deterministic Language, presets de
+Each context lives in its own `.trz` file. This allows:
 
-Line 6 Trenza, namespace de Adobe AEM). La extensión elegida es **`.trz`**
+- **Incremental generation**: when a context is modified, only
+  its artifacts are regenerated.
+- **Parallel work**: different developers (or LLMs) can
+  work on different contexts without conflicts.
+- **Partial verification**: a single context can be verified without
+  processing the entire system.
 
-para archivos fuente individuales.
+### Package: Self-Contained ZIP File
 
-
-
-### Estructura: un archivo por contexto
-
-
-
-Cada contexto vive en su propio archivo `.trz`. Esto permite:
-
-
-
-- **Generación incremental**: al modificar un contexto, solo se
-
-  regeneran sus artefactos.
-
-- **Trabajo paralelo**: distintos desarrolladores (o LLMs) pueden
-
-  trabajar en contextos distintos sin conflictos.
-
-- **Verificación parcial**: se puede verificar un solo contexto sin
-
-  procesar el sistema completo.
-
-
-
-### Paquete: archivo ZIP autocontenido
-
-
-
-Inspirado en formatos como .3mf, .epub y .docx, un sistema trenza
-
-completo se empaqueta como un archivo ZIP con extensión `.tzp`:
-
-
+Inspired by formats such as .3mf, .epub, and .docx, a complete Trenza
+system is packaged as a ZIP file with the `.tzp` extension:
 
 ```
 
 cronometro-psp.tzp  (ZIP)
 
-â”‚
+│
 
-â”œâ”€â”€ mimetype                          -- "application/trenza-dsl" (sin comprimir)
+├── mimetype                          -- "application/trenza-dsl" (uncompressed)
 
-â”œâ”€â”€ manifest.json                     -- mapa de partes, checksums, versión
+├── manifest.json                     -- parts map, checksums, version
 
-â”‚
+│
 
-â”œâ”€â”€ system.trz                      -- declaración del sistema (punto de entrada)
+├── system.trz                      -- system declaration (entry point)
 
-â”œâ”€â”€ data.trz                        -- declaraciones de datos
+├── data.trz                        -- data declarations
 
-â”‚
+│
 
-â”œâ”€â”€ contexts/
+├── contexts/
 
-â”‚   â”œâ”€â”€ ModoNormal.trz              -- un archivo por contexto
+│   ├── ModoNormal.trz              -- one file per context
 
-â”‚   â”œâ”€â”€ ModoEdicion.trz
+│   ├── ModoEdicion.trz
 
-â”‚   â””â”€â”€ ModoEdicion/
+│   └── ModoEdicion/
 
-â”‚       â”œâ”€â”€ EditandoTarea.trz       -- contextos anidados
+│       ├── EditandoTarea.trz       -- nested contexts
 
-â”‚       â””â”€â”€ EditandoActividad.trz
+│       └── EditandoActividad.trz
 
-â”‚
+│
 
-â”œâ”€â”€ external/
+├── external/
 
-â”‚   â””â”€â”€ cronometro_api.trz          -- módulos external
+│   └── cronometro_api.trz          -- external modules
 
-â”‚
+│
 
-â”œâ”€â”€ generated/
+├── generated/
 
-â”‚   â”œâ”€â”€ impl/
+│   ├── impl/
 
-â”‚   â”‚   â””â”€â”€ cronometro_psp.rs         -- hebra 1: implementación Rust
+│   │   └── cronometro_psp.rs         -- strand 1: Rust implementation
 
-â”‚   â”œâ”€â”€ tests/
+│   ├── tests/
 
-â”‚   â”‚   â””â”€â”€ cronometro_psp_test.rs    -- hebra 2: tests Rust
+│   │   └── cronometro_psp_test.rs    -- strand 2: Rust tests
 
-â”‚   â””â”€â”€ schematics/
+│   └── schematics/
 
-â”‚       â””â”€â”€ system.mermaid            -- hebra 3: esquemático
+│       └── system.mermaid            -- strand 3: schematics
 
-â”‚
+│
 
-â””â”€â”€ verification/
+└── verification/
 
-    â””â”€â”€ report.json                   -- resultado de las 5 reglas
+    └── report.json                   -- result of the 5 rules
 
 ```
 
+The `manifest.json` contains checksums for each file. When a
+context is modified, the tool compares checksums to regenerate only the
+affected artifacts.
 
-
-El `manifest.json` contiene checksums de cada archivo. Al modificar un
-
-contexto, la herramienta compara checksums para regenerar solo los
-
-artefactos afectados.
-
-
-
-La estructura de directorios refleja la jerarquía de contextos:
-
-`contexts/ModoEdicion/EditandoTarea.trz` es hijo de
-
+The directory structure reflects the context hierarchy:
+`contexts/ModoEdicion/EditandoTarea.trz` is a child of
 `contexts/ModoEdicion.trz`.
 
-
-
-Este formato encarna el principio de Cohen: el paquete contiene
-
-especificación, implementación, tests, esquemático y verificación.
-
-Un solo archivo `.tzp` se copia, se versiona y se despliega
-
-como una unidad.
+This format embodies Cohen's principle: the package contains
+specification, implementation, tests, schematics, and verification.
+A single `.tzp` file is copied, versioned, and deployed
+as a unit.
 
 
 
@@ -1796,35 +1286,25 @@ como una unidad.
 
 
 
-## Herramienta de verificación: CLI
+## Verification Tool: CLI
 
-
-
-La herramienta de verificación es un CLI — la interfaz mínima sobre
-
-la que se construye todo lo demás:
-
-
+The verification tool is a CLI — the minimal interface on top of
+which everything else is built:
 
 ```
 
-trenza verify ModoEdicion.trz       -- verifica un contexto
+trenza verify ModoEdicion.trz       -- verifies a single context
 
-trenza verify cronometro.tzp     -- verifica el sistema completo
+trenza verify cronometro.tzp     -- verifies the complete system
 
-trenza generate cronometro.tzp   -- genera las tres hebras
+trenza generate cronometro.tzp   -- generates the three strands
 
-trenza check cronometro.tzp      -- verifica + genera + ejecuta tests
+trenza check cronometro.tzp      -- verify + generate + run tests
 
 ```
 
-
-
-La salida del verificador usa las mismas reglas legibles documentadas
-
-en la sección de verificación:
-
-
+The verifier output uses the same readable rules documented
+in the verification section:
 
 ```
 
@@ -1832,33 +1312,29 @@ $ trenza verify cronometro.tzp
 
 
 
-  completitud ............ OK
+  completeness ........... OK
 
-  determinismo ........... OK
+  determinism ............ OK
 
-  alcanzabilidad ......... OK
+  reachability ........... OK
 
-  retorno ................ OK
+  return ................. OK
 
-  exhaustividad .......... OK
+  role exhaustiveness .... OK
 
-  conformidad de datos ... OK
+  data conformance ....... OK
 
 
 
-  6/6 reglas cumplidas. Sistema verificado.
+  6/6 rules passed. System verified.
 
-  Checksum del artefacto: a7f8b9...
+  Artifact checksum: a7f8b9...
 
 ```
 
-
-
-Un plugin de editor invoca el CLI por debajo. Una acción de CI/CD
-
-es el CLI en un contenedor. Si el CLI es sólido, todo lo demás
-
-viene gratis.
+An editor plugin invokes the CLI under the hood. A CI/CD action
+is the CLI in a container. If the CLI is solid, everything else
+comes for free.
 
 
 
@@ -1866,29 +1342,18 @@ viene gratis.
 
 
 
-## Decisiones tomadas
+## Decisions Made
 
-
-
-| # | Decisión | Resolución | Razonamiento |
-
-|---|----------|------------|--------------|
-
-| 1 | Compilación destino | **Rust + WASM** | `match` exhaustivo impone completitud; WASM es autocontenido; alineado con la intención de la arquitectura del proyecto |
-
-| 2 | Formato de archivo | **`.trz`** (fuente) + **`.tzp`** (paquete ZIP) | `.hlx` ocupada; un archivo por contexto; paquete autocontenido tipo .3mf |
-
-| 3 | Herramienta | **CLI primero** (`trenza verify`, `trenza generate`) | Base sobre la que se construyen plugins y CI/CD |
-
-| 4 | Generación incremental | **Por contexto**, con checksums en `manifest.json` | Consecuencia natural de un archivo por contexto |
-
-| 5 | Datos del rol | **Capa `data` separada**, roles vinculados por tipo | Evita herencia en diamante; separación DCI de estructura y comportamiento |
-
-| 6 | Lenguaje del CLI | **Python para prototipo â†’ Rust para herramienta final** | Descubrir huecos de diseño con mínima fricción; AST JSON como contrato de conformidad para la migración |
-
-| 7 | Formato del manifest | **Schema propio JSON simple** con `trenza_version`; principios OPC adoptados (mimetype + manifiesto en raíz) | OPC es XML/verboso; JSON Schema publicado solo cuando el formato estabilice |
-
-| 8 | Herencia en contextos anidados | **Implícita** (reglas H1—H5); roles locales; completitud por niveles; `trenza inspect` para vista expandida | Sub-escenas, no herencia OO; sobrescritura explícita; eventos nuevos en roles heredados prohibidos |
+| # | Decision | Resolution | Rationale |
+|---|----------|------------|-----------|
+| 1 | Compilation target | **Rust + WASM** | Exhaustive `match` enforces completeness; WASM is self-contained; aligned with the project's architectural intent |
+| 2 | File format | **`.trz`** (source) + **`.tzp`** (ZIP package) | `.hlx` is taken; one file per context; self-contained package like .3mf |
+| 3 | Tooling | **CLI first** (`trenza verify`, `trenza generate`) | Foundation on which plugins and CI/CD are built |
+| 4 | Incremental generation | **Per context**, with checksums in `manifest.json` | Natural consequence of one file per context |
+| 5 | Role data | **Separate `data` layer**, roles bound by type | Avoids diamond inheritance; DCI separation of structure and behavior |
+| 6 | CLI language | **Python for prototype → Rust for final tool** | Discover design gaps with minimal friction; JSON AST as conformance contract for migration |
+| 7 | Manifest format | **Simple custom JSON schema** with `trenza_version`; OPC principles adopted (mimetype + manifest at root) | OPC is XML/verbose; JSON Schema published only once the format stabilizes |
+| 8 | Inheritance in nested contexts | **Implicit** (rules H1–H5); local roles; completeness by level; `trenza inspect` for expanded view | Sub-scenes, not OO inheritance; explicit override; new events on inherited roles are prohibited |
 
 
 
@@ -1896,27 +1361,17 @@ viene gratis.
 
 
 
-## Respuestas a las preguntas abiertas
+## Answers to Open Questions
 
+For reference, the questions from `2026-03-04-01-concepto-inicial.md` and their current status:
 
-
-Para referencia, las preguntas de `2026-03-04-01-concepto-inicial.md` y su estado actual:
-
-
-
-| # | Pregunta | Estado |
-
+| # | Question | Status |
 |---|----------|--------|
-
-| 1 | Â¿Unidad mínima de especificación? | **Respondida**: el contexto |
-
-| 2 | Â¿Efectos secundarios? | **Respondida**: declarados con `effects`, implementados con `external` |
-
-| 3 | Â¿Compila o interpreta? | **Respondida**: compila a Rust + WASM |
-
-| 4 | Â¿Interop con código existente? | **Respondida**: módulos `external` generan traits Rust |
-
-| 5 | Â¿Composición de estados? | **Respondida**: contextos coexistentes con reglas de prioridad + anidamiento encapsulado |
+| 1 | What is the minimum unit of specification? | **Answered**: the context |
+| 2 | Side effects? | **Answered**: declared with `effects`, implemented with `external` |
+| 3 | Compiles or interprets? | **Answered**: compiles to Rust + WASM |
+| 4 | Interop with existing code? | **Answered**: `external` modules generate Rust traits |
+| 5 | State composition? | **Answered**: coexisting contexts with priority rules + encapsulated nesting |
 
 
 
@@ -1924,21 +1379,11 @@ Para referencia, las preguntas de `2026-03-04-01-concepto-inicial.md` y su estad
 
 
 
-## Decisiones pendientes
+## Pending Decisions
 
+All originally pending decisions were resolved on March 12, 2026. See decisions 6, 7, and 8 in the table above, and the contrast memos:
 
-
-Todas las decisiones pendientes originales fueron resueltas el 12 de marzo
-
-de 2026. Ver decisiones 6, 7 y 8 en la tabla anterior, y los memos de
-
-contraste:
-
-
-
-- `docs/2026-03-12-02-decisiones-pendientes-claude.md` (posición Sonnet)
-
-- `docs/2026-03-12-03-decisiones-pendientes-opus.md` (posición Opus + resolución conjunta)
-
+- `docs/2026-03-12-02-decisiones-pendientes-claude.md` (Sonnet position)
+- `docs/2026-03-12-03-decisiones-pendientes-opus.md` (Opus position + joint resolution)
 
 

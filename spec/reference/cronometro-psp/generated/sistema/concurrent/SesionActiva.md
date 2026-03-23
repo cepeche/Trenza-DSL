@@ -22,4 +22,4 @@ stateDiagram-v2
 
 | Evento | Destino |
 |--------|---------|
-| sesionFinalizada | [desactivar] |
+| sesionFinalizada | [deactivate] |

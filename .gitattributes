@@ -1,0 +1,10 @@
+# Excluir código de referencia histórica del cálculo de lenguajes de GitHub.
+# history/inspirations/ contiene el código PHP original del cronómetro-psp,
+# conservado como motivación del diseño, no como parte del proyecto.
+history/inspirations/** linguist-vendored
+
+# Los archivos .trz y .tzp son código fuente Trenza.
+# GitHub no los reconoce aún; se declaran como texto para evitar
+# detección errónea.
+*.trz linguist-language=Text
+*.tzp linguist-language=Text

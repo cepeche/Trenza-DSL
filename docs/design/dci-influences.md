@@ -1,9 +1,9 @@
-> Nota histórica: Trenza se llamó "Helix" hasta marzo de 2026. Los memos anteriores al renombramiento usan el nombre original. Ver `history/decisions/ADR-004-helix-to-trenza-rename.md` para la justificación del cambio.
+> Historical note: Trenza was called "Helix" until March 2026. Memos prior to the rename use the original name. See `history/decisions/ADR-004-helix-to-trenza-rename.md` for the rationale behind the change.
 
-# DCI y Reenskaug en Trenza
+# DCI and Reenskaug in Trenza
 
-Data, Context, and Interaction (DCI) es el manifiesto arquitectónico propuesto por Trygve Reenskaug que separa tajantemente la estructura central de dominio (Data) de los flujos de casos de uso situacionales (Context) y el comportamiento dinámico (Interaction interactivo).
+Data, Context, and Interaction (DCI) is the architectural manifesto proposed by Trygve Reenskaug that sharply separates the core domain structure (Data) from situational use-case flows (Context) and dynamic behavior (interactive Interaction).
 
-## Adaptación en Trenza
-Trenza incorpora a fuego la arquitectura DCI puro, resolviendo el clásico infierno de la Herencia en Diamante.
-En Trenza, los datos (`data`) se disocian del comportamiento en todo momento. Un dato solo es inyectado en un Contexto asumiendo un Rol fugaz. Además, se añade la flexibilidad de los `slots` que un `Context` puede requerir rellenar a nivel topológico (ADR-007).
+## Adaptation in Trenza
+Trenza bakes in pure DCI architecture, resolving the classic Diamond Inheritance hell.
+In Trenza, `data` is decoupled from behavior at all times. A datum is only injected into a Context by assuming a transient Role. Additionally, the flexibility of `slots` is added, which a `context` may require to be filled at the topological level (ADR-007).

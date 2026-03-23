@@ -1,10 +1,10 @@
-# Registro de Decisiones Arquitectónicas (ADRs)
+# Architectural Decision Records (ADRs)
 
-Este directorio contiene documentos cortos que recogen las decisiones estructurales y filosóficas sobre Trenza. Su formato es estilo *Architecture Decision Record*.
+This directory contains short documents capturing the structural and philosophical decisions about Trenza. Their format follows the *Architecture Decision Record* style.
 
-| ADR | Decisión | Estado |
+| ADR | Decision | Status |
 |-----|----------|--------|
-| ADR-001 a ADR-016 | (Pendientes de síntesis desde `history/chronicle/`) | Propuestos |
-| ADR-017 | Política de "Cuatro Hebras": Requisitos, Impl, Tests y Esquema como proyecciones inseparables. | Aprobado |
-| ADR-018 | Protocolo Trazabilidad Humano-IA: El humano es el inventor; los prompts garantizan la PI. | Aprobado |
-| ADR-019 | Anotación `@intent` para trazabilidad de intención (distinguir requisitos confirmados de andamiaje derivado). | Propuesto |
+| ADR-001 to ADR-016 | (Pending synthesis from `history/chronicle/`) | Proposed |
+| ADR-017 | "Four Strands" Policy: Requirements, Impl, Tests and Schema as inseparable projections. | Accepted |
+| ADR-018 | Human-AI Traceability Protocol: The human is the inventor; prompts guarantee IP. | Accepted |
+| ADR-019 | `@intent` annotation for intent traceability (distinguishing confirmed requirements from derived scaffolding). | Proposed |

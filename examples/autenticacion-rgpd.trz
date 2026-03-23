@@ -1,0 +1,108 @@
+-- Example: Authentication flow with structural GDPR compliance
+-- Original author: Gemini 2.5 Pro (22 March 2026)
+-- Reviewed and corrected: Claude Sonnet 4.6 (23 March 2026)
+-- Source: history/chronicle/2026-03-22/01_reto_a_Gemini.md
+--
+-- Demonstrates:
+--   - Rule 6 (data conformance): Credenciales [clasificacion: personal]
+--     can only flow to external modules with [autorizado_para: personal].
+--   - Double-submission prevention: the Autenticando context ignores all
+--     input events without a single if(loading).
+--   - forbidden as a topological tool: logout is impossible before login.
+--   - Data passing between contexts via input: + with in transitions.
+
+
+-- ─── Data layer ───────────────────────────────────────────────────────────────
+
+data Credenciales [clasificacion: personal]:
+    usuario: Texto
+    password: Texto
+
+data BotonUI:
+    id: Id
+
+data TokenSesion:
+    token: Texto
+    usuario: Texto
+
+
+-- ─── External modules ─────────────────────────────────────────────────────────
+-- [autorizado_para: personal] is required by Rule 6. Without it, the verifier
+-- rejects any flow of Credenciales to this module.
+
+external auth_api [autorizado_para: personal]:
+    action verificar_credenciales(creds: Credenciales):
+        ok -> TokenSesion
+        error -> ErrorExterno
+
+    action cerrar_sesion():
+        ok -> nulo
+        error -> ErrorExterno
+
+
+-- ─── System layer ─────────────────────────────────────────────────────────────
+
+system AutenticacionApp:
+    initial: EsperandoCredenciales
+
+
+-- ─── Context layer ────────────────────────────────────────────────────────────
+
+context EsperandoCredenciales:
+    input:
+        mutable credenciales: Credenciales    -- updated via bind as the user types
+
+    role formulario: Credenciales (bind: credenciales)
+        on submit  -> iniciarAutenticacion
+        on cambio  -> ignored    -- bind updates credenciales; no additional action needed
+
+    role boton_login: BotonUI
+        on tap -> iniciarAutenticacion
+
+    role boton_logout: BotonUI
+        on tap -> forbidden    -- topologically impossible: no session to close
+
+    transitions:
+        on iniciarAutenticacion -> Autenticando with credenciales: credenciales
+
+
+context Autenticando:
+    -- This context exists to "freeze" the UI while the server responds.
+    -- The external call happens in [on_entry]; the result determines the
+    -- next transition. Zero if(loading) conditionals.
+    input:
+        credenciales: Credenciales    -- received from EsperandoCredenciales
+
+    role formulario: Credenciales
+        on submit  -> ignored    -- prevents double network submission
+        on cambio  -> ignored
+
+    role boton_login: BotonUI
+        on tap -> ignored        -- disables the button without if(loading)
+
+    role boton_logout: BotonUI
+        on tap -> forbidden
+
+    effects:
+        [on_entry] -> verificar_credenciales(credenciales)
+
+    transitions:
+        on verificar_credenciales.ok    -> SesionActiva
+        on verificar_credenciales.error -> EsperandoCredenciales
+
+
+context SesionActiva:
+
+    role formulario: Credenciales
+        on submit  -> forbidden    -- the form no longer exists in this state
+        on cambio  -> forbidden
+
+    role boton_login: BotonUI
+        on tap -> forbidden
+
+    role boton_logout: BotonUI
+        on tap -> cerrar_sesion()    -- calls the external directly
+
+    transitions:
+        on cerrar_sesion.ok    -> EsperandoCredenciales
+        on cerrar_sesion.error -> EsperandoCredenciales    -- best-effort logout: always returns

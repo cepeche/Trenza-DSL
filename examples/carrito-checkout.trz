@@ -1,0 +1,124 @@
+-- Example: Shopping cart with concurrency bug prevention
+-- Original author: Gemini 2.5 Pro (22 March 2026)
+-- Reviewed and corrected: Claude Sonnet 4.6 (23 March 2026)
+-- Source: history/chronicle/2026-03-22/01_reto_a_Gemini.md
+--
+-- Demonstrates:
+--   - UI "freeze" during payment: ProcesandoPago ignores all cart
+--     modifications without a single if(processing).
+--   - Double-charge prevention: boton_pagar ignored while processing.
+--   - First item activating the cart: context topology, not a special event.
+--     In CarritoVacio, agregar_item.ok transitions to CarritoActivo.
+--     In CarritoActivo, the same result produces [stay]. Zero conditionals.
+
+
+-- ─── Data layer ───────────────────────────────────────────────────────────────
+
+data ProductoCatalogo:
+    id: Id
+    precio: Moneda
+
+data ProductoCarrito:
+    id: Id
+    cantidad: Entero
+
+data ElementoNavegacion:
+    id: Id
+
+data ResumenCarrito:
+    total: Moneda           -- computed by the factory when the cart is modified
+    num_items: Entero
+
+
+-- ─── External modules ─────────────────────────────────────────────────────────
+
+external pago_api:
+    action procesar_cargo(resumen: ResumenCarrito):
+        ok -> ConfirmacionPago
+        error -> ErrorExterno
+
+external carrito_api:
+    action agregar_item(id: Id):
+        ok -> ResumenCarrito    -- the API returns the updated summary
+        error -> ErrorExterno
+
+    action quitar_item(id: Id):
+        ok -> ResumenCarrito
+        error -> ErrorExterno
+
+
+-- ─── System layer ─────────────────────────────────────────────────────────────
+
+system CheckoutApp:
+    initial: CarritoVacio
+
+
+-- ─── Context layer ────────────────────────────────────────────────────────────
+
+context CarritoVacio:
+
+    role item_catalogo: ProductoCatalogo
+        on añadir -> agregar_item(self.id)
+
+    role item_carrito: ProductoCarrito
+        on eliminar -> forbidden    -- does not exist in this state
+
+    role boton_pagar: ElementoNavegacion
+        on tap -> ignored           -- silent: the cart is empty
+
+    transitions:
+        -- KEY: the same agregar_item.ok transitions to CarritoActivo here,
+        -- and produces [stay] in CarritoActivo. The topology does the work
+        -- of if(cart.isEmpty()). Zero ifs.
+        on agregar_item.ok    -> CarritoActivo with resumen: agregar_item.ok
+        on agregar_item.error -> [stay]
+
+
+context CarritoActivo:
+    input:
+        mutable resumen: ResumenCarrito    -- received and updated on each operation
+
+    role item_catalogo: ProductoCatalogo
+        on añadir -> agregar_item(self.id)
+
+    role item_carrito: ProductoCarrito
+        on eliminar -> quitar_item(self.id)
+
+    role boton_pagar: ElementoNavegacion
+        on tap -> procesar_cargo(resumen)
+
+    effects:
+        [on agregar_item.ok(r)]  -> resumen.asignar(r)
+        [on quitar_item.ok(r)]   -> resumen.asignar(r)
+
+    transitions:
+        on agregar_item.ok    -> [stay]
+        on agregar_item.error -> [stay]
+        on quitar_item.ok     -> CarritoVacio when resumen.num_items == 0
+        on quitar_item.ok     -> [stay]       when resumen.num_items > 0
+        on quitar_item.error  -> [stay]
+        on procesar_cargo     -> ProcesandoPago with resumen: resumen
+
+
+context ProcesandoPago:
+    input:
+        resumen: ResumenCarrito    -- received from CarritoActivo; immutable in transit
+
+    -- This context "freezes" the UI: no modification is possible while
+    -- the charge is being processed. Zero conditionals. Pure topology.
+
+    role item_catalogo: ProductoCatalogo
+        on añadir -> ignored        -- cannot add items mid-payment
+
+    role item_carrito: ProductoCarrito
+        on eliminar -> ignored      -- cannot modify the total in flight
+
+    role boton_pagar: ElementoNavegacion
+        on tap -> ignored           -- prevents the dreaded double charge on the card
+
+    effects:
+        [on_entry] -> procesar_cargo(resumen)
+
+    transitions:
+        on procesar_cargo.ok    -> CarritoVacio
+        on procesar_cargo.error -> CarritoActivo with resumen: resumen

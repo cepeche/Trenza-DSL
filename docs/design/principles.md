@@ -1,8 +1,8 @@
-> Nota histórica: Trenza se llamó "Helix" hasta marzo de 2026. Los memos anteriores al renombramiento usan el nombre original. Ver `history/decisions/ADR-004-helix-to-trenza-rename.md` para la justificación del cambio.
+> Historical note: Trenza was called "Helix" until March 2026. Memos prior to the rename use the original name. See `history/decisions/ADR-004-helix-to-trenza-rename.md` for the rationale behind the change.
 
-# Los Principios Rectores de Trenza
+# Trenza's Guiding Principles
 
-1. **La Trenza**: La especificación es el lenguaje, no un mero diagrama. Cada requisito se expande estructuralmente en 4 hebras inseparables (implementación, tests, esquemas y requisitos inferidos).
-2. **Métodos Factoría**: El control de flujo y los condicionales confusos de una aplicación clásica quedan relegados a factorías formales de tipo State Machine.
-3. **Flujos de Estado Explícitos**: Las transiciones son modeladas estáticamente; los "booleanos bandera" y el estado fragmentado quedan extirpados del root space.
-4. **Verificabilidad Formal**: Trenza impone reglas nativas legibles (alcanzabilidad, completitud) pero auditables mecánicamente sin requerir un trasfondo doctoral en Notación Z o TLA+.
+1. **The Braid**: The specification is the language, not a mere diagram. Every requirement expands structurally into 4 inseparable strands (implementation, tests, schemas, and inferred requirements).
+2. **Factory Methods**: The confusing control flow and conditionals of a classic application are relegated to formal State Machine factories.
+3. **Explicit State Flows**: Transitions are modeled statically; "flag booleans" and fragmented state are extirpated from the root space.
+4. **Formal Verifiability**: Trenza enforces native human-readable rules (reachability, completeness) that are mechanically auditable without requiring a doctoral background in Z Notation or TLA+.

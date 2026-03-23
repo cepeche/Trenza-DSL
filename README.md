@@ -1,34 +1,67 @@
 # Trenza DSL
 
-Un DSL (anteriormente conocido como Helix) diseñado para ser útil tanto a desarrolladores humanos como a LLMs. Está inspirado en la estructura de una **trenza** de cuatro hebras: cada fragmento de especificación genera y consolida simultáneamente su **implementación**, sus **pruebas**, su **esquemático/documentación** y sus **requisitos**, de forma que las cuatro se verifican mutuamente y nunca se desincronizan.
+A DSL (formerly known as Helix) designed to be useful to both human developers
+and LLMs. It is inspired by the structure of a **four-strand braid**: every
+specification fragment simultaneously generates and consolidates its
+**implementation**, **tests**, **schematic/documentation** and **requirements**,
+so that all four verify each other and can never fall out of sync.
 
-## Estado actual
-**Versión actual:** v0.0.1
+## Current status
 
-Esta es la primera especificación completa y validada de Trenza. Todos los documentos iniciales de diseño han sido consolidados y reestructurados jerárquicamente para asentar las bases del desarrollo.
+**Current version:** v0.0.1
 
-## Origen
+This is the first complete and validated specification of Trenza. All initial
+design documents have been consolidated and hierarchically restructured to lay
+the foundations for development.
 
-Conversación entre un desarrollador con experiencia desde 1975 y Claude (Sonnet 4.6), el 4 de marzo de 2026, a raíz de la dificultad para diagnosticar un bug de eventos touch/click en una aplicación web. Se observó que:
+## Origin
 
-- La complejidad accidental del software moderno dificulta el diagnóstico incluso para LLMs con acceso completo al código fuente.
-- Los condicionales dispersos (`if modoEdicion`) son un vector de bugs estructural.
-- Los lenguajes actuales no expresan explícitamente los flujos de estado ni las guardas, obligando al lector (humano o LLM) a reconstruir mentalmente la ejecución.
+A conversation between a developer with experience since 1975 and Claude
+(Sonnet 4.6), on 4 March 2026, prompted by the difficulty of diagnosing a
+touch/click event bug in a web application. Three observations emerged:
 
-## Hipótesis de diseño
+- The accidental complexity of modern software makes diagnosis difficult even
+  for LLMs with full access to the source code.
+- Scattered conditionals (`if editMode`) are a structural bug vector.
+- Current languages do not explicitly express state flows or guards, forcing
+  the reader (human or LLM) to mentally reconstruct execution.
 
-1. **La Trenza**: la especificación de un requisito genera *cuatro artefactos complementarios* (las "cuatro hebras") — implementación, test, esquemático y **requisitos** — que son proyecciones unificadas del mismo artefacto raíz estricto.
-2. **Condicionales en factorías**: todo el código condicional vive en métodos factoría. El resto del código es polimórfico y no sabe en qué estado está el sistema; solo envía mensajes. Esto hace imposible olvidar un caso.
-3. **Flujos de estado explícitos**: las transiciones entre estados y los eventos de su ciclo de vida son ciudadanos de primera clase del lenguaje, no lógica implícita dispersa en funciones.
-4. **Verificabilidad formal**: la semántica del DSL debe ser lo suficientemente restringida para permitir razonamiento formal, no solo ejecución.
+## Design hypotheses
 
-## Estructura del proyecto
+1. **The Braid**: the specification of a requirement generates *four complementary
+   artefacts* (the "four strands") — implementation, tests, schematic and
+   **requirements** — which are unified projections of the same strict root
+   artefact.
+2. **Conditionals in factories**: all conditional code lives in factory methods.
+   The rest of the code is polymorphic and does not know what state the system
+   is in; it only sends messages. This makes it impossible to forget a case.
+3. **Explicit state flows**: transitions between states and their lifecycle
+   events are first-class citizens of the language, not implicit logic scattered
+   across functions.
+4. **Formal verifiability**: the DSL semantics must be sufficiently constrained
+   to allow formal reasoning, not just execution.
 
-Tras la consolidación v0.0.0, la documentación y especificación se divide en:
+## Project structure
 
-- `spec/language/` — Especificación formal del lenguaje (Gramática, Intenciones, etc.)
-- `spec/reference/` — Implementaciones y ejemplos de referencia (ej. proyecto cronómetro)
-- `docs/manual/` — Manuales de usuario y guías rápidas
-- `history/chronicle/` — Registro cronológico de la evolución y diseño (incluyendo las conversaciones fundacionales)
-- `history/meta/` — Reflexiones metafísicas y directrices de propiedad intelectual
+Following the v0.0.0 consolidation, documentation and specification are divided
+into:
+
+- `spec/language/` — Formal language specification (grammar, verification, etc.)
+- `spec/reference/` — Reference implementations and examples (e.g. the
+  cronómetro-psp project)
+- `docs/manual/` — User manuals and quick-start guides
+- `docs/design/` — Design rationale documents
+- `examples/` — Canonical `.trz` source examples
+- `history/chronicle/` — Chronological record of the design evolution
+  (including the foundational conversations), kept in Spanish
 - `history/decisions/` — Architectural Decision Records (ADRs)
+- `history/meta/` — Intellectual property guidelines and meta-reflections
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+Dual license: AGPL-3.0 with a commercial option for AI model providers.
+See [LICENSE](LICENSE) for details.

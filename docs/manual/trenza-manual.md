@@ -1,69 +1,65 @@
-# Manual de usuario de Trenza DSL
+# Trenza DSL User Manual
 
-**Versión**: Primera Especificación Estable
-**Fecha**: 20 de marzo de 2026
-**Autores**: Claude Opus 4.6, con material de Claude Sonnet 4.6 y Gemini
-
----
-
-## 1. Qué es Trenza
-
-Trenza es un lenguaje de dominio específico (DSL) diseñado para especificar
-sistemas interactivos de forma verificable. A partir de una especificación
-Trenza, el compilador genera tres artefactos — implementación, tests y
-esquemático — que no pueden desincronizarse.
-
-Trenza no reemplaza todo el código de una aplicación. Gobierna la lógica
-de estados, eventos y transiciones, delegando los efectos secundarios
-(llamadas API, DOM, etc.) a código convencional.
-
-### 1.1 Para quién es
-
-Trenza está diseñado para dos tipos de usuario:
-
-- **Desarrolladores humanos** que necesitan razonar sobre flujos de estado
-  complejos sin dispersar la lógica en decenas de archivos.
-- **LLMs** que generan código: al co-generar implementación y tests desde
-  la misma especificación, un LLM no puede "olvidar" un caso porque el
-  test es el reverso algebraico de la implementación.
-
-### 1.2 El problema que resuelve
-
-En una aplicación event-driven moderna, un estado como "modo edición"
-suele expresarse como un booleano (`if (modoEdicion)`) disperso en
-múltiples archivos. Olvidar un guard en un listener produce un bug
-silencioso.
-
-En Trenza, "modo edición" es un **contexto** — un objeto con roles,
-eventos y transiciones declaradas. Si un evento no tiene manejador en
-ese contexto, el verificador lo reporta en tiempo de compilación. El
-olvido es imposible.
-
-### 1.3 Extensiones de archivo
-
-| Extensión | Contenido |
-|-----------|-----------|
-| `.trz` | Archivo fuente Trenza |
-| `.tzp` | Paquete verificable (ZIP autocontenido) |
+**Version**: First Stable Specification
+**Date**: March 20, 2026
+**Authors**: Claude Opus 4.6, with material from Claude Sonnet 4.6 and Gemini
 
 ---
 
-## 2. Conceptos fundamentales
+## 1. What Is Trenza
 
-Trenza se basa en la separación DCI (Data, Context, Interaction) de
-Trygve Reenskaug:
+Trenza is a domain-specific language (DSL) designed to specify interactive systems
+in a verifiable way. From a Trenza specification, the compiler generates three
+artifacts — implementation, tests, and schematics — that cannot fall out of sync.
 
-| Capa | Pregunta que responde | Dónde vive |
-|------|----------------------|------------|
-| **Data** | "¿Qué es esto?" | `data.trz` |
-| **Context** | "¿Qué caso de uso está activo?" | `contexts/*.trz` |
-| **Interaction** | "¿Qué hace esto aquí?" | Handlers de rol dentro del contexto |
+Trenza does not replace all code in an application. It governs state logic,
+events, and transitions, delegating side effects (API calls, DOM operations, etc.)
+to conventional code.
 
-### 2.1 Data: estructura sin comportamiento
+### 1.1 Who It Is For
 
-Un dato es lo que algo *es*. No tiene métodos ni comportamiento. Una
-`Tarea` es una `Tarea` independientemente de si el sistema está en
-modo normal o modo edición.
+Trenza is designed for two types of user:
+
+- **Human developers** who need to reason about complex state flows without
+  scattering logic across dozens of files.
+- **LLMs** generating code: by co-generating implementation and tests from the
+  same specification, an LLM cannot "forget" a case because the test is the
+  algebraic inverse of the implementation.
+
+### 1.2 The Problem It Solves
+
+In a modern event-driven application, a state like "edit mode" is typically
+expressed as a boolean (`if (modoEdicion)`) scattered across multiple files.
+Forgetting a guard in a listener produces a silent bug.
+
+In Trenza, "edit mode" is a **context** — an object with declared roles,
+events, and transitions. If an event has no handler in that context, the verifier
+reports it at compile time. Forgetting is impossible.
+
+### 1.3 File Extensions
+
+| Extension | Content |
+|-----------|---------|
+| `.trz` | Trenza source file |
+| `.tzp` | Verifiable package (self-contained ZIP) |
+
+---
+
+## 2. Core Concepts
+
+Trenza is based on Trygve Reenskaug's DCI (Data, Context, Interaction) separation:
+
+| Layer | Question it answers | Where it lives |
+|-------|---------------------|----------------|
+| **Data** | "What is this?" | `data.trz` |
+| **Context** | "What use case is active?" | `contexts/*.trz` |
+| **Interaction** | "What does this do here?" | Role handlers inside the context |
+
+### 2.1 Data: Structure Without Behavior
+
+Data is what something *is*. It has no methods or behavior. A
+`Tarea` is a `Tarea` regardless of whether the system is in
+normal mode or edit mode.
 
 ```trenza
 data Tarea:
@@ -72,11 +68,11 @@ data Tarea:
     mutable estado: Texto
 ```
 
-Los campos son inmutables por defecto. El modificador `mutable` marca
-explícitamente los campos que pueden cambiar.
+Fields are immutable by default. The `mutable` modifier explicitly marks
+fields that can change.
 
-La anotación opcional `[clasificacion:]` permite al verificador aplicar
-reglas de conformidad de datos (RGPD Art. 25):
+The optional `[clasificacion:]` annotation allows the verifier to apply
+data compliance rules (GDPR Art. 25):
 
 ```trenza
 data DatosSesion [clasificacion: personal]:
@@ -84,52 +80,52 @@ data DatosSesion [clasificacion: personal]:
     inicio: Timestamp
 ```
 
-### 2.2 Context: el caso de uso activo
+### 2.2 Context: The Active Use Case
 
-Un contexto es la unidad mínima de especificación. Es autocontenido
-y verificable por sí mismo. Contiene:
+A context is the minimum unit of specification. It is self-contained
+and verifiable on its own. It contains:
 
-- **Roles**: actores que participan en el caso de uso.
-- **Eventos**: lo que puede ocurrir.
-- **Acciones**: lo que resulta de cada evento.
-- **Transiciones**: cambios a otros contextos.
-- **Efectos**: acciones de dominio al activar/desactivar.
+- **Roles**: actors that participate in the use case.
+- **Events**: what can happen.
+- **Actions**: what results from each event.
+- **Transitions**: changes to other contexts.
+- **Effects**: domain actions upon activation/deactivation.
 
-Hay tres tipos de contexto:
+There are three types of context:
 
-| Tipo | Declaración | Comportamiento |
-|------|-------------|----------------|
-| **Base** | `contexts:` | Mutuamente exclusivos. Exactamente uno activo. |
-| **Overlay** | `overlays:` | Se apilan sobre el base sin reemplazarlo. |
-| **Concurrent** | `concurrent:` | Coexisten con el base. Se activan/desactivan independientemente. |
+| Type | Declaration | Behavior |
+|------|-------------|----------|
+| **Base** | `contexts:` | Mutually exclusive. Exactly one active at a time. |
+| **Overlay** | `overlays:` | Stack on top of the base without replacing it. |
+| **Concurrent** | `concurrent:` | Coexist with the base. Activated/deactivated independently. |
 
-### 2.3 Role: lo que algo hace aquí
+### 2.3 Role: What Something Does Here
 
-Un rol vincula un dato a un comportamiento dentro de un contexto. El
-mismo dato puede tener roles distintos en contextos distintos:
+A role binds a data type to behavior within a context. The
+same data type can have different roles in different contexts:
 
 ```trenza
--- En ModoNormal: tocar una tarjeta selecciona el tipo
+-- In ModoNormal: tapping a card selects the type
 context ModoNormal:
     role tipo_tarea: TipoTarea
         on tap -> seleccionarTipo(self.tipoId)
 
--- En ModoEdicion: tocar la misma tarjeta abre el editor
+-- In ModoEdicion: tapping the same card opens the editor
 context ModoEdicion:
     role tipo_tarea: TipoTarea
         on tap -> mostrarModalEditar(self.tipoId)
 ```
 
-La tarjeta no "sabe" en qué modo está. El contexto le asigna su
-comportamiento.
+The card does not "know" which mode it is in. The context assigns its
+behavior.
 
 ---
 
-## 3. Estructura de un sistema
+## 3. System Structure
 
-### 3.1 Archivo del sistema (`system.trz`)
+### 3.1 System File (`system.trz`)
 
-Todo sistema Trenza tiene un archivo raíz que declara la topología:
+Every Trenza system has a root file that declares the topology:
 
 ```trenza
 system CronometroPSP:
@@ -149,11 +145,11 @@ system CronometroPSP:
         MenuConfiguracion
 ```
 
-`initial:` declara el contexto base activo al arrancar el sistema.
+`initial:` declares the base context active at system startup.
 
-### 3.2 Archivo de datos (`data.trz`)
+### 3.2 Data File (`data.trz`)
 
-Todos los tipos de dato se declaran en un archivo separado:
+All data types are declared in a separate file:
 
 ```trenza
 data TipoTarea:
@@ -171,27 +167,27 @@ data Comentario:
     mutable sustituir: Booleano
 ```
 
-### 3.3 Un archivo por contexto (`contexts/*.trz`)
+### 3.3 One File Per Context (`contexts/*.trz`)
 
-Cada contexto vive en su propio archivo. La estructura de directorios
-refleja la jerarquía:
+Each context lives in its own file. The directory structure
+reflects the hierarchy:
 
 ```
 contexts/
 ├── ModoNormal.trz
 ├── ModoEdicion.trz
 ├── ModoEdicion/
-│   ├── EditandoTarea.trz       -- contexto hijo
+│   ├── EditandoTarea.trz       -- child context
 │   └── EditandoActividad.trz
 ├── SesionActiva.trz
 ├── ModalComentario.trz
 └── MenuConfiguracion.trz
 ```
 
-### 3.4 Módulos externos (`external/*.trz`)
+### 3.4 External Modules (`external/*.trz`)
 
-Las acciones que interactúan con el exterior se declaran en módulos
-externos:
+Actions that interact with the outside world are declared in
+external modules:
 
 ```trenza
 external cronometro_api:
@@ -204,61 +200,61 @@ external cronometro_api:
         error -> ErrorExterno
 ```
 
-Toda acción externa debe declarar sus ramas de resultado (`.ok` y
-`.error`). El verificador exige que todo contexto que invoque una
-acción externa maneje ambas ramas.
+Every external action must declare its result branches (`.ok` and
+`.error`). The verifier requires that every context invoking an
+external action handles both branches.
 
-El tipo `ErrorExterno` es un tipo estándar:
+The `ErrorExterno` type is a standard type:
 
 ```trenza
 data ErrorExterno:
     codigo: Texto          -- "red_timeout", "validacion", "no_autorizado"
-    mensaje: Texto         -- legible por humanos
-    recuperable: Booleano  -- ¿tiene sentido reintentar?
+    mensaje: Texto         -- human-readable
+    recuperable: Booleano  -- does retrying make sense?
 ```
 
 ---
 
-## 4. Anatomía de un contexto
+## 4. Anatomy of a Context
 
-Un contexto completo puede incluir hasta seis secciones:
+A complete context can include up to six sections:
 
 ```trenza
 context NombreDelContexto:
 
-    -- 1. Datos de entrada (opcionales)
+    -- 1. Input data (optional)
     input:
         dato_requerido: Tipo
         mutable dato_editable: Tipo
 
-    -- 2. Roles con vínculos de datos
+    -- 2. Roles with data bindings
     role nombre_rol: TipoDato (bind: dato_requerido.campo)
         on evento -> accion
         on otro_evento -> ignored
 
-    -- 3. Slots de extensión (solo en overlays)
+    -- 3. Extension slots (overlays only)
     slot nombre_slot
 
-    -- 4. Efectos de dominio
+    -- 4. Domain effects
     effects:
         [on_entry] -> accion_al_entrar()
         [on_exit]  -> accion_al_salir()
 
-    -- 5. Transiciones
+    -- 5. Transitions
     transitions:
         on evento_resultado -> OtroContexto
         on cancelar -> [close_overlay]
 
-    -- 6. Contribuciones a otros contextos (solo en concurrents)
+    -- 6. Contributions to other contexts (concurrent only)
     fills OtroContexto.nombre_slot:
         role rol_inyectado: Tipo
             on evento -> accion
 ```
 
-### 4.1 `input:` — datos de entrada
+### 4.1 `input:` — Input Data
 
-Declara los datos que el contexto necesita para existir. Cuando un
-contexto se activa, el invocador debe proporcionar estos datos:
+Declares the data the context needs in order to exist. When a
+context is activated, the caller must supply this data:
 
 ```trenza
 context ModalEditarActividad:
@@ -266,13 +262,13 @@ context ModalEditarActividad:
         mutable actividad_en_edicion: Actividad
 ```
 
-El verificador comprueba que el invocador proporciona todos los campos
-requeridos con tipos compatibles.
+The verifier checks that the caller supplies all required fields
+with compatible types.
 
-### 4.2 `role` — roles con eventos
+### 4.2 `role` — Roles With Events
 
-Un rol vincula un tipo de dato a un comportamiento. Cada evento de un
-rol produce exactamente una acción:
+A role binds a data type to behavior. Each event in a
+role produces exactly one action:
 
 ```trenza
 role boton_guardar: Boton
@@ -280,21 +276,21 @@ role boton_guardar: Boton
     on tap -> ignored when actividad.nombre == ""
 ```
 
-#### Vínculos de datos con `bind:`
+#### Data Bindings With `bind:`
 
-Un rol puede vincularse declarativamente a un campo del modelo:
+A role can be declaratively bound to a field of the model:
 
 ```trenza
 role campo_nombre: CampoTexto (bind: actividad_en_edicion.nombre)
 role selector_color: SelectorColor (bind: actividad_en_edicion.color)
 ```
 
-`bind:` establece un vínculo Modelo → Rol. El verificador comprueba
-que el campo existe en `data.trz` y que el tipo es compatible.
+`bind:` establishes a Model → Role binding. The verifier checks
+that the field exists in `data.trz` and that the type is compatible.
 
-#### Guardas pre-acción con `when`
+#### Pre-action Guards With `when`
 
-Las guardas validan condiciones antes de emitir un evento:
+Guards validate conditions before emitting an event:
 
 ```trenza
 role boton_guardar: Boton
@@ -302,24 +298,23 @@ role boton_guardar: Boton
     on tap -> ignored when actividad.nombre == ""
 ```
 
-Las guardas solo pueden evaluar el `input:` del contexto y el estado
-de sus propios roles.
+Guards can only evaluate the context's `input:` and the state
+of its own roles.
 
-#### Acciones especiales
+#### Special Actions
 
-| Acción | Significado |
-|--------|-------------|
-| `ignored` | El evento está contemplado. No produce acción. |
-| `forbidden` | El evento está explícitamente prohibido. |
+| Action | Meaning |
+|--------|---------|
+| `ignored` | The event is accounted for. It produces no action. |
+| `forbidden` | The event is explicitly prohibited. |
 
-La diferencia: `ignored` es "no pasa nada" (intencional). `forbidden`
-es "esto no debería ocurrir aquí" (denegación explícita, alineada con
-el principio de mínimo privilegio).
+The difference: `ignored` means "nothing happens" (intentional). `forbidden`
+means "this should not occur here" (explicit denial, aligned with
+the principle of least privilege).
 
-### 4.3 `effects:` — efectos de dominio
+### 4.3 `effects:` — Domain Effects
 
-Los efectos son acciones que se ejecutan al activar o desactivar el
-contexto:
+Effects are actions executed when the context is activated or deactivated:
 
 ```trenza
 effects:
@@ -328,20 +323,39 @@ effects:
     [on_exit]  -> cronometro.stop()
 ```
 
-Si un `[on_entry]` necesita disparar más de un efecto, se repite el
-trigger. Cada línea se ejecuta en orden declarado. El verificador
-razona sobre cada una independientemente.
+If an `[on_entry]` needs to fire more than one effect, the trigger is
+repeated. Each line executes in declaration order. The verifier
+reasons about each one independently.
 
-Los efectos también pueden responder a resultados de acciones externas:
+Effects can also respond to results from external actions:
 
 ```trenza
 effects:
     [on guardar.error(err)] -> ultimo_error.asignar(err.mensaje)
 ```
 
-### 4.4 `transitions:` — cambios de contexto
+**Visibility scope**: arguments in `effects:` are names declared
+in the context's `input:`. `self` is not valid here — `self` only exists
+inside role handlers, where it refers to the instance of the data bound
+to the role. In `effects:`, there is no defined "self".
 
-Declaran los cambios de estado del sistema:
+```trenza
+-- INCORRECT:
+effects:
+    [on_entry] -> api.guardar(self.nombre)    -- self has no referent in effects
+
+-- CORRECT: the data comes from input:
+context ModalEditar:
+    input:
+        mutable elemento: Elemento
+
+    effects:
+        [on_entry] -> api.cargar(elemento.id)
+```
+
+### 4.4 `transitions:` — Context Changes
+
+Declare the system's state changes:
 
 ```trenza
 transitions:
@@ -351,18 +365,17 @@ transitions:
     on guardar.error -> [close_overlay] when err.recuperable == false
 ```
 
-#### Pseudo-transiciones
+#### Pseudo-transitions
 
-| Pseudo-transición | Significado |
-|--------------------|-------------|
-| `[close_overlay]` | Cierra el overlay; regresa al contexto base. |
-| `[stay]` | Permanece en el contexto actual. |
-| `[desactivar]` | Desactiva un contexto concurrent. |
+| Pseudo-transition | Meaning |
+|-------------------|---------|
+| `[close_overlay]` | Closes the overlay; returns to the base context. |
+| `[stay]` | Remains in the current context. |
+| `[deactivate]` | Deactivates a concurrent context. |
 
-#### Guardas post-resultado
+#### Post-result Guards
 
-Las transiciones pueden tener guardas que evalúan el payload del
-resultado:
+Transitions can have guards that evaluate the result payload:
 
 ```trenza
 transitions:
@@ -370,12 +383,12 @@ transitions:
     on guardar.error -> [stay] when err.recuperable == true
 ```
 
-### 4.5 `slot` y `fills` — composición entre contextos
+### 4.5 `slot` and `fills` — Composition Between Contexts
 
-Un overlay puede declarar puntos de extensión que un concurrent
-llena cuando ambos están activos:
+An overlay can declare extension points that a concurrent
+fills when both are active:
 
-**En el overlay:**
+**In the overlay:**
 
 ```trenza
 context ModalComentario:
@@ -384,13 +397,13 @@ context ModalComentario:
 
     role campo_comentario: CampoTexto (bind: comentario.texto)
 
-    slot sesion_opts  -- vacío por defecto
+    slot sesion_opts  -- empty by default
 
     transitions:
         on guardar.ok -> [close_overlay]
 ```
 
-**En el concurrent:**
+**In the concurrent:**
 
 ```trenza
 context SesionActiva:
@@ -402,15 +415,15 @@ context SesionActiva:
             [on_entry] -> sesiones_api.cargar_recientes()
 ```
 
-El bloque `fills` es un mini-contexto que puede contener `role` y
-`effects:`, pero no `input:`, `transitions:` ni `slot` anidados.
+The `fills` block is a mini-context that can contain `role` and
+`effects:`, but not `input:`, `transitions:`, or nested `slot`s.
 
 ---
 
-## 5. Contextos anidados
+## 5. Nested Contexts
 
-Los contextos pueden anidarse hasta dos niveles de profundidad para
-expresar sub-estados:
+Contexts can be nested up to two levels deep to
+express sub-states:
 
 ```trenza
 context ModoEdicion:
@@ -432,33 +445,33 @@ context ModoEdicion:
             on cancelar -> ModoEdicion
 ```
 
-### 5.1 Reglas de herencia (H1–H5)
+### 5.1 Inheritance Rules (H1–H5)
 
-**H1 — Herencia implícita**: un hijo hereda todos los roles del padre.
+**H1 — Implicit inheritance**: a child inherits all roles from the parent.
 
-**H2 — Roles locales**: un hijo puede declarar roles nuevos, invisibles
-para el padre y los hermanos.
+**H2 — Local roles**: a child can declare new roles, invisible
+to the parent and siblings.
 
-**H3 — Completitud por niveles**: la verificación se aplica por nivel.
-Un rol local de un hijo no obliga a sus hermanos.
+**H3 — Completeness by level**: verification is applied per level.
+A local role of a child does not obligate its siblings.
 
-**H4 — Sobrescritura explícita**: para cambiar un handler heredado, se
-re-declara el rol completo. El verificador emite una nota informativa.
+**H4 — Explicit override**: to change an inherited handler, the
+role is re-declared in full. The verifier emits an informational note.
 
-**H5 — Prohibición de eventos nuevos en roles heredados**: un hijo no
-puede añadir eventos a un rol heredado. Para eventos nuevos, se declara
-un rol local con el mismo tipo de dato.
+**H5 — Prohibition of new events on inherited roles**: a child cannot
+add events to an inherited role. For new events, a local role is declared
+with the same data type.
 
-### 5.2 Inspección de herencia
+### 5.2 Inheritance Inspection
 
-El CLI muestra la vista expandida de un contexto hijo:
+The CLI shows the expanded view of a child context:
 
 ```
 $ trenza inspect contexts/ModoEdicion/EditandoTarea.trz
 
-context EditandoTarea (hijo de ModoEdicion):
+context EditandoTarea (child of ModoEdicion):
 
-  [heredado] role pestaña_frecuentes: Pestaña
+  [inherited] role pestaña_frecuentes: Pestaña
       on tap -> ignored
 
   [local] role campo_nombre: CampoTexto
@@ -474,81 +487,81 @@ context EditandoTarea (hijo de ModoEdicion):
 
 ---
 
-## 6. Verificación
+## 6. Verification
 
-Trenza verifica seis propiedades formales expresadas como reglas legibles.
-Cada regla puede comprobarse por inspección, sin ejecutar código.
+Trenza verifies six formal properties expressed as readable rules.
+Each rule can be checked by inspection, without executing code.
 
-### 6.1 Las seis reglas
+### 6.1 The Six Rules
 
-**Regla 1 — Completitud**: Todo rol que maneje un evento en algún
-contexto debe manejarlo en todos los contextos del sistema.
-
-```
-ERROR [completitud]: pestaña_frecuentes.tap definido en ModoNormal
-                     pero ausente en ModoEdicion
-```
-
-**Regla 2 — Determinismo**: Cada evento de cada rol produce exactamente
-una acción en un contexto dado.
+**Rule 1 — Completeness**: Every role that handles an event in any
+context must handle it in all contexts of the system.
 
 ```
-ERROR [determinismo]: tarjeta.tap tiene dos acciones en ModoEdicion
+ERROR [completeness]: pestaña_frecuentes.tap defined in ModoNormal
+                      but absent in ModoEdicion
 ```
 
-**Regla 3 — Alcanzabilidad**: Todo contexto es alcanzable desde el
-inicial.
+**Rule 2 — Determinism**: Each event of each role produces exactly
+one action in a given context.
 
 ```
-ERROR [alcanzabilidad]: ModoMantenimiento no es alcanzable desde
-                        ModoNormal (contexto inicial)
+ERROR [determinism]: tarjeta.tap has two actions in ModoEdicion
 ```
 
-**Regla 4 — Retorno**: Todo contexto no inicial tiene un camino de
-vuelta al inicial.
-
-**Regla 5 — Exhaustividad de roles**: Todo rol declarado en el sistema
-aparece en todos los contextos.
-
-**Regla 6 — Conformidad de datos**: Ningún dato clasificado fluye a
-un módulo `external` sin autorización explícita.
+**Rule 3 — Reachability**: Every context is reachable from the
+initial one.
 
 ```
-ERROR [conformidad]: DatosSesion [clasificacion: personal] fluye hacia
-                     modulo_analytics que no declara [autorizado_para: personal]
+ERROR [reachability]: ModoMantenimiento is not reachable from
+                      ModoNormal (initial context)
 ```
 
-### 6.2 Reglas de slots (S1–S5)
+**Rule 4 — Return**: Every non-initial context has a path
+back to the initial context.
 
-Los slots introducen cinco reglas adicionales:
+**Rule 5 — Role exhaustiveness**: Every role declared in the system
+appears in all contexts.
 
-**S1 — Referencia válida**: `fills X.slot_name` es válido solo si `X`
-declara `slot slot_name`.
+**Rule 6 — Data conformance**: No classified data flows to
+an `external` module without explicit authorization.
 
-**S2 — Slot vacío es válido**: Un slot sin `fills` no es error. Es el
-caso base.
+```
+ERROR [conformance]: DatosSesion [clasificacion: personal] flows to
+                     modulo_analytics which does not declare [autorizado_para: personal]
+```
 
-**S3 — Conflicto**: Si dos concurrentes hacen `fills` sobre el mismo
-slot, el verificador exige resolución en `system.trz`.
+### 6.2 Slot Rules (S1–S5)
 
-**S4 — Completitud condicionada**: Los roles de un `fills` están sujetos
-a verificación solo dentro del ámbito `concurrent ∩ overlay`. No generan
-obligaciones en otros contextos.
+Slots introduce five additional rules:
 
-**S5 — Alcanzabilidad no aplica a roles de slot**: Los roles dentro de
-un `fills` no son contextos. Su existencia depende de que ambos contextos
-estén activos, lo cual ya está cubierto por la alcanzabilidad de cada
-uno por separado.
+**S1 — Valid reference**: `fills X.slot_name` is valid only if `X`
+declares `slot slot_name`.
+
+**S2 — Empty slot is valid**: A slot without `fills` is not an error. It is the
+base case.
+
+**S3 — Conflict**: If two concurrent contexts do `fills` on the same
+slot, the verifier requires resolution in `system.trz`.
+
+**S4 — Conditional completeness**: The roles in a `fills` block are subject
+to verification only within the `concurrent ∩ overlay` scope. They do not generate
+obligations in other contexts.
+
+**S5 — Reachability does not apply to slot roles**: Roles inside a
+`fills` block are not contexts. Their existence depends on both contexts
+being active, which is already covered by the reachability of each
+context individually.
 
 ---
 
-## 7. Generación de artefactos
+## 7. Artifact Generation
 
-Cada especificación Trenza genera tres artefactos — las tres hebras:
+Each Trenza specification generates three artifacts — the three strands:
 
-### 7.1 Hebra 1: Implementación (Rust)
+### 7.1 Strand 1: Implementation (Rust)
 
-Los contextos se traducen a un enum con `match` exhaustivo:
+Contexts are translated into an enum with an exhaustive `match`:
 
 ```rust
 pub enum Contexto {
@@ -564,36 +577,36 @@ pub fn handle_tipo_tarea_tap(ctx: &Contexto, tipo: &TipoTarea) -> Accion {
 }
 ```
 
-El `match` exhaustivo de Rust impone la misma completitud que el
-verificador de Trenza, pero a nivel de compilación del código generado.
+Rust's exhaustive `match` enforces the same completeness as the
+Trenza verifier, but at the compilation level of the generated code.
 
-El código se compila a WASM para despliegue universal.
+The code is compiled to WASM for universal deployment.
 
-### 7.2 Hebra 2: Tests
+### 7.2 Strand 2: Tests
 
-Cada pareja evento-acción produce un test por contexto:
+Each event-action pair produces one test per context:
 
 ```rust
 #[test]
-fn modo_edicion_pestaña_frecuentes_tap_ignora() {
+fn modo_edicion_pestaña_frecuentes_tap_ignores() {
     let ctx = Contexto::ModoEdicion;
     let resultado = handle_pestaña_frecuentes_tap(&ctx);
     assert_eq!(resultado, Accion::Ignorar);
 }
 ```
 
-No hay tests manuales. Si la especificación cambia, los tests cambian.
+There are no manual tests. If the specification changes, the tests change.
 
-Para overlays con slots, se generan variantes:
+For overlays with slots, variants are generated:
 
-| Variante | Qué testea |
-|----------|------------|
-| Overlay solo (slot vacío) | Comportamiento sin concurrent activo |
-| Overlay + concurrent | Comportamiento con roles inyectados |
+| Variant | What it tests |
+|---------|---------------|
+| Overlay alone (empty slot) | Behavior without an active concurrent |
+| Overlay + concurrent | Behavior with injected roles |
 
-### 7.3 Hebra 3: Esquemático (Mermaid)
+### 7.3 Strand 3: Schematics (Mermaid)
 
-Diagrama auto-generado del sistema:
+Auto-generated system diagram:
 
 ```mermaid
 stateDiagram-v2
@@ -612,15 +625,15 @@ stateDiagram-v2
     }
 ```
 
-Las tres hebras son proyecciones del mismo artefacto. Modificar una
-implica regenerar las otras dos. No pueden desincronizarse.
+The three strands are projections of the same artifact. Modifying one
+implies regenerating the other two. They cannot fall out of sync.
 
 ---
 
-## 8. Módulos externos e interoperabilidad
+## 8. External Modules and Interoperability
 
-Trenza declara la interfaz de las funciones externas; el código
-convencional las implementa:
+Trenza declares the interface of external functions; conventional
+code implements them:
 
 ```trenza
 external cronometro_api:
@@ -629,7 +642,7 @@ external cronometro_api:
         error -> ErrorExterno
 ```
 
-El generador produce un trait Rust que el código convencional implementa:
+The generator produces a Rust trait that conventional code implements:
 
 ```rust
 pub trait CronometroApi {
@@ -637,19 +650,19 @@ pub trait CronometroApi {
 }
 ```
 
-Los tests generados usan mocks. Los tests de integración (contra la
-implementación real) están fuera del alcance de Trenza.
+Generated tests use mocks. Integration tests (against the real
+implementation) are outside the scope of Trenza.
 
 ---
 
-## 9. El paquete `.tzp`
+## 9. The `.tzp` Package
 
-Un sistema Trenza completo se empaqueta como ZIP autocontenido:
+A complete Trenza system is packaged as a self-contained ZIP:
 
 ```
 cronometro-psp.tzp
 ├── mimetype                        -- "application/trenza-dsl"
-├── manifest.json                   -- checksums, versión
+├── manifest.json                   -- checksums, version
 ├── system.trz
 ├── data.trz
 ├── contexts/
@@ -662,123 +675,123 @@ cronometro-psp.tzp
 │   └── cronometro_api.trz
 ├── generated/
 │   ├── impl/
-│   │   └── cronometro_psp.rs       -- hebra 1
+│   │   └── cronometro_psp.rs       -- strand 1
 │   ├── tests/
-│   │   └── cronometro_psp_test.rs  -- hebra 2
+│   │   └── cronometro_psp_test.rs  -- strand 2
 │   └── schematics/
-│       └── system.mermaid          -- hebra 3
+│       └── system.mermaid          -- strand 3
 └── verification/
-    └── report.json                 -- resultado de verificación
+    └── report.json                 -- verification result
 ```
 
-El `manifest.json` contiene checksums de cada archivo. Permite la
-regeneración incremental: si solo cambia un contexto, solo se regeneran
-sus artefactos.
+The `manifest.json` contains checksums for each file. This enables
+incremental regeneration: if only one context changes, only its
+artifacts are regenerated.
 
-El paquete encarna el principio de autocontención: contiene
-especificación, implementación, tests, esquemático y verificación.
-Un solo archivo `.tzp` se copia, se versiona y se despliega como
-una unidad.
+The package embodies the self-containment principle: it holds the
+specification, implementation, tests, schematics, and verification.
+A single `.tzp` file is copied, versioned, and deployed as
+a unit.
 
 ---
 
 ## 10. CLI
 
 ```bash
-trenza verify sistema.tzp         -- verifica el sistema completo
-trenza verify contexto.trz        -- verifica un contexto aislado
-trenza generate sistema.tzp       -- genera las tres hebras
-trenza check sistema.tzp          -- verify + generate + ejecuta tests
-trenza inspect contexto.trz       -- muestra herencia expandida
+trenza verify sistema.tzp         -- verifies the complete system
+trenza verify contexto.trz        -- verifies an isolated context
+trenza generate sistema.tzp       -- generates the three strands
+trenza check sistema.tzp          -- verify + generate + runs tests
+trenza inspect contexto.trz       -- shows expanded inheritance
 ```
 
-Salida del verificador:
+Verifier output:
 
 ```
 $ trenza verify cronometro-psp.tzp
 
-  completitud ............ OK
-  determinismo ........... OK
-  alcanzabilidad ......... OK
-  retorno ................ OK
-  exhaustividad .......... OK
-  conformidad de datos ... OK
+  completeness ........... OK
+  determinism ............ OK
+  reachability ........... OK
+  return ................. OK
+  role exhaustiveness .... OK
+  data conformance ....... OK
 
-  6/6 reglas cumplidas. Sistema verificado.
-  Checksum del artefacto: a7f8b9...
+  6/6 rules passed. System verified.
+  Artifact checksum: a7f8b9...
 ```
 
 ---
 
-## 11. Convenciones de nombrado
+## 11. Naming Conventions
 
-| Elemento | Convención | Ejemplo |
-|----------|------------|---------|
-| Contexto | PascalCase | `ModoEdicion`, `ModalComentario` |
-| Tipo de dato | PascalCase | `TipoTarea`, `Actividad` |
-| Rol | snake_case | `tarjeta_tipo`, `boton_guardar` |
-| Evento | snake_case | `tap`, `doble_tap`, `cambio` |
-| Acción | camelCase | `mostrarModalEditar`, `actualizarNombre` |
+| Element | Convention | Example |
+|---------|------------|---------|
+| Context | PascalCase | `ModoEdicion`, `ModalComentario` |
+| Data type | PascalCase | `TipoTarea`, `Actividad` |
+| Role | snake_case | `tarjeta_tipo`, `boton_guardar` |
+| Event | snake_case | `tap`, `doble_tap`, `cambio` |
+| Action | camelCase | `mostrarModalEditar`, `actualizarNombre` |
 | Slot | snake_case | `sesion_opts` |
-| Comentario | `--` | `-- esto es un comentario` |
+| Comment | `--` | `-- this is a comment` |
 
-Las palabras clave del lenguaje están en inglés (`ignored`, `on_entry`,
-`mutable`, `when`, `slot`, `fills`). Los nombres definidos por el usuario
-pueden estar en cualquier idioma.
-
----
-
-## 12. Vocabulario reservado completo
-
-| Palabra | Significado |
-|---------|-------------|
-| `system` | Declara el sistema completo con sus contextos |
-| `data` | Declara un tipo de dato (estructura sin comportamiento) |
-| `context` | Declara un contexto (caso de uso) |
-| `role` | Declara un rol dentro de un contexto |
-| `on` | Declara un manejador de evento |
-| `->` | Indica consecuencia: evento -> acción |
-| `ignored` | El evento está contemplado pero no produce acción |
-| `forbidden` | El evento está explícitamente prohibido |
-| `input` | Datos que el contexto requiere para existir |
-| `bind` | Vincula un campo del modelo a un rol |
-| `mutable` | Marca un dato o campo como modificable |
-| `transitions` | Declara cambios de contexto |
-| `effects` | Declara efectos secundarios de dominio |
-| `external` | Marca una acción implementada en código convencional |
-| `when` | Guarda pre-acción o post-resultado |
-| `slot` | Punto de extensión en un overlay |
-| `fills` | Contribución de un concurrent a un slot |
-| `self` | Referencia a las propiedades del dato vinculado al rol |
+The language keywords are in English (`ignored`, `on_entry`,
+`mutable`, `when`, `slot`, `fills`). User-defined names
+can be in any language.
 
 ---
 
-## 13. Resumen de principios de diseño
+## 12. Full Reserved Vocabulary
 
-1. **Cada especificación genera implementación + test**: no son
-   artefactos separados sino proyecciones del mismo acto.
-
-2. **Todo código condicional vive en factorías**: el código generado
-   es polimórfico. Los `if` desaparecen.
-
-3. **Los flujos de estado son explícitos**: no hay booleanos globales
-   ni flags dispersos. Un estado es un contexto con nombre.
-
-4. **La semántica es verificable**: las seis reglas de verificación
-   detectan errores que en código convencional serían bugs silenciosos.
-
-5. **La legibilidad es un requisito formal**: si un ingeniero de
-   software medio no puede leer la especificación, el DSL ha fracasado.
+| Keyword | Meaning |
+|---------|---------|
+| `system` | Declares the complete system with its contexts |
+| `data` | Declares a data type (structure without behavior) |
+| `context` | Declares a context (use case) |
+| `role` | Declares a role within a context |
+| `on` | Declares an event handler |
+| `->` | Indicates consequence: event -> action |
+| `ignored` | The event is accounted for but produces no action |
+| `forbidden` | The event is explicitly prohibited |
+| `input` | Data the context requires to exist |
+| `bind` | Binds a model field to a role |
+| `mutable` | Marks a data item or field as modifiable |
+| `transitions` | Declares context changes |
+| `effects` | Declares domain side effects |
+| `external` | Marks an action implemented in conventional code |
+| `when` | Pre-action or post-result guard |
+| `slot` | Extension point in an overlay |
+| `fills` | Contribution of a concurrent to a slot |
+| `self` | Reference to the properties of the data bound to the role |
 
 ---
 
-## Apéndice A: Ejemplo completo — Cronómetro PSP
+## 13. Summary of Design Principles
 
-El cronómetro PSP es el banco de pruebas original de Trenza. El sistema
-completo reemplaza cinco condicionales `if (modoEdicion)` dispersos en
-`app.js` por dos contextos base, un concurrent y diez overlays.
+1. **Each specification generates implementation + tests**: they are not
+   separate artifacts but projections of the same act.
 
-### A.1 Sistema
+2. **All conditional code lives in factories**: the generated code
+   is polymorphic. `if` statements disappear.
+
+3. **State flows are explicit**: no global booleans
+   or scattered flags. A state is a named context.
+
+4. **Semantics are verifiable**: the six verification rules
+   detect errors that in conventional code would be silent bugs.
+
+5. **Readability is a formal requirement**: if an average software
+   engineer cannot read the specification, the DSL has failed.
+
+---
+
+## Appendix A: Complete Example — PSP Timer
+
+The PSP timer is Trenza's original test bench. The complete system
+replaces five scattered `if (modoEdicion)` conditionals in
+`app.js` with two base contexts, one concurrent, and ten overlays.
+
+### A.1 System
 
 ```trenza
 system CronometroPSP:
@@ -804,7 +817,7 @@ system CronometroPSP:
         MenuConfiguracion
 ```
 
-### A.2 Datos
+### A.2 Data
 
 ```trenza
 data TipoTarea:
@@ -831,7 +844,7 @@ data ErrorExterno:
     recuperable: Booleano
 ```
 
-### A.3 Contextos base
+### A.3 Base Contexts
 
 ```trenza
 context ModoNormal:
@@ -871,7 +884,7 @@ context ModoEdicion:
         on desactivarEdicion -> ModoNormal
 ```
 
-### A.4 Concurrent con fills
+### A.4 Concurrent With fills
 
 ```trenza
 context SesionActiva:
@@ -893,10 +906,10 @@ context SesionActiva:
             [on_entry] -> sesiones_api.cargar_recientes()
 
     transitions:
-        on sesionFinalizada -> [desactivar]
+        on sesionFinalizada -> [deactivate]
 ```
 
-### A.5 Overlay con slot
+### A.5 Overlay With Slot
 
 ```trenza
 context ModalComentario:
@@ -914,13 +927,13 @@ context ModalComentario:
         on guardar.error -> [stay]
 ```
 
-### A.6 Comparación
+### A.6 Comparison
 
-| `app.js` (antes) | Trenza (después) |
-|-------------------|-------------------|
-| `if (modoEdicion)` en 5 sitios | 0 condicionales; 2 contextos |
+| `app.js` (before) | Trenza (after) |
+|-------------------|----------------|
+| `if (modoEdicion)` in 5 places | 0 conditionals; 2 contexts |
 | `sustituirGroup.style.display = sesionActiva ? ...` | `slot` + `fills` |
-| Guard olvidado = bug silencioso | Evento sin handler = error de compilación |
-| Estado disperso en booleanos globales | Estado explícito como contexto activo |
-| Tests escritos a mano (si existen) | Tests generados automáticamente |
-| Diagrama: solo si alguien lo dibuja | Esquemático Mermaid auto-generado |
+| Forgotten guard = silent bug | Event without handler = compiler error |
+| State scattered in global booleans | Explicit state as active context |
+| Tests written by hand (if they exist) | Tests generated automatically |
+| Diagram: only if someone draws it | Auto-generated Mermaid schematic |
