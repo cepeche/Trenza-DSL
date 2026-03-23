@@ -34,7 +34,8 @@ context_clause = { input_def | role_def | transitions_def | effects_def }
 input_def = { "input:" ~ input_field* }
 input_field = { "mutable"? ~ ident ~ ":" ~ ident }
 
-role_def = { "role" ~ ident ~ ":" ~ ident ~ role_binding? ~ role_action* }
+role_def = { "role" ~ ident ~ role_annotation? ~ ":" ~ ident ~ role_binding? ~ role_action* }
+role_annotation = { "[" ~ ident ~ ":" ~ ident ~ "]" }
 role_binding = { "(" ~ "bind:" ~ ident ~ ")" }
 role_action = { decorator? ~ "on" ~ ident ~ ("->" ~ action_target)? }
 
@@ -44,9 +45,10 @@ action_target = { ignored_kw | forbidden_kw | action_call }
 
 decorator = { "@" ~ ident ~ "(" ~ string_literal ~ ")" }
 
-action_call = { ident ~ ("(" ~ action_args? ~ ")")? }
+action_call = { ident ~ "(" ~ action_args? ~ ")" | ident }
 action_args = { arg ~ ("," ~ arg)* }
-arg = { string_literal | ident }
+arg = { string_literal | field_access | ident }
+field_access = { ident ~ "." ~ ident }
 
 transitions_def = { "transitions:" ~ transition_rule* }
 transition_rule = { decorator? ~ "on" ~ ident ~ "->" ~ transition_target ~ with_clause? }

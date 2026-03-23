@@ -14,14 +14,14 @@ pub enum Definition {
 #[derive(Debug, Clone)]
 pub struct DataDef {
     pub name: String,
-    pub annotation: Option<(String, String)>,
+    pub annotations: Vec<(String, String)>,
     pub fields: Vec<(String, String)>,
 }
 
 #[derive(Debug, Clone)]
 pub struct ExternalDef {
     pub name: String,
-    pub annotation: Option<(String, String)>,
+    pub annotations: Vec<(String, String)>,
     pub actions: Vec<ExternalAction>,
 }
 
@@ -67,6 +67,7 @@ pub struct InputField {
 pub struct RoleDef {
     pub name: String,
     pub datatype: String,
+    pub annotations: Vec<(String, String)>,
     pub binding: Option<String>,
     pub actions: Vec<RoleAction>,
 }

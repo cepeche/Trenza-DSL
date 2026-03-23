@@ -14,7 +14,7 @@
 
 -- ─── Data layer ───────────────────────────────────────────────────────────────
 
-data Credenciales [clasificacion: personal]:
+data Credenciales [privacy: gdpr]:
     usuario: Texto
     password: Texto
 
@@ -52,8 +52,8 @@ context EsperandoCredenciales:
     input:
         mutable credenciales: Credenciales    -- updated via bind as the user types
 
-    role formulario: Credenciales (bind: credenciales)
-        on submit  -> iniciarAutenticacion
+    role formulario [access: gdpr]: Credenciales (bind: credenciales)
+        on submit  -> iniciarAutenticacion(credenciales.usuario, credenciales.password)
         on cambio  -> ignored    -- bind updates credenciales; no additional action needed
 
     role boton_login: BotonUI

@@ -32,7 +32,7 @@ pub fn parse_file(content: &str) -> std::result::Result<Program, pest::error::Er
 
 fn parse_data(pair: pest::iterators::Pair<Rule>) -> DataDef {
     let mut name = String::new();
-    let mut annotation = None;
+    let mut annotations = Vec::new();
     let mut fields = Vec::new();
 
     for inner in pair.into_inner() {
@@ -42,7 +42,7 @@ fn parse_data(pair: pest::iterators::Pair<Rule>) -> DataDef {
                 let mut iter = inner.into_inner();
                 let k = iter.next().unwrap().as_str().to_string();
                 let v = iter.next().unwrap().as_str().to_string();
-                annotation = Some((k, v));
+                annotations.push((k, v));
             },
             Rule::data_field => {
                 let mut iter = inner.into_inner();
@@ -53,12 +53,12 @@ fn parse_data(pair: pest::iterators::Pair<Rule>) -> DataDef {
             _ => {}
         }
     }
-    DataDef { name, annotation, fields }
+    DataDef { name, annotations, fields }
 }
 
 fn parse_external(pair: pest::iterators::Pair<Rule>) -> ExternalDef {
     let mut name = String::new();
-    let mut annotation = None;
+    let mut annotations = Vec::new();
     let mut actions = Vec::new();
 
     for inner in pair.into_inner() {
@@ -68,7 +68,7 @@ fn parse_external(pair: pest::iterators::Pair<Rule>) -> ExternalDef {
                 let mut iter = inner.into_inner();
                 let k = iter.next().unwrap().as_str().to_string();
                 let v = iter.next().unwrap().as_str().to_string();
-                annotation = Some((k, v));
+                annotations.push((k, v));
             },
             Rule::external_action => {
                 let mut a_iter = inner.into_inner();
@@ -98,7 +98,7 @@ fn parse_external(pair: pest::iterators::Pair<Rule>) -> ExternalDef {
             _ => {}
         }
     }
-    ExternalDef { name, annotation, actions }
+    ExternalDef { name, annotations, actions }
 }
 
 fn parse_system(pair: pest::iterators::Pair<Rule>) -> SystemDef {
@@ -196,12 +196,20 @@ fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
 fn parse_role(pair: pest::iterators::Pair<Rule>) -> RoleDef {
     let mut it = pair.into_inner();
     let name = it.next().unwrap().as_str().to_string();
-    let datatype = it.next().unwrap().as_str().to_string();
+    let mut datatype = String::new();
+    let mut annotations = Vec::new();
     let mut binding = None;
     let mut actions = Vec::new();
 
     for inner in it {
         match inner.as_rule() {
+            Rule::ident if datatype.is_empty() => datatype = inner.as_str().to_string(),
+            Rule::role_annotation => {
+                let mut a_it = inner.into_inner();
+                let k = a_it.next().unwrap().as_str().to_string();
+                let v = a_it.next().unwrap().as_str().to_string();
+                annotations.push((k, v));
+            },
             Rule::role_binding => {
                 binding = Some(inner.into_inner().next().unwrap().as_str().to_string());
             },
@@ -211,7 +219,7 @@ fn parse_role(pair: pest::iterators::Pair<Rule>) -> RoleDef {
             _ => {}
         }
     }
-    RoleDef { name, datatype, binding, actions }
+    RoleDef { name, datatype, annotations, binding, actions }
 }
 
 fn parse_role_action(pair: pest::iterators::Pair<Rule>) -> RoleAction {
@@ -271,9 +279,12 @@ fn parse_action_call(pair: pest::iterators::Pair<Rule>) -> ActionCall {
     let mut citer = pair.into_inner();
     let function = citer.next().unwrap().as_str().to_string();
     let mut args = Vec::new();
-    if let Some(args_pair) = citer.next() {
-        for arg in args_pair.into_inner() {
-            args.push(arg.as_str().to_string());
+    
+    for inner in citer {
+        if inner.as_rule() == Rule::action_args {
+            for arg in inner.into_inner() {
+                args.push(arg.as_str().to_string());
+            }
         }
     }
     ActionCall { function, args }

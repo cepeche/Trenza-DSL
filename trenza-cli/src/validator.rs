@@ -79,6 +79,71 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
         }
     }
 
+    // Pass 4: Rule 6 (Data Conformance)
+    let mut data_privacy = HashMap::new();
+    for def in &program.definitions {
+        if let Definition::Data(d) = def {
+            for (k, v) in &d.annotations {
+                if k == "privacy" && v == "gdpr" {
+                    data_privacy.insert(d.name.clone(), "gdpr".to_string());
+                }
+            }
+        }
+    }
+
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for role in &ctx.roles {
+                let mut role_has_gdpr = false;
+                for (k, v) in &role.annotations {
+                    if k == "access" && v == "gdpr" {
+                        role_has_gdpr = true;
+                    }
+                }
+
+                for action in &role.actions {
+                    if let ActionTarget::Call(call) = &action.target {
+                        for arg in &call.args {
+                            if arg.contains('.') {
+                                let parts: Vec<&str> = arg.split('.').collect();
+                                let var_name = parts[0];
+                                
+                                let mut var_type = None;
+                                if role.name == var_name { var_type = Some(&role.datatype); }
+                                else if let Some(b) = &role.binding {
+                                    if b == var_name { var_type = Some(&role.datatype); }
+                                }
+                                
+                                if var_type.is_none() {
+                                    for input in &ctx.inputs {
+                                        if input.name == var_name { var_type = Some(&input.datatype); break; }
+                                    }
+                                }
+                                if var_type.is_none() {
+                                    for r in &ctx.roles {
+                                        if r.name == var_name { var_type = Some(&r.datatype); break; }
+                                        if let Some(b) = &r.binding {
+                                            if b == var_name { var_type = Some(&r.datatype); break; }
+                                        }
+                                    }
+                                }
+
+                                if let Some(t) = var_type {
+                                    if data_privacy.contains_key(t) && !role_has_gdpr {
+                                        errors.push(format!(
+                                            "ERROR [privacy]: El rol '{}' de tipo '{}' en el contexto '{}' intenta acceder al campo protegido '{}' sin permiso [access: gdpr]",
+                                            role.name, t, ctx.name, arg
+                                        ));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     if errors.is_empty() {
         Ok(())
     } else {
