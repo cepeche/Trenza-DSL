@@ -196,28 +196,9 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
 
 pub fn generate_mermaid(program: &Program) -> String {
     let mut output = String::new();
-    output.push_str("stateDiagram-v2\n");
+    output.push_str("stateDiagram-v2\n\n");
     
-    // Initial state
-    for def in &program.definitions {
-        if let Definition::System(sys) = def {
-            output.push_str(&format!("    [*] --> {}\n", sys.initial));
-        }
-    }
-    output.push_str("\n");
-
-    // Global transitions
-    for def in &program.definitions {
-        if let Definition::Context(ctx) = def {
-            for trans in &ctx.transitions {
-                let target = trans.target.replace("[", "").replace("]", "");
-                output.push_str(&format!("    {} --> {} : {}\n", ctx.name, target, trans.event));
-            }
-        }
-    }
-    output.push_str("\n");
-
-    // Context internal states (roles and actions)
+    // 1. Context internal states (roles and actions) - Grouped first
     for def in &program.definitions {
         if let Definition::Context(ctx) = def {
             if !ctx.roles.is_empty() || !ctx.effects.is_empty() {
@@ -229,18 +210,37 @@ pub fn generate_mermaid(program: &Program) -> String {
                             ActionTarget::Ignored => "ignored".to_string(),
                             ActionTarget::Forbidden => "forbidden".to_string(),
                         };
-                        output.push_str(&format!("        {}_{} --> {}\n", action.event.replace(".", "_"), role.name, target_label));
+                        let event_safe = action.event.replace(".", "_");
+                        output.push_str(&format!("        {}_{}_{} --> {}\n", ctx.name, event_safe, role.name, target_label));
                     }
                 }
                 for effect in &ctx.effects {
                     let trigger = match &effect.trigger {
                         EffectTrigger::Lifecycle(s) => s.replace("[", "").replace("]", ""),
-                        EffectTrigger::Event(s) => s.clone(),
+                        EffectTrigger::Event(s) => s.replace(".", "_"),
                     };
-                    output.push_str(&format!("        {} --> {}\n", trigger, effect.call.function));
+                    output.push_str(&format!("        {}_{} --> {}\n", ctx.name, trigger, effect.call.function));
                 }
                 output.push_str("    }\n\n");
             }
+        }
+    }
+
+    // 2. Global transitions
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for trans in &ctx.transitions {
+                let target = trans.target.replace("[", "").replace("]", "");
+                output.push_str(&format!("    {} --> {} : {}\n", ctx.name, target, trans.event));
+            }
+        }
+    }
+    output.push_str("\n");
+
+    // 3. Initial state - Last, after all states are declared or used
+    for def in &program.definitions {
+        if let Definition::System(sys) = def {
+            output.push_str(&format!("    [*] --> {}\n", sys.initial));
         }
     }
 
