@@ -1,0 +1,25 @@
+-- Example demonstrating the NFR instrumentation via decorators
+-- This file will generate different Rust outputs depending on the profile:
+-- trenza generate --profile=pre  => injects implicit telemetry everywhere
+-- trenza generate --profile=pro  => only keeps explicit @audit calls
+
+data Pedido [clasificacion: financiero]:
+    id: Id
+    estado: Texto
+    total: Numero
+
+system SistemaVentas:
+    initial: Procesando
+
+context Procesando:
+    role pedido: Pedido
+        -- Explicit domain audit log. In --profile=pro, only this is logged.
+        -- In --profile=pre, entering Procesando is also logged automatically.
+        @audit("Legal: Registro de cancelación de pedido por usuario")
+        on cancelar -> cancelarPedido(self.id)
+
+    transitions:
+        on cancelado.ok -> PedidoCancelado
+
+context PedidoCancelado:
+    -- empty for demonstration

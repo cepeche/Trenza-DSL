@@ -1,4 +1,4 @@
-﻿-- contexts/ModoNormal.trz
+-- contexts/ModoNormal.trz
 -- El modo base: el usuario consulta y activa sesiones.
 -- No hay ediciÃ³n de tareas ni actividades.
 -- Convertido de ModoNormal.trz (6 marzo 2026) a .trz (12 marzo 2026)
@@ -14,7 +14,7 @@ context ModoNormal:
     role pestana_actividad: Actividad
         on tap -> cambiarPestana(self.id)
 
-    role pestana_frecuentes: PestaÃ±a
+    role pestana_frecuentes: Pestaña
         on tap -> cambiarPestana('frecuentes')
 
     role boton_edicion: Boton

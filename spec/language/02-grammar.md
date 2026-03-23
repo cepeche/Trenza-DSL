@@ -210,6 +210,7 @@ context <name>:
 
     role <role_name>: <data_type>
 
+        [@<decorator>("message")]
         on <event> -> <action>
 
         [on <event> -> ignored]
@@ -241,6 +242,7 @@ context <name>:
 - Role names start with a lowercase letter: `tarjeta`, `pestaña_actividad`.
 - Events start with a lowercase letter: `tap`, `doble_tap`, `mantener`.
 - Actions start with a lowercase letter: `mostrarModal`, `iniciarTarea`.
+- Decorators start with `@` (e.g. `@audit("reason")`) and annotate paths with NFRs.
 - The keyword `ignored` means "this event is accounted for and does nothing".
 - Comments use `--` (double dash, like SQL and Haskell).
 - Roles are bound to a data type with `:`. The `self` inside a role

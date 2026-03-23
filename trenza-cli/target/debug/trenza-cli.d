@@ -1,0 +1,1 @@
+C:\Proyectos\Trenza-DSL\trenza-cli\target\debug\trenza-cli.exe: C:\Proyectos\Trenza-DSL\trenza-cli\src\ast.rs C:\Proyectos\Trenza-DSL\trenza-cli\src\generator.rs C:\Proyectos\Trenza-DSL\trenza-cli\src\main.rs C:\Proyectos\Trenza-DSL\trenza-cli\src\parser.rs C:\Proyectos\Trenza-DSL\trenza-cli\src\trenza.pest
