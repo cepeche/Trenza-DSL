@@ -1,55 +1,111 @@
 ﻿-- contexts/ModalHistorial.trz
+
 -- Overlay: visualizaciÃ³n del historial de sesiones.
+
 -- Tiene dos sub-estados: vista de 7 dÃ­as y vista de 30 dÃ­as.
+
 -- Convertido de ModalHistorial.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
 --
+
 -- CONFORMIDAD H1â€“H5 (12 marzo 2026):
+
 -- - H1: Historial7Dias y Historial30Dias heredan boton_cerrar del padre.
+
 -- - H2: boton_7dias y boton_30dias son roles locales de cada sub-contexto.
+
 -- - H3: completitud aplica por nivel â€” los roles locales de un hermano
+
 --        no obligan al otro (aunque aquÃ­ ambos declaran los mismos roles).
+
 -- - H4: ningÃºn sub-contexto sobrescribe handlers heredados.
+
 -- - H5: ningÃºn sub-contexto aÃ±ade eventos nuevos a roles heredados.
 
+
+
 context ModalHistorial:
+    role *: ignored
+
+
+
 
     role boton_cerrar: Boton
+
         on tap -> cerrar
 
+
+
     transitions:
+
         on cerrar -> [cerrar_overlay]
 
+
+
     -- Sub-contexto: vista de 7 dÃ­as (activo por defecto)
-    context Historial7Dias:
+context Historial7Dias:
+    role *: ignored
+
+
+
 
         role boton_7dias: Boton
+
             on tap -> ignored              -- ya estamos en 7 dÃ­as, no hace nada
 
+
+
         role boton_30dias: Boton
+
             on tap -> cambiarA30Dias
 
+
+
         transitions:
+
             on cambiarA30Dias -> Historial30Dias
+
             on cerrar         -> ModalHistorial  -- sube al padre, que cierra el overlay
 
+
+
         effects:
+
             -- PROPUESTA GAP-7: al entrar en este sub-contexto, cargar datos
-            [al_entrar] -> external cargar_historial(dias: 7)
+
+            [on_entry] -> cargar_historial(dias: 7)
+
+
 
     -- Sub-contexto: vista de 30 dÃ­as
-    context Historial30Dias:
+context Historial30Dias:
+    role *: ignored
+
+
+
 
         role boton_7dias: Boton
+
             on tap -> cambiarA7Dias
 
+
+
         role boton_30dias: Boton
+
             on tap -> ignored              -- ya estamos en 30 dÃ­as
 
+
+
         transitions:
+
             on cambiarA7Dias -> Historial7Dias
+
             on cerrar        -> ModalHistorial
 
-        effects:
-            -- PROPUESTA GAP-7: al entrar en este sub-contexto, cargar datos
-            [al_entrar] -> external cargar_historial(dias: 30)
 
+
+        effects:
+
+            -- PROPUESTA GAP-7: al entrar en este sub-contexto, cargar datos
+
+            [on_entry] -> cargar_historial(dias: 30)

@@ -1,44 +1,87 @@
 ﻿-- contexts/ModoEdicion.trz
+
 -- Modo ediciÃ³n: tap en tarjeta abre modal de ediciÃ³n.
+
 -- Esta es la razÃ³n original de Trenza: los 5 condicionales
+
 -- dispersos en app.js desaparecen aquÃ­.
+
 -- Convertido de ModoEdicion.trz (6 marzo 2026) a .trz (12 marzo 2026)
 
+
+
 context ModoEdicion:
+    role *: ignored
+
+
+
 
     role tarjeta_tipo: TipoTarea
+
         on tap -> abrirEditarTarea(self.tipoId)
 
+
+
     role tarjeta_tarea: Tarea
+
         on tap -> abrirEditarTarea(self.tipoId)    -- edita el tipo, no la combinaciÃ³n
 
+
+
     role pestana_actividad: Actividad
+
         on tap -> abrirEditarActividad(self.id)
 
-    role pestana_frecuentes: PestaÃ±a
+
+
+    role pestana_frecuentes: Pestana
+
         on tap -> ignored                          -- explÃ­cito: Frecuentes no es editable
 
+
+
     role boton_edicion: Boton
+
         on tap -> desactivarEdicion
 
+
+
     role boton_nuevo: Boton
+
         on tap -> abrirCrearTarea                  -- sigue disponible en modo ediciÃ³n
 
+
+
     role boton_configuracion: Boton
+
         on tap -> abrirMenuConfiguracion
 
+
+
     transitions:
+
         on desactivarEdicion      -> ModoNormal
+
         on abrirEditarTarea       -> ModalEditarTarea
+
         on abrirEditarActividad   -> ModalEditarActividad
+
         on abrirCrearTarea        -> ModalCrearTarea
+
         on abrirMenuConfiguracion -> MenuConfiguracion
 
+
+
     -- NOTA: abrirEditarTarea y abrirEditarActividad necesitan
+
     -- pasar el ID del elemento a editar al modal destino.
+
     -- Ver GAP-1 en ANALISIS_GAPS.md.
 
-    effects:
-        -- No hay efectos directos en ModoEdicion.
-        -- Los efectos viven en los modales de ediciÃ³n.
 
+
+    effects:
+
+        -- No hay efectos directos en ModoEdicion.
+
+        -- Los efectos viven en los modales de ediciÃ³n.

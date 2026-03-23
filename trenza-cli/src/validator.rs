@@ -6,24 +6,53 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
     
     // Gather system metadata
     let mut initial_context = String::new();
+    let mut overlays = HashSet::new();
+    let mut concurrent_contexts = HashSet::new();
+    let mut base_contexts = HashSet::new();
+    
     for def in &program.definitions {
         if let Definition::System(sys) = def {
             initial_context = sys.initial.clone();
+            base_contexts.insert(initial_context.clone());
+            for sec in &sys.sections {
+                match sec {
+                    SystemSection::Overlays(ov) => {
+                        for o in ov { overlays.insert(o.clone()); }
+                    },
+                    SystemSection::Concurrent(cc) => {
+                        for c in cc { concurrent_contexts.insert(c.clone()); }
+                    },
+                    SystemSection::Contexts(ctxs) => {
+                        for c in ctxs { base_contexts.insert(c.clone()); }
+                    }
+                    _ => {}
+                }
+            }
         }
     }
 
     let mut all_contexts = HashSet::new();
+    let mut ignore_rest_contexts = HashSet::new();
     let mut role_events: HashSet<(String, String)> = HashSet::new();
     let mut context_role_events: HashMap<String, HashSet<(String, String)>> = HashMap::new();
+    let mut context_roles: HashMap<String, HashSet<String>> = HashMap::new();
+    let mut all_roles: HashSet<String> = HashSet::new();
     let mut adjacency_list: HashMap<String, Vec<String>> = HashMap::new();
 
     // Pass 1: Build indexes & Check Determinism (Rule 2)
     for def in &program.definitions {
         if let Definition::Context(ctx) = def {
             all_contexts.insert(ctx.name.clone());
+            if ctx.ignore_rest {
+                ignore_rest_contexts.insert(ctx.name.clone());
+            }
+
             let mut ctx_re = HashSet::new();
+            let mut ctx_r = HashSet::new();
             
             for role in &ctx.roles {
+                ctx_r.insert(role.name.clone());
+                all_roles.insert(role.name.clone());
                 for action in &role.actions {
                     let re = (role.name.clone(), action.event.clone());
                     role_events.insert(re.clone());
@@ -35,10 +64,16 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
                 }
             }
             context_role_events.insert(ctx.name.clone(), ctx_re);
+            context_roles.insert(ctx.name.clone(), ctx_r);
 
             let mut targets = Vec::new();
             for trans in &ctx.transitions {
-                targets.push(trans.target.clone());
+                let target = if trans.target == "deactivate" || trans.target == "cerrar_overlay" {
+                    initial_context.clone()
+                } else {
+                    trans.target.clone()
+                };
+                targets.push(target);
             }
             adjacency_list.insert(ctx.name.clone(), targets);
         }
@@ -46,6 +81,7 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
 
     // Pass 2: Rule 1 (Completeness)
     for ctx_name in &all_contexts {
+        if ignore_rest_contexts.contains(ctx_name) { continue; }
         if let Some(ctx_re) = context_role_events.get(ctx_name) {
             for re in &role_events {
                 if !ctx_re.contains(re) {
@@ -56,8 +92,8 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
     }
 
     // Pass 3: Rule 3 (Reachability)
+    let mut visited = HashSet::new();
     if !initial_context.is_empty() {
-        let mut visited = HashSet::new();
         let mut stack: Vec<String> = vec![initial_context.clone()];
         
         while let Some(node) = stack.pop() {
@@ -71,11 +107,11 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
                 }
             }
         }
+    }
         
-        for ctx_name in &all_contexts {
-            if !visited.contains(ctx_name) {
-                errors.push(format!("ERROR [reachability]: El contexto '{}' es inalcanzable", ctx_name));
-            }
+    for ctx_name in &all_contexts {
+        if !visited.contains(ctx_name) && base_contexts.contains(ctx_name) {
+            errors.push(format!("ERROR [reachability]: El contexto '{}' es inalcanzable", ctx_name));
         }
     }
 
@@ -145,21 +181,8 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
     }
 
     // Pass 5: Rule 5 (Role Exhaustiveness)
-    let mut all_roles: HashSet<String> = HashSet::new();
-    let mut context_roles: HashMap<String, HashSet<String>> = HashMap::new();
-
-    for def in &program.definitions {
-        if let Definition::Context(ctx) = def {
-            let mut roles = HashSet::new();
-            for role in &ctx.roles {
-                roles.insert(role.name.clone());
-                all_roles.insert(role.name.clone());
-            }
-            context_roles.insert(ctx.name.clone(), roles);
-        }
-    }
-
     for (ctx_name, roles) in &context_roles {
+        if ignore_rest_contexts.contains(ctx_name) { continue; }
         for role_name in &all_roles {
             if !roles.contains(role_name) {
                 errors.push(format!(
@@ -195,7 +218,7 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
     }
 
     for ctx_name in &all_contexts {
-        if !can_return.contains(ctx_name) {
+        if !can_return.contains(ctx_name) && base_contexts.contains(ctx_name) {
             errors.push(format!(
                 "ERROR [return]: context '{}' cannot return to the initial state '{}'",
                 ctx_name, initial_context

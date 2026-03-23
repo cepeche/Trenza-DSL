@@ -1,40 +1,79 @@
 ﻿-- contexts/ModalSeleccionActividad.trz
+
 -- Overlay: aparece cuando un TipoTarea tiene mÃ¡s de una actividad
+
 -- permitida. El usuario elige a quÃ© actividad imputar la sesiÃ³n.
+
 -- Convertido de ModalSeleccionActividad.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
 --
+
 -- PROPUESTA GAP-1: necesita recibir el tipoTareaId del contexto padre.
+
 -- Los botones de actividad se generan dinÃ¡micamente a partir de
+
 -- tipoTarea.actividades_permitidas.
+
 --
+
 -- PROPUESTA GAP-6: roles dinÃ¡micos.
+
 -- El nÃºmero de botones de actividad no es fijo â€” depende de los datos.
+
 -- El DSL actual asume roles fijos declarados en el contexto.
+
 -- Â¿CÃ³mo expresar "un rol por cada elemento de una lista"?
 
+
+
 context ModalSeleccionActividad:
+    role *: ignored
+
+
+
 
     -- PROPUESTA GAP-1:
+
     -- input:
+
     --     tipoTareaId: Id
 
+
+
     -- PROPUESTA GAP-6: rol dinÃ¡mico (uno por actividad permitida)
+
     -- role boton_actividad[]: Actividad
+
     --     on tap -> elegirActividad(self.id)
+
     --
+
     -- AproximaciÃ³n con rol genÃ©rico (no expresa la multiplicidad):
+
     role boton_actividad: Actividad
+
         on tap -> elegirActividad(self.id)
 
+
+
     role boton_cancelar: Boton
+
         on tap -> cancelar
 
+
+
     transitions:
+
         on elegirActividad -> ModalComentario    -- pasa a comentario con actividad elegida
+
         on cancelar        -> [cerrar_overlay]
 
-    -- PROPUESTA GAP-1: elegirActividad necesita encadenar parÃ¡metros:
-    --   tipoTareaId (viene del input de este contexto)
-    --   actividadId (viene del tap en boton_actividad)
-    -- Ambos deben llegar a ModalComentario.
 
+
+    -- PROPUESTA GAP-1: elegirActividad necesita encadenar parÃ¡metros:
+
+    --   tipoTareaId (viene del input de este contexto)
+
+    --   actividadId (viene del tap en boton_actividad)
+
+    -- Ambos deben llegar a ModalComentario.

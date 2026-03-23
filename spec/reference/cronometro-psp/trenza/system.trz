@@ -1,52 +1,101 @@
 ﻿-- system.trz â€” DeclaraciÃ³n del sistema CronometroPSP
+
 -- Convertido de system.trz (6 marzo 2026) a .trz (12 marzo 2026)
 
+
+
 -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
 -- NOTA DE DISEÃ‘O: Este archivo revela tres tipos de contexto
+
 -- que el DSL actual no distingue sintÃ¡cticamente:
+
 --
+
 --   (1) Contextos BASE: mutuamente excluyentes. En cada momento
+
 --       exactamente uno estÃ¡ activo. Son el "modo" del sistema.
+
 --
+
 --   (2) Contextos CONCURRENTES: coexisten con el contexto base.
+
 --       AÃ±aden comportamiento sin reemplazarlo.
+
 --       Ejemplo: SesionActiva aÃ±ade el timer y la lÃ³gica de
+
 --       sustituciÃ³n, sin importar si estamos en ModoNormal o
+
 --       ModoEdicion.
+
 --
+
 --   (3) Contextos OVERLAY (modal): se apilan sobre el contexto
+
 --       base. Bloquean la interacciÃ³n con Ã©l. Cuando terminan,
+
 --       el sistema vuelve al contexto base que habÃ­a debajo.
+
 --       Ejemplo: ModalComentario se abre desde ModoNormal, pero
+
 --       ModoNormal sigue "ahÃ­" esperando.
+
 --
+
 -- El diseÃ±o actual solo prevÃ© la composiciÃ³n con prioridad entre
+
 -- contextos iguales. PROPUESTA: los tres tipos necesitan
+
 -- sintaxis explÃ­cita (ver ANALISIS_GAPS.md, GAP-2, GAP-3).
+
 -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+
 
 system CronometroPSP:
+
     initial: ModoNormal
 
+
+
     -- (1) Contextos base â€” mutuamente excluyentes (exactamente uno activo)
+
     contexts:
+
         ModoEdicion
+
         ModoNormal          -- base por defecto
 
+
+
     -- (2) Contextos concurrentes â€” coexisten ortogonalmente con el base
+
     concurrent:
+
         SesionActiva        -- activo cuando hay sesiÃ³n en curso
 
-    -- (3) Contextos overlay â€” apilables, suspenden la interacciÃ³n con el base
-    overlays:
-        MenuConfiguracion
-        ModalComentario
-        ModalSeleccionActividad
-        ModalCrearTarea
-        ModalEditarTarea
-        ModalEditarActividad
-        ModalCrearActividad
-        ModalHistorial
-        ModalReset
-        ModalAcercaDe
 
+
+    -- (3) Contextos overlay â€” apilables, suspenden la interacciÃ³n con el base
+
+    overlays:
+
+        MenuConfiguracion
+
+        ModalComentario
+
+        ModalSeleccionActividad
+
+        ModalCrearTarea
+
+        ModalEditarTarea
+
+        ModalEditarActividad
+
+        ModalCrearActividad
+
+        ModalHistorial
+
+        ModalReset
+
+        ModalAcercaDe

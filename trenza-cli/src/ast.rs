@@ -15,7 +15,14 @@ pub enum Definition {
 pub struct DataDef {
     pub name: String,
     pub annotations: Vec<(String, String)>,
-    pub fields: Vec<(String, String)>,
+    pub fields: Vec<DataField>,
+}
+
+#[derive(Debug, Clone)]
+pub struct DataField {
+    pub mutable: bool,
+    pub name: String,
+    pub datatype: String,
 }
 
 #[derive(Debug, Clone)]
@@ -29,7 +36,7 @@ pub struct ExternalDef {
 pub struct ExternalAction {
     pub name: String,
     pub params: Vec<(String, String)>,
-    pub responses: Vec<(String, String)>,
+    pub return_type: String,
 }
 
 #[derive(Debug, Clone)]
@@ -56,6 +63,7 @@ pub struct ContextDef {
     pub effects: Vec<EffectRule>,
     pub slots: Vec<SlotDef>,
     pub fills: Vec<FillsDef>,
+    pub ignore_rest: bool,
 }
 
 #[derive(Debug, Clone)]

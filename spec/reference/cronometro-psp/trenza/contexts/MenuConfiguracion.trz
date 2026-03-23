@@ -1,35 +1,69 @@
 ﻿-- contexts/MenuConfiguracion.trz
+
 -- Overlay: menÃº desplegable del botÃ³n de configuraciÃ³n.
+
 -- Se cierra al hacer tap fuera de Ã©l.
+
 -- Accesible desde ModoNormal y ModoEdicion.
+
 -- Convertido de MenuConfiguracion.trz (6 marzo 2026) a .trz (12 marzo 2026)
 
+
+
 context MenuConfiguracion:
+    role *: ignored
+
+
+
 
     role item_nueva_actividad: ItemMenu
+
         on tap -> abrirCrearActividad
 
+
+
     role item_historial: ItemMenu
+
         on tap -> abrirHistorial
 
+
+
     role item_acerca_de: ItemMenu
+
         on tap -> abrirAcercaDe
 
+
+
     role item_reset: ItemMenu
+
         on tap -> abrirReset
 
+
+
     role overlay: Boton                  -- tap fuera del menÃº lo cierra
+
         on tap -> cerrar
 
+
+
     transitions:
+
         on abrirCrearActividad -> ModalCrearActividad
+
         on abrirHistorial      -> ModalHistorial
+
         on abrirAcercaDe       -> ModalAcercaDe
+
         on abrirReset          -> ModalReset
+
         on cerrar              -> [cerrar_overlay]
 
-    -- PROPUESTA GAP-2 (detalle): cuando un Ã­tem del menÃº abre otro overlay,
-    -- Â¿el menÃº se cierra primero o el nuevo overlay se apila sobre Ã©l?
-    -- En app.js: el menÃº se cierra y el modal se abre (no se apilan).
-    -- El modelo de pila necesita soporte para "cerrar y abrir" en una transiciÃ³n.
 
+
+    -- PROPUESTA GAP-2 (detalle): cuando un Ã­tem del menÃº abre otro overlay,
+
+    -- Â¿el menÃº se cierra primero o el nuevo overlay se apila sobre Ã©l?
+
+    -- En app.js: el menÃº se cierra y el modal se abre (no se apilan).
+
+    -- El modelo de pila necesita soporte para "cerrar y abrir" en una transiciÃ³n.

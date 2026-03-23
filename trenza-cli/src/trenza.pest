@@ -7,12 +7,11 @@ definition = { data_def | system_def | context_def }
 
 data_def = { "data" ~ ident ~ data_annotation? ~ ":" ~ data_field* }
 data_annotation = { "[" ~ ident ~ ":" ~ ident ~ "]" }
-data_field = { ident ~ ":" ~ ident }
+data_field = { "mutable"? ~ ident ~ ":" ~ type_ident }
 
 external_def = { "external" ~ ident ~ data_annotation? ~ ":" ~ external_action* }
-external_action = { "action" ~ ident ~ "(" ~ action_params? ~ ")" ~ ":" ~ external_response* }
-action_params = { ident ~ ":" ~ ident ~ ("," ~ ident ~ ":" ~ ident)* }
-external_response = { ident ~ "->" ~ ident }
+external_action = { ident ~ "(" ~ action_params? ~ ")" ~ "->" ~ type_ident }
+action_params = { ident ~ ":" ~ type_ident ~ ("," ~ ident ~ ":" ~ type_ident)* }
 
 system_def = { "system" ~ ident ~ ":" ~ "initial:" ~ ident ~ system_sections* }
 system_sections = { context_list | concurrent_list | overlay_list | event_list_section }
@@ -29,20 +28,21 @@ section_ident = @{ !reserved_section ~ !definition_kw ~ ident }
 event_list = { ident ~ ("," ~ ident)* }
 
 context_def = { "context" ~ ident ~ ":" ~ context_clause* }
-context_clause = { input_def | role_def | transitions_def | effects_def | slot_def | fills_def }
+context_clause = { input_def | role_def | role_wildcard | transitions_def | effects_def | slot_def | fills_def }
 
 input_def = { "input:" ~ input_field* }
-input_field = { "mutable"? ~ ident ~ ":" ~ ident }
+input_field = { "mutable"? ~ ident ~ ":" ~ type_ident }
 
 slot_def = { "slot" ~ ident }
 fills_def = { "fills" ~ slot_ref ~ ":" ~ fills_clause* }
 slot_ref = { ident }
 fills_clause = { role_def | effects_def }
 
-role_def = { "role" ~ ident ~ role_annotation? ~ ":" ~ ident ~ role_binding? ~ role_action* }
-role_annotation = { "[" ~ ident ~ ":" ~ ident ~ "]" }
+role_def = { "role" ~ ident ~ role_annotation? ~ ":" ~ type_ident ~ role_binding? ~ role_action* }
+role_annotation = { "[" ~ ident ~ ":" ~ type_ident ~ "]" }
 role_binding = { "(" ~ "bind:" ~ ident ~ ")" }
 role_action = { decorator? ~ "on" ~ ident ~ ("->" ~ action_target)? }
+role_wildcard = { "role" ~ "*" ~ ":" ~ action_target }
 
 ignored_kw = { "ignored" }
 forbidden_kw = { "forbidden" }
@@ -52,8 +52,10 @@ decorator = { "@" ~ ident ~ "(" ~ string_literal ~ ")" }
 
 action_call = { ident ~ "(" ~ action_args? ~ ")" | ident }
 action_args = { arg ~ ("," ~ arg)* }
-arg = { string_literal | field_access | ident }
+named_arg = { ident ~ ":" ~ WHITESPACE* ~ (string_literal | field_access | ident | number) }
+arg = { named_arg | string_literal | field_access | ident | number }
 field_access = { ident ~ "." ~ ident }
+number = @{ ASCII_DIGIT+ }
 
 transitions_def = { "transitions:" ~ transition_rule* }
 transition_rule = { decorator? ~ "on" ~ ident ~ "->" ~ transition_target ~ with_clause? }
@@ -66,5 +68,6 @@ effect_rule = { (lifecycle_hook | ident) ~ "->" ~ action_call }
 lifecycle_hook = { "[" ~ ("on_entry" | "on_exit") ~ "]" }
 
 ident = @{ (LETTER | "_") ~ (LETTER | ASCII_DIGIT | "_" | "." | "ñ" | "á" | "é" | "í" | "ó" | "ú")* }
+type_ident = @{ ident ~ ("<" ~ type_ident ~ ("," ~ WHITESPACE* ~ type_ident)* ~ ">")? ~ "?"? }
 string_literal = @{ ("\"" ~ (!"\"" ~ ANY)* ~ "\"") | ("'" ~ (!"'" ~ ANY)* ~ "'") }
 

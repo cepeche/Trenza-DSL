@@ -46,9 +46,20 @@ fn parse_data(pair: pest::iterators::Pair<Rule>) -> DataDef {
             },
             Rule::data_field => {
                 let mut iter = inner.into_inner();
-                let curr_name = iter.next().unwrap().as_str().to_string();
-                let curr_type = iter.next().unwrap().as_str().to_string();
-                fields.push((curr_name, curr_type));
+                let curr_mutable;
+                let curr_name;
+                let curr_type;
+                let first = iter.next().unwrap();
+                if first.as_str() == "mutable" {
+                    curr_mutable = true;
+                    curr_name = iter.next().unwrap().as_str().to_string();
+                    curr_type = iter.next().unwrap().as_str().to_string();
+                } else {
+                    curr_mutable = false;
+                    curr_name = first.as_str().to_string();
+                    curr_type = iter.next().unwrap().as_str().to_string();
+                }
+                fields.push(DataField { mutable: curr_mutable, name: curr_name, datatype: curr_type });
             },
             _ => {}
         }
@@ -74,7 +85,7 @@ fn parse_external(pair: pest::iterators::Pair<Rule>) -> ExternalDef {
                 let mut a_iter = inner.into_inner();
                 let a_name = a_iter.next().unwrap().as_str().to_string();
                 let mut params = Vec::new();
-                let mut responses = Vec::new();
+                let mut return_type = String::new();
                 
                 for a_inner in a_iter {
                     match a_inner.as_rule() {
@@ -84,16 +95,13 @@ fn parse_external(pair: pest::iterators::Pair<Rule>) -> ExternalDef {
                                 params.push((pk.as_str().to_string(), pv.as_str().to_string()));
                             }
                         },
-                        Rule::external_response => {
-                            let mut r_iter = a_inner.into_inner();
-                            let r_k = r_iter.next().unwrap().as_str().to_string();
-                            let r_v = r_iter.next().unwrap().as_str().to_string();
-                            responses.push((r_k, r_v));
+                        Rule::type_ident => {
+                            return_type = a_inner.as_str().to_string();
                         },
                         _ => {}
                     }
                 }
-                actions.push(ExternalAction { name: a_name, params, responses });
+                actions.push(ExternalAction { name: a_name, params, return_type });
             },
             _ => {}
         }
@@ -146,6 +154,7 @@ fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
     let mut effects = Vec::new();
     let mut slots = Vec::new();
     let mut fills = Vec::new();
+    let mut ignore_rest = false;
 
     for inner in pair.into_inner() {
         match inner.as_rule() {
@@ -193,13 +202,16 @@ fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
                     Rule::fills_def => {
                         fills.push(parse_fills(clause));
                     },
+                    Rule::role_wildcard => {
+                        ignore_rest = true;
+                    },
                     _ => {}
                 }
             },
             _ => {}
         }
     }
-    ContextDef { name, inputs, roles, transitions, effects, slots, fills }
+    ContextDef { name, inputs, roles, transitions, effects, slots, fills, ignore_rest }
 }
 
 
