@@ -194,14 +194,35 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
 }
 
 
-pub fn generate_mermaid(program: &Program) -> String {
+pub fn generate_mermaid_topology(program: &Program) -> String {
     let mut output = String::new();
     output.push_str("stateDiagram-v2\n\n");
     
-    // 1. Context internal states (roles and actions) - Grouped first
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for trans in &ctx.transitions {
+                let target = trans.target.replace("[", "").replace("]", "");
+                output.push_str(&format!("    {} --> {} : {}\n", ctx.name, target, trans.event));
+            }
+        }
+    }
+    
+    for def in &program.definitions {
+        if let Definition::System(sys) = def {
+            output.push_str(&format!("    [*] --> {}\n", sys.initial));
+        }
+    }
+
+    output
+}
+
+pub fn generate_mermaid_details(program: &Program) -> Vec<(String, String)> {
+    let mut details = Vec::new();
     for def in &program.definitions {
         if let Definition::Context(ctx) = def {
             if !ctx.roles.is_empty() || !ctx.effects.is_empty() {
+                let mut output = String::new();
+                output.push_str("stateDiagram-v2\n\n");
                 output.push_str(&format!("    state {} {{\n", ctx.name));
                 for role in &ctx.roles {
                     for action in &role.actions {
@@ -221,30 +242,12 @@ pub fn generate_mermaid(program: &Program) -> String {
                     };
                     output.push_str(&format!("        {}_{} --> {}\n", ctx.name, trigger, effect.call.function));
                 }
-                output.push_str("    }\n\n");
+                output.push_str("    }\n");
+                details.push((ctx.name.clone(), output));
             }
         }
     }
-
-    // 2. Global transitions
-    for def in &program.definitions {
-        if let Definition::Context(ctx) = def {
-            for trans in &ctx.transitions {
-                let target = trans.target.replace("[", "").replace("]", "");
-                output.push_str(&format!("    {} --> {} : {}\n", ctx.name, target, trans.event));
-            }
-        }
-    }
-    output.push_str("\n");
-
-    // 3. Initial state - Last, after all states are declared or used
-    for def in &program.definitions {
-        if let Definition::System(sys) = def {
-            output.push_str(&format!("    [*] --> {}\n", sys.initial));
-        }
-    }
-
-    output
+    details
 }
 
 pub fn generate_audit(program: &Program) -> String {
