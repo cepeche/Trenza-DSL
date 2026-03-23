@@ -1,0 +1,182 @@
+# System Visualization: CronometroPSP
+
+```mermaid
+stateDiagram-v2
+    [*] --> ModoNormal
+
+    MenuConfiguracion --> ModalCrearActividad : abrirCrearActividad
+    MenuConfiguracion --> ModalHistorial : abrirHistorial
+    MenuConfiguracion --> ModalAcercaDe : abrirAcercaDe
+    MenuConfiguracion --> ModalReset : abrirReset
+    MenuConfiguracion --> [cerrar_overlay] : cerrar
+    ModalAcercaDe --> [cerrar_overlay] : cerrar
+    ModalComentario --> [cerrar_overlay] : confirmarInicio
+    ModalComentario --> [cerrar_overlay] : cancelar
+    ModalCrearActividad --> [cerrar_overlay] : guardarNuevaActividad
+    ModalCrearActividad --> [cerrar_overlay] : cancelar
+    ModalCrearTarea --> [cerrar_overlay] : guardarNuevaTarea
+    ModalCrearTarea --> [cerrar_overlay] : cancelar
+    ModalEditarActividad --> [cerrar_overlay] : guardarEdicionActividad
+    ModalEditarActividad --> [cerrar_overlay] : cancelar
+    ModalEditarTarea --> [cerrar_overlay] : guardarEdicion
+    ModalEditarTarea --> [cerrar_overlay] : cancelar
+    ModalHistorial --> [cerrar_overlay] : cerrar
+    Historial7Dias --> Historial30Dias : cambiarA30Dias
+    Historial7Dias --> ModalHistorial : cerrar
+    Historial30Dias --> Historial7Dias : cambiarA7Dias
+    Historial30Dias --> ModalHistorial : cerrar
+    ModalReset --> [cerrar_overlay] : cerrar
+    ResetFase1 --> ResetFase2 : avanzarAFase2
+    ResetFase1 --> ModalReset : cerrar
+    ResetFase2 --> ResetFase3 : avanzarAFase3
+    ResetFase2 --> ResetFase1 : retrocederAFase1
+    ResetFase3 --> [cerrar_overlay] : ejecutarReset
+    ResetFase3 --> ResetFase2 : retrocederAFase2
+    ModalSeleccionActividad --> ModalComentario : elegirActividad
+    ModalSeleccionActividad --> [cerrar_overlay] : cancelar
+    ModoEdicion --> ModoNormal : desactivarEdicion
+    ModoEdicion --> ModalEditarTarea : abrirEditarTarea
+    ModoEdicion --> ModalEditarActividad : abrirEditarActividad
+    ModoEdicion --> ModalCrearTarea : abrirCrearTarea
+    ModoEdicion --> MenuConfiguracion : abrirMenuConfiguracion
+    ModoNormal --> ModoEdicion : activarEdicion
+    ModoNormal --> ModalCrearTarea : abrirCrearTarea
+    ModoNormal --> MenuConfiguracion : abrirMenuConfiguracion
+    ModoNormal --> ModalComentario : seleccionarTipoTarea
+    SesionActiva --> [deactivate] : sesionFinalizada
+
+    state MenuConfiguracion {
+        tap_item_nueva_actividad --> abrirCrearActividad
+        tap_item_historial --> abrirHistorial
+        tap_item_acerca_de --> abrirAcercaDe
+        tap_item_reset --> abrirReset
+        tap_overlay --> cerrar
+    }
+
+    state ModalAcercaDe {
+        tap_boton_cerrar --> cerrar
+        [on_entry] --> verificar_conexion
+        [on_entry] --> cargar_tiempo_acumulado
+    }
+
+    state ModalComentario {
+        cambio_campo_comentario --> actualizarComentario
+        cambio_campo_retroactivo --> actualizarRetroactivo
+        tap_boton_confirmar --> confirmarInicio
+        tap_boton_cancelar --> cancelar
+        [confirmarInicio] --> iniciar_sesion
+    }
+
+    state ModalCrearActividad {
+        cambio_campo_nombre --> actualizarNombreNuevaActividad
+        seleccion_selector_color --> seleccionarColorNuevo
+        cambio_checkbox_permanente --> marcarPermanenteNueva
+        tap_boton_guardar --> guardarNuevaActividad
+        tap_boton_cancelar --> cancelar
+        [guardarNuevaActividad] --> crear_actividad
+    }
+
+    state ModalCrearTarea {
+        cambio_campo_nombre --> actualizarNuevoNombre
+        cambio_campo_busqueda_icono --> filtrarIconosCrear
+        seleccion_selector_icono --> seleccionarIconoNuevo
+        cambio_checkbox_actividad --> toggleActividadPermitida
+        tap_boton_guardar --> guardarNuevaTarea
+        tap_boton_cancelar --> cancelar
+        [guardarNuevaTarea] --> crear_tipo_tarea
+    }
+
+    state ModalEditarActividad {
+        cambio_campo_nombre --> actualizarNombreActividad
+        seleccion_selector_color --> seleccionarColor
+        cambio_checkbox_permanente --> marcarPermanente
+        tap_boton_guardar --> guardarEdicionActividad
+        tap_boton_cancelar --> cancelar
+        [guardarEdicionActividad] --> actualizar_actividad
+    }
+
+    state ModalEditarTarea {
+        cambio_campo_nombre --> actualizarNombre
+        cambio_campo_busqueda_icono --> filtrarIconos
+        seleccion_selector_icono --> seleccionarIcono
+        tap_boton_guardar --> guardarEdicion
+        tap_boton_cancelar --> cancelar
+        [guardarEdicion] --> editar_tipo_tarea
+    }
+
+    state ModalHistorial {
+        tap_boton_cerrar --> cerrar
+    }
+
+    state Historial7Dias {
+        tap_boton_7dias --> ignored
+        tap_boton_30dias --> cambiarA30Dias
+        [on_entry] --> cargar_historial
+    }
+
+    state Historial30Dias {
+        tap_boton_7dias --> cambiarA7Dias
+        tap_boton_30dias --> ignored
+        [on_entry] --> cargar_historial
+    }
+
+    state ModalReset {
+        tap_boton_cancelar --> cerrar
+    }
+
+    state ResetFase1 {
+        tap_boton_cancelar --> cerrar
+        tap_boton_continuar --> avanzarAFase2
+        tap_boton_exportar_csv --> exportarCSV
+        [exportarCSV] --> descargar_csv
+    }
+
+    state ResetFase2 {
+        cambio_checkbox_actividad --> toggleConservar
+        tap_boton_continuar --> avanzarAFase3
+        tap_boton_atras --> retrocederAFase1
+    }
+
+    state ResetFase3 {
+        cambio_campo_confirmacion --> actualizarConfirmacion
+        tap_boton_ejecutar --> ejecutarReset
+        tap_boton_atras --> retrocederAFase2
+        [ejecutarReset] --> reset_datos
+    }
+
+    state ModalSeleccionActividad {
+        tap_boton_actividad --> elegirActividad
+        tap_boton_cancelar --> cancelar
+    }
+
+    state ModoEdicion {
+        tap_tarjeta_tipo --> abrirEditarTarea
+        tap_tarjeta_tarea --> abrirEditarTarea
+        tap_pestana_actividad --> abrirEditarActividad
+        tap_pestana_frecuentes --> ignored
+        tap_boton_edicion --> desactivarEdicion
+        tap_boton_nuevo --> abrirCrearTarea
+        tap_boton_configuracion --> abrirMenuConfiguracion
+    }
+
+    state ModoNormal {
+        tap_tarjeta_tipo --> seleccionarTipoTarea
+        tap_tarjeta_tarea --> iniciarTarea
+        tap_pestana_actividad --> cambiarPestana
+        tap_pestana_frecuentes --> cambiarPestana
+        tap_boton_edicion --> activarEdicion
+        tap_boton_nuevo --> abrirCrearTarea
+        tap_boton_configuracion --> abrirMenuConfiguracion
+        [cambiarPestana] --> actualizarGridVisible
+        [iniciarTarea] --> iniciar_sesion
+    }
+
+    state SesionActiva {
+        tap_display_timer --> ignored
+        [actualizarTimer] --> calcular_tiempo_transcurrido
+    }
+
+
+```
+
+*Generated by Trenza CLI*
