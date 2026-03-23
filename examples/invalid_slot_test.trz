@@ -1,0 +1,42 @@
+system SistemaSlotTest:
+    initial: Base
+    contexts:
+        Base
+    concurrent:
+        Auxiliar
+    overlays:
+        Popup
+
+data Elemento:
+    id: Id
+
+context Base:
+    role boton: Elemento
+        on tap -> abrir()
+    role helper: Elemento
+        on tap -> ignored
+    transitions:
+        on abrir -> Popup
+        on activar -> Auxiliar
+
+context Popup:
+    role boton: Elemento
+        on tap -> cerrar()
+    role helper: Elemento
+        on tap -> ignored
+    slot extras
+    transitions:
+        on cerrar -> Base
+
+context Auxiliar:
+    role boton: Elemento
+        on tap -> ignored
+    role helper: Elemento
+        on tap -> ayudar()
+    fills Popup.inexistente:
+        role indicador: Elemento
+            on tap -> mostrarInfo()
+        effects:
+            [on_entry] -> cargar_datos()
+    transitions:
+        on desactivar -> Base

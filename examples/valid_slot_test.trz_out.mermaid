@@ -1,0 +1,23 @@
+stateDiagram-v2
+    [*] --> Base
+
+    Base --> Popup : abrir
+    Base --> Auxiliar : activar
+    Popup --> Base : cerrar
+    Auxiliar --> Base : desactivar
+
+    state Base {
+        tap_boton --> abrir
+        tap_helper --> ignored
+    }
+
+    state Popup {
+        tap_boton --> cerrar
+        tap_helper --> ignored
+    }
+
+    state Auxiliar {
+        tap_boton --> ignored
+        tap_helper --> ayudar
+    }
+

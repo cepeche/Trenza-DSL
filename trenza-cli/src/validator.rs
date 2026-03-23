@@ -203,6 +203,64 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
         }
     }
 
+    // Pass 7: Rule 7 (Slot/Fills Integrity)
+    let mut slot_index: HashSet<(String, String)> = HashSet::new();
+    for def in &program.definitions {
+        if let Definition::Context(c) = def {
+            for slot in &c.slots {
+                slot_index.insert((c.name.clone(), slot.name.clone()));
+            }
+        }
+    }
+
+    let mut fills_index: HashMap<(String, String), Vec<(String, FillsDef)>> = HashMap::new();
+    for def in &program.definitions {
+        if let Definition::Context(c) = def {
+            for fills in &c.fills {
+                let key = (fills.target_context.clone(), fills.target_slot.clone());
+                
+                // Rule S1
+                if !slot_index.contains(&key) {
+                    errors.push(format!(
+                        "ERROR [slot]: context '{}' declares fills {}.{} but {} does not declare that slot",
+                        c.name, fills.target_context, fills.target_slot, fills.target_context
+                    ));
+                    continue;
+                }
+                fills_index.entry(key).or_default().push((c.name.clone(), fills.clone()));
+            }
+        }
+    }
+
+    // Rule S3
+    for (key, sources) in &fills_index {
+        if sources.len() > 1 {
+            let names: Vec<String> = sources.iter().map(|s| s.0.clone()).collect();
+            errors.push(format!(
+                "ERROR [slot-conflict]: contexts {} both declare fills for {}.{}. Declare priority in the system block",
+                names.join(", "), key.0, key.1
+            ));
+        }
+    }
+
+    // Rule S4
+    for (key, sources) in &fills_index {
+        for (source_name, fills_def) in sources {
+            let mut seen_role_events = HashSet::new();
+            for role in &fills_def.roles {
+                for action in &role.actions {
+                    let re = (role.name.clone(), action.event.clone());
+                    if !seen_role_events.insert(re) {
+                        errors.push(format!(
+                            "ERROR [determinism]: role '{}' has duplicate handlers for event '{}' in fills {}.{} of context '{}'",
+                            role.name, action.event, key.0, key.1, source_name
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
     if errors.is_empty() {
         Ok(())
     } else {

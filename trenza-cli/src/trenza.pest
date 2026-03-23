@@ -29,10 +29,15 @@ section_ident = @{ !reserved_section ~ !definition_kw ~ ident }
 event_list = { ident ~ ("," ~ ident)* }
 
 context_def = { "context" ~ ident ~ ":" ~ context_clause* }
-context_clause = { input_def | role_def | transitions_def | effects_def }
+context_clause = { input_def | role_def | transitions_def | effects_def | slot_def | fills_def }
 
 input_def = { "input:" ~ input_field* }
 input_field = { "mutable"? ~ ident ~ ":" ~ ident }
+
+slot_def = { "slot" ~ ident }
+fills_def = { "fills" ~ slot_ref ~ ":" ~ fills_clause* }
+slot_ref = { ident }
+fills_clause = { role_def | effects_def }
 
 role_def = { "role" ~ ident ~ role_annotation? ~ ":" ~ ident ~ role_binding? ~ role_action* }
 role_annotation = { "[" ~ ident ~ ":" ~ ident ~ "]" }

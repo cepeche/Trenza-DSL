@@ -144,6 +144,8 @@ fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
     let mut roles = Vec::new();
     let mut transitions = Vec::new();
     let mut effects = Vec::new();
+    let mut slots = Vec::new();
+    let mut fills = Vec::new();
 
     for inner in pair.into_inner() {
         match inner.as_rule() {
@@ -183,15 +185,23 @@ fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
                             let call = parse_action_call(e_iter.next().unwrap());
                             effects.push(EffectRule { trigger, call });
                         }
-                    }
+                    },
+                    Rule::slot_def => {
+                        let slot_name = clause.into_inner().next().unwrap().as_str().to_string();
+                        slots.push(SlotDef { name: slot_name });
+                    },
+                    Rule::fills_def => {
+                        fills.push(parse_fills(clause));
+                    },
                     _ => {}
                 }
             },
             _ => {}
         }
     }
-    ContextDef { name, inputs, roles, transitions, effects }
+    ContextDef { name, inputs, roles, transitions, effects, slots, fills }
 }
+
 
 fn parse_role(pair: pest::iterators::Pair<Rule>) -> RoleDef {
     let mut it = pair.into_inner();
@@ -295,4 +305,53 @@ fn parse_decorator(pair: pest::iterators::Pair<Rule>) -> Decorator {
     let name = iter.next().unwrap().as_str().to_string();
     let args = iter.next().unwrap().as_str().to_string().replace("\"", "").replace("'", "");
     Decorator { name, args }
+}
+
+fn parse_fills(pair: pest::iterators::Pair<Rule>) -> FillsDef {
+    let mut target_context = String::new();
+    let mut target_slot = String::new();
+    let mut roles = Vec::new();
+    let mut effects = Vec::new();
+
+    for inner in pair.into_inner() {
+        match inner.as_rule() {
+            Rule::slot_ref => {
+                let ref_str = inner.as_str();
+                let parts: Vec<&str> = ref_str.split('.').collect();
+                if parts.len() == 2 {
+                    target_context = parts[0].to_string();
+                    target_slot = parts[1].to_string();
+                } else {
+                    target_context = ref_str.to_string();
+                    target_slot = "".to_string(); // Will naturally fail Rule 7 later
+                }
+            },
+            Rule::fills_clause => {
+                let clause = inner.into_inner().next().unwrap();
+                match clause.as_rule() {
+                    Rule::role_def => roles.push(parse_role(clause)),
+                    Rule::effects_def => {
+                        for eff in clause.into_inner() {
+                            if eff.as_rule() != Rule::effect_rule { continue; }
+                            let mut e_iter = eff.into_inner();
+                            let trigger_pair = e_iter.next().unwrap();
+                            let trigger = if trigger_pair.as_rule() == Rule::lifecycle_hook {
+                                EffectTrigger::Lifecycle(
+                                    trigger_pair.as_str()
+                                        .replace("[", "").replace("]", "")
+                                )
+                            } else {
+                                EffectTrigger::Event(trigger_pair.as_str().to_string())
+                            };
+                            let call = parse_action_call(e_iter.next().unwrap());
+                            effects.push(EffectRule { trigger, call });
+                        }
+                    },
+                    _ => {}
+                }
+            },
+            _ => {}
+        }
+    }
+    FillsDef { target_context, target_slot, roles, effects }
 }

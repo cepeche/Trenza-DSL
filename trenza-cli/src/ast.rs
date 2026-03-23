@@ -54,6 +54,21 @@ pub struct ContextDef {
     pub roles: Vec<RoleDef>,
     pub transitions: Vec<TransitionRule>,
     pub effects: Vec<EffectRule>,
+    pub slots: Vec<SlotDef>,
+    pub fills: Vec<FillsDef>,
+}
+
+#[derive(Debug, Clone)]
+pub struct SlotDef {
+    pub name: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct FillsDef {
+    pub target_context: String,
+    pub target_slot: String,
+    pub roles: Vec<RoleDef>,
+    pub effects: Vec<EffectRule>,
 }
 
 #[derive(Debug, Clone)]
