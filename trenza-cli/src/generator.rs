@@ -67,3 +67,43 @@ pub fn generate_rust(program: &Program, profile: &str) -> String {
 
     output
 }
+
+pub fn generate_mermaid(program: &Program) -> String {
+    let mut output = String::new();
+    output.push_str("stateDiagram-v2\n");
+    
+    // Initial state
+    for def in &program.definitions {
+        if let Definition::System(sys) = def {
+            output.push_str(&format!("    [*] --> {}\n", sys.initial));
+        }
+    }
+    output.push_str("\n");
+
+    // Global transitions
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for trans in &ctx.transitions {
+                output.push_str(&format!("    {} --> {} : {}\n", ctx.name, trans.target, trans.event));
+            }
+        }
+    }
+    output.push_str("\n");
+
+    // Context internal states (roles and actions)
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            if !ctx.roles.is_empty() {
+                output.push_str(&format!("    state {} {{\n", ctx.name));
+                for role in &ctx.roles {
+                    for action in &role.actions {
+                        output.push_str(&format!("        {}_{} --> {}\n", action.event, role.name, action.call.function));
+                    }
+                }
+                output.push_str("    }\n\n");
+            }
+        }
+    }
+
+    output
+}

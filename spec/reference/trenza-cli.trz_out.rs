@@ -15,9 +15,27 @@ pub enum Contexto {
 // Handler for role generador_rust on iniciar_generacion
 pub fn handle_generador_rust_iniciar_generacion(ctx: &Contexto) {
     match ctx {
+        Contexto::EsperandoComando => {
+            // execute forbidden
+        },
+        Contexto::ParseandoArchivo => {
+            // execute forbidden
+        },
+        Contexto::VerificandoReglas => {
+            // execute forbidden
+        },
         Contexto::GenerandoStrands => {
             println!("[audit] Generación de Strand 1 (Rust) iniciada internamente");
             // execute emitirCodigoRust
+        },
+        Contexto::ErrorFatal => {
+            // execute forbidden
+        },
+        Contexto::Exito => {
+            // execute forbidden
+        },
+        Contexto::MostrarAyuda => {
+            // execute forbidden
         },
         _ => unimplemented!("Action not allowed in this context"),
     }
@@ -26,8 +44,26 @@ pub fn handle_generador_rust_iniciar_generacion(ctx: &Contexto) {
 // Handler for role lector_fs on iniciar_lectura
 pub fn handle_lector_fs_iniciar_lectura(ctx: &Contexto) {
     match ctx {
+        Contexto::EsperandoComando => {
+            // execute forbidden
+        },
         Contexto::ParseandoArchivo => {
             // execute leerYParsear
+        },
+        Contexto::VerificandoReglas => {
+            // execute forbidden
+        },
+        Contexto::GenerandoStrands => {
+            // execute forbidden
+        },
+        Contexto::ErrorFatal => {
+            // execute forbidden
+        },
+        Contexto::Exito => {
+            // execute forbidden
+        },
+        Contexto::MostrarAyuda => {
+            // execute forbidden
         },
         _ => unimplemented!("Action not allowed in this context"),
     }
@@ -36,6 +72,18 @@ pub fn handle_lector_fs_iniciar_lectura(ctx: &Contexto) {
 // Handler for role logger on entrar
 pub fn handle_logger_entrar(ctx: &Contexto) {
     match ctx {
+        Contexto::EsperandoComando => {
+            // execute forbidden
+        },
+        Contexto::ParseandoArchivo => {
+            // execute forbidden
+        },
+        Contexto::VerificandoReglas => {
+            // execute forbidden
+        },
+        Contexto::GenerandoStrands => {
+            // execute forbidden
+        },
         Contexto::ErrorFatal => {
             // execute imprimirErrorFatal
         },
@@ -55,6 +103,24 @@ pub fn handle_terminal_ejecutar(ctx: &Contexto) {
         Contexto::EsperandoComando => {
             // execute leerYEvaluarArgumentos
         },
+        Contexto::ParseandoArchivo => {
+            // execute forbidden
+        },
+        Contexto::VerificandoReglas => {
+            // execute forbidden
+        },
+        Contexto::GenerandoStrands => {
+            // execute forbidden
+        },
+        Contexto::ErrorFatal => {
+            // execute forbidden
+        },
+        Contexto::Exito => {
+            // execute forbidden
+        },
+        Contexto::MostrarAyuda => {
+            // execute forbidden
+        },
         _ => unimplemented!("Action not allowed in this context"),
     }
 }
@@ -62,8 +128,26 @@ pub fn handle_terminal_ejecutar(ctx: &Contexto) {
 // Handler for role validador on iniciar_validacion
 pub fn handle_validador_iniciar_validacion(ctx: &Contexto) {
     match ctx {
+        Contexto::EsperandoComando => {
+            // execute forbidden
+        },
+        Contexto::ParseandoArchivo => {
+            // execute forbidden
+        },
         Contexto::VerificandoReglas => {
             // execute comprobarIntegridad
+        },
+        Contexto::GenerandoStrands => {
+            // execute forbidden
+        },
+        Contexto::ErrorFatal => {
+            // execute forbidden
+        },
+        Contexto::Exito => {
+            // execute forbidden
+        },
+        Contexto::MostrarAyuda => {
+            // execute forbidden
         },
         _ => unimplemented!("Action not allowed in this context"),
     }

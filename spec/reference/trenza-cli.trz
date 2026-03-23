@@ -22,6 +22,14 @@ system CLI_Trenza:
 context EsperandoComando:
     role terminal: ArgumentosUsuario
         on ejecutar -> leerYEvaluarArgumentos(self.comando, self.archivoTrz)
+    role lector_fs: ArgumentosUsuario
+        on iniciar_lectura -> forbidden
+    role validador: AST
+        on iniciar_validacion -> forbidden
+    role generador_rust: AST
+        on iniciar_generacion -> forbidden
+    role logger: ErrorCompilacion
+        on entrar -> forbidden
 
     transitions:
         on comandoGenerate -> ParseandoArchivo
@@ -31,6 +39,14 @@ context EsperandoComando:
 context ParseandoArchivo:
     role lector_fs: ArgumentosUsuario
         on iniciar_lectura -> leerYParsear(self.archivoTrz)
+    role terminal: ArgumentosUsuario
+        on ejecutar -> forbidden
+    role validador: AST
+        on iniciar_validacion -> forbidden
+    role generador_rust: AST
+        on iniciar_generacion -> forbidden
+    role logger: ErrorCompilacion
+        on entrar -> forbidden
 
     transitions:
         on parseoExitoso -> VerificandoReglas
@@ -40,6 +56,14 @@ context ParseandoArchivo:
 context VerificandoReglas:
     role validador: AST
         on iniciar_validacion -> comprobarIntegridad(self)
+    role terminal: ArgumentosUsuario
+        on ejecutar -> forbidden
+    role lector_fs: ArgumentosUsuario
+        on iniciar_lectura -> forbidden
+    role generador_rust: AST
+        on iniciar_generacion -> forbidden
+    role logger: ErrorCompilacion
+        on entrar -> forbidden
 
     transitions:
         on validacionExitosa -> GenerandoStrands
@@ -50,19 +74,51 @@ context GenerandoStrands:
     role generador_rust: AST
         @audit("Generación de Strand 1 (Rust) iniciada internamente")
         on iniciar_generacion -> emitirCodigoRust(self.pares, self.perfil)
+    role terminal: ArgumentosUsuario
+        on ejecutar -> forbidden
+    role lector_fs: ArgumentosUsuario
+        on iniciar_lectura -> forbidden
+    role validador: AST
+        on iniciar_validacion -> forbidden
+    role logger: ErrorCompilacion
+        on entrar -> forbidden
 
     transitions:
         on generacionCompleta -> Exito
 
--- ESTADOS FINALES (Terminales con efectos IO)
+-- ESTADOS FINALES (Sink states con efectos IO)
 context ErrorFatal:
     role logger: ErrorCompilacion
         on entrar -> imprimirErrorFatal(self.mensaje, self.linea)
+    role terminal: ArgumentosUsuario
+        on ejecutar -> forbidden
+    role lector_fs: ArgumentosUsuario
+        on iniciar_lectura -> forbidden
+    role validador: AST
+        on iniciar_validacion -> forbidden
+    role generador_rust: AST
+        on iniciar_generacion -> forbidden
         
 context Exito:
     role logger: ArgumentosUsuario
         on entrar -> imprimirMensajeExito(self.archivoTrz)
+    role terminal: ArgumentosUsuario
+        on ejecutar -> forbidden
+    role lector_fs: ArgumentosUsuario
+        on iniciar_lectura -> forbidden
+    role validador: AST
+        on iniciar_validacion -> forbidden
+    role generador_rust: AST
+        on iniciar_generacion -> forbidden
 
 context MostrarAyuda:
     role logger: ArgumentosUsuario
         on entrar -> imprimirAyudaCLI
+    role terminal: ArgumentosUsuario
+        on ejecutar -> forbidden
+    role lector_fs: ArgumentosUsuario
+        on iniciar_lectura -> forbidden
+    role validador: AST
+        on iniciar_validacion -> forbidden
+    role generador_rust: AST
+        on iniciar_generacion -> forbidden

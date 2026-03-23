@@ -1,6 +1,7 @@
 pub mod ast;
 pub mod parser;
 pub mod generator;
+pub mod validator;
 
 extern crate pest;
 #[macro_use]
@@ -45,15 +46,32 @@ fn main() {
 
     match parser::parse_file(&unparsed_file) {
         Ok(ast) => {
-            println!("✅ Archivo '{}' parseado correctamente.", filepath);
-            if is_generate {
-                let rust_code = generator::generate_rust(&ast, &profile);
-                let out_file = format!("{}_out.rs", filepath);
-                fs::write(&out_file, rust_code).expect("Unable to write file");
-                println!("- ✅ Código Strand 1 (Rust) generado en: {}", out_file);
-            } else {
-                println!("- IEFBR14 completado: El programa es válido.");
-                println!("- El AST generado es una hebra limpia.");
+            println!("✅ Archivo '{}' leido y parseado.", filepath);
+            
+            match validator::verify(&ast) {
+                Ok(_) => {
+                    println!("- ✅ Verificación Semántica: Superada impecablemente.");
+                    if is_generate {
+                        let rust_code = generator::generate_rust(&ast, &profile);
+                        let out_file = format!("{}_out.rs", filepath);
+                        fs::write(&out_file, rust_code).expect("Unable to write file");
+                        println!("- ✅ Código Strand 1 (Rust) generado en: {}", out_file);
+
+                        let mermaid_code = generator::generate_mermaid(&ast);
+                        let mermaid_file = format!("{}_out.mermaid", filepath);
+                        fs::write(&mermaid_file, mermaid_code).expect("Unable to write file");
+                        println!("- ✅ Código Strand 3 (Mermaid) generado en: {}", mermaid_file);
+                    } else {
+                        println!("- IEFBR14 completado: El programa es válido y la hebra es limpia.");
+                    }
+                },
+                Err(errores) => {
+                    eprintln!("❌ Verificación Semántica Fallida:");
+                    for err in errores {
+                        eprintln!("  {}", err);
+                    }
+                    std::process::exit(1);
+                }
             }
         },
         Err(e) => {

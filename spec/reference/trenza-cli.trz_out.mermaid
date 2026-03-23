@@ -1,0 +1,67 @@
+stateDiagram-v2
+    [*] --> EsperandoComando
+
+    EsperandoComando --> ParseandoArchivo : comandoGenerate
+    EsperandoComando --> MostrarAyuda : comandoInvalido
+    ParseandoArchivo --> VerificandoReglas : parseoExitoso
+    ParseandoArchivo --> ErrorFatal : errorSintaxis
+    VerificandoReglas --> GenerandoStrands : validacionExitosa
+    VerificandoReglas --> ErrorFatal : validacionFallida
+    GenerandoStrands --> Exito : generacionCompleta
+
+    state EsperandoComando {
+        ejecutar_terminal --> leerYEvaluarArgumentos
+        iniciar_lectura_lector_fs --> forbidden
+        iniciar_validacion_validador --> forbidden
+        iniciar_generacion_generador_rust --> forbidden
+        entrar_logger --> forbidden
+    }
+
+    state ParseandoArchivo {
+        iniciar_lectura_lector_fs --> leerYParsear
+        ejecutar_terminal --> forbidden
+        iniciar_validacion_validador --> forbidden
+        iniciar_generacion_generador_rust --> forbidden
+        entrar_logger --> forbidden
+    }
+
+    state VerificandoReglas {
+        iniciar_validacion_validador --> comprobarIntegridad
+        ejecutar_terminal --> forbidden
+        iniciar_lectura_lector_fs --> forbidden
+        iniciar_generacion_generador_rust --> forbidden
+        entrar_logger --> forbidden
+    }
+
+    state GenerandoStrands {
+        iniciar_generacion_generador_rust --> emitirCodigoRust
+        ejecutar_terminal --> forbidden
+        iniciar_lectura_lector_fs --> forbidden
+        iniciar_validacion_validador --> forbidden
+        entrar_logger --> forbidden
+    }
+
+    state ErrorFatal {
+        entrar_logger --> imprimirErrorFatal
+        ejecutar_terminal --> forbidden
+        iniciar_lectura_lector_fs --> forbidden
+        iniciar_validacion_validador --> forbidden
+        iniciar_generacion_generador_rust --> forbidden
+    }
+
+    state Exito {
+        entrar_logger --> imprimirMensajeExito
+        ejecutar_terminal --> forbidden
+        iniciar_lectura_lector_fs --> forbidden
+        iniciar_validacion_validador --> forbidden
+        iniciar_generacion_generador_rust --> forbidden
+    }
+
+    state MostrarAyuda {
+        entrar_logger --> imprimirAyudaCLI
+        ejecutar_terminal --> forbidden
+        iniciar_lectura_lector_fs --> forbidden
+        iniciar_validacion_validador --> forbidden
+        iniciar_generacion_generador_rust --> forbidden
+    }
+
