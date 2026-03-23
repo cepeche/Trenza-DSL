@@ -1,0 +1,31 @@
+stateDiagram-v2
+    [*] --> EsperandoCredenciales
+
+    EsperandoCredenciales --> Autenticando : iniciarAutenticacion
+    Autenticando --> SesionActiva : verificar_credenciales.ok
+    Autenticando --> EsperandoCredenciales : verificar_credenciales.error
+    SesionActiva --> EsperandoCredenciales : cerrar_sesion.ok
+    SesionActiva --> EsperandoCredenciales : cerrar_sesion.error
+
+    state EsperandoCredenciales {
+        submit_formulario --> iniciarAutenticacion
+        cambio_formulario --> ignored
+        tap_boton_login --> iniciarAutenticacion
+        tap_boton_logout --> forbidden
+    }
+
+    state Autenticando {
+        submit_formulario --> ignored
+        cambio_formulario --> ignored
+        tap_boton_login --> ignored
+        tap_boton_logout --> forbidden
+        [on_entry] --> verificar_credenciales
+    }
+
+    state SesionActiva {
+        submit_formulario --> forbidden
+        cambio_formulario --> forbidden
+        tap_boton_login --> forbidden
+        tap_boton_logout --> cerrar_sesion
+    }
+

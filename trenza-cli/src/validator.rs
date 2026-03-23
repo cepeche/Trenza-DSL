@@ -28,7 +28,6 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
                     let re = (role.name.clone(), action.event.clone());
                     role_events.insert(re.clone());
                     
-                    // Rule 2: Determinism (duplicate checks)
                     if ctx_re.contains(&re) {
                         errors.push(format!("ERROR [determinism]: El rol '{}' tiene manejadores duplicados para el evento '{}' en el contexto '{}'", role.name, action.event, ctx.name));
                     }
@@ -37,7 +36,6 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
             }
             context_role_events.insert(ctx.name.clone(), ctx_re);
 
-            // Graph for Reachability
             let mut targets = Vec::new();
             for trans in &ctx.transitions {
                 targets.push(trans.target.clone());
@@ -47,27 +45,28 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
     }
 
     // Pass 2: Rule 1 (Completeness)
-    // Every role+event pair seen anywhere must exist in ALL contexts.
     for ctx_name in &all_contexts {
         if let Some(ctx_re) = context_role_events.get(ctx_name) {
             for re in &role_events {
                 if !ctx_re.contains(re) {
-                    errors.push(format!("ERROR [completeness]: La acción '{}.{}' está definida en otro sitio pero olvidada en el contexto '{}'", re.0, re.1, ctx_name));
+                    errors.push(format!("ERROR [completeness]: La acción '{}.{}' no está declarada en el contexto '{}'", re.0, re.1, ctx_name));
                 }
             }
         }
     }
 
     // Pass 3: Rule 3 (Reachability)
-    if !initial_context.is_empty() && all_contexts.contains(&initial_context) {
+    if !initial_context.is_empty() {
         let mut visited = HashSet::new();
-        let mut stack = vec![initial_context.clone()];
+        let mut stack: Vec<String> = vec![initial_context.clone()];
         
         while let Some(node) = stack.pop() {
             if visited.insert(node.clone()) {
                 if let Some(neighbors) = adjacency_list.get(&node) {
                     for n in neighbors {
-                        stack.push(n.clone());
+                        if n != "[stay]" {
+                            stack.push(n.clone());
+                        }
                     }
                 }
             }
@@ -75,11 +74,9 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
         
         for ctx_name in &all_contexts {
             if !visited.contains(ctx_name) {
-                errors.push(format!("ERROR [reachability]: El contexto '{}' es código muerto (inalcanzable desde el initial '{}')", ctx_name, initial_context));
+                errors.push(format!("ERROR [reachability]: El contexto '{}' es inalcanzable", ctx_name));
             }
         }
-    } else if !initial_context.is_empty() {
-         errors.push(format!("ERROR [reachability]: El contexto inicial '{}' declarado en system no existe", initial_context));
     }
 
     if errors.is_empty() {

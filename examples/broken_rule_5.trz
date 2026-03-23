@@ -1,0 +1,53 @@
+-- EXPERIMENTO v4: Síntesis Total (Reenskaug Approved + Reachability OK)
+
+system SistemaDrogadicto:
+    initial: ModoNormal
+    
+    contexts:
+        ModoNormal
+        ModoAlerta
+    
+    concurrent:
+        ModoFuego
+        ModoAgua
+
+data Recurso:
+    id: Id
+
+context ModoNormal:
+    input: r: Recurso
+    role fuego: Recurso (bind: r)
+        on trigger -> ignored
+    role agua: Recurso (bind: r)
+        on trigger -> ignored
+    transitions:
+        on alert -> ModoAlerta
+        on activateFuego -> ModoFuego
+        on activateAgua -> ModoAgua
+
+context ModoAlerta:
+    input: r: Recurso
+    role fuego: Recurso (bind: r)
+        on trigger -> ignored
+    role agua: Recurso (bind: r)
+        on trigger -> ignored
+    transitions:
+        on normal -> ModoNormal
+
+context ModoFuego:
+    input: r: Recurso
+    role fuego: Recurso (bind: r)
+        on trigger -> accionCalor()
+    role agua: Recurso (bind: r)
+        on trigger -> ignored
+    transitions:
+        on deactivate -> [stay]
+
+context ModoAgua:
+    input: r: Recurso
+    role fuego: Recurso (bind: r)
+        on trigger -> ignored
+    role agua: Recurso (bind: r)
+        on trigger -> accionFrio()
+    transitions:
+        on deactivate -> [stay]

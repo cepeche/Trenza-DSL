@@ -1,0 +1,30 @@
+stateDiagram-v2
+    [*] --> ModoNormal
+
+    ModoNormal --> ModoAlerta : alert
+    ModoNormal --> ModoFuego : activateFuego
+    ModoNormal --> ModoAgua : activateAgua
+    ModoAlerta --> ModoNormal : normal
+    ModoFuego --> [stay] : deactivate
+    ModoAgua --> [stay] : deactivate
+
+    state ModoNormal {
+        trigger_fuego --> ignored
+        trigger_agua --> ignored
+    }
+
+    state ModoAlerta {
+        trigger_fuego --> ignored
+        trigger_agua --> ignored
+    }
+
+    state ModoFuego {
+        trigger_fuego --> accionCalor
+        trigger_agua --> ignored
+    }
+
+    state ModoAgua {
+        trigger_fuego --> ignored
+        trigger_agua --> accionFrio
+    }
+

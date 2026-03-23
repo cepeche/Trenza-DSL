@@ -1,7 +1,7 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 COMMENT = _{ "--" ~ (!"\n" ~ ANY)* }
 
-program = { SOI ~ definition* ~ EOI }
+program = { SOI ~ (definition | external_def)* ~ EOI }
 
 definition = { data_def | system_def | context_def }
 
@@ -9,36 +9,55 @@ data_def = { "data" ~ ident ~ data_annotation? ~ ":" ~ data_field* }
 data_annotation = { "[" ~ ident ~ ":" ~ ident ~ "]" }
 data_field = { ident ~ ":" ~ ident }
 
+external_def = { "external" ~ ident ~ data_annotation? ~ ":" ~ external_action* }
+external_action = { "action" ~ ident ~ "(" ~ action_params? ~ ")" ~ ":" ~ external_response* }
+action_params = { ident ~ ":" ~ ident ~ ("," ~ ident ~ ":" ~ ident)* }
+external_response = { ident ~ "->" ~ ident }
+
 system_def = { "system" ~ ident ~ ":" ~ "initial:" ~ ident ~ system_sections* }
-system_sections = { context_list | concurrent_list | overlay_list | event_list_sec }
+system_sections = { context_list | concurrent_list | overlay_list | event_list_section }
 context_list = { "contexts:" ~ section_ident* }
 concurrent_list = { "concurrent:" ~ section_ident* }
 overlay_list = { "overlays:" ~ section_ident* }
-event_list_sec = { "events:" ~ event_list }
+event_list_section = { "events:" ~ (!definition_kw ~ ident)* }
+
+definition_kw = _{ "system" | "context" | "data" | "external" }
 
 reserved_section = _{ "contexts:" | "concurrent:" | "overlays:" | "events:" }
-section_ident = @{ !reserved_section ~ ident }
+section_ident = @{ !reserved_section ~ !definition_kw ~ ident }
 
 event_list = { ident ~ ("," ~ ident)* }
 
 context_def = { "context" ~ ident ~ ":" ~ context_clause* }
-context_clause = { role_def | transitions_def | effects_def }
+context_clause = { input_def | role_def | transitions_def | effects_def }
 
-role_def = { "role" ~ ident ~ ":" ~ ident ~ role_action* }
-role_action = { decorator? ~ "on" ~ ident ~ ("->" ~ action_call)? }
+input_def = { "input:" ~ input_field* }
+input_field = { "mutable"? ~ ident ~ ":" ~ ident }
+
+role_def = { "role" ~ ident ~ ":" ~ ident ~ role_binding? ~ role_action* }
+role_binding = { "(" ~ "bind:" ~ ident ~ ")" }
+role_action = { decorator? ~ "on" ~ ident ~ ("->" ~ action_target)? }
+
+ignored_kw = { "ignored" }
+forbidden_kw = { "forbidden" }
+action_target = { ignored_kw | forbidden_kw | action_call }
 
 decorator = { "@" ~ ident ~ "(" ~ string_literal ~ ")" }
 
-action_call = { ident ~ ("(" ~ action_args ~ ")")? }
+action_call = { ident ~ ("(" ~ action_args? ~ ")")? }
 action_args = { arg ~ ("," ~ arg)* }
 arg = { string_literal | ident }
 
 transitions_def = { "transitions:" ~ transition_rule* }
-transition_rule = { decorator? ~ "on" ~ ident ~ "->" ~ ident }
+transition_rule = { decorator? ~ "on" ~ ident ~ "->" ~ transition_target ~ with_clause? }
+transition_target = { "[" ~ ident ~ "]" | ident }
+with_clause = { "with" ~ with_arg ~ ("," ~ with_arg)* }
+with_arg = { ident ~ ":" ~ ident }
 
 effects_def = { "effects:" ~ effect_rule* }
-effect_rule = { ident ~ "->" ~ effect_target }
-effect_target = { (!"\n" ~ ANY)+ }
+effect_rule = { (lifecycle_hook | ident) ~ "->" ~ action_call }
+lifecycle_hook = { "[" ~ ("on_entry" | "on_exit") ~ "]" }
 
-ident = @{ (LETTER | "_") ~ (LETTER | ASCII_DIGIT | "_" | ".")* }
+ident = @{ (LETTER | "_") ~ (LETTER | ASCII_DIGIT | "_" | "." | "ñ" | "á" | "é" | "í" | "ó" | "ú")* }
 string_literal = @{ ("\"" ~ (!"\"" ~ ANY)* ~ "\"") | ("'" ~ (!"'" ~ ANY)* ~ "'") }
+
