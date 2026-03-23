@@ -144,6 +144,32 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
         }
     }
 
+    // Pass 5: Rule 5 (Role Exhaustiveness)
+    let mut all_roles: HashSet<String> = HashSet::new();
+    let mut context_roles: HashMap<String, HashSet<String>> = HashMap::new();
+
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            let mut roles = HashSet::new();
+            for role in &ctx.roles {
+                roles.insert(role.name.clone());
+                all_roles.insert(role.name.clone());
+            }
+            context_roles.insert(ctx.name.clone(), roles);
+        }
+    }
+
+    for (ctx_name, roles) in &context_roles {
+        for role_name in &all_roles {
+            if !roles.contains(role_name) {
+                errors.push(format!(
+                    "ERROR [exhaustiveness]: role '{}' appears in other contexts but is absent from context '{}'",
+                    role_name, ctx_name
+                ));
+            }
+        }
+    }
+
     if errors.is_empty() {
         Ok(())
     } else {

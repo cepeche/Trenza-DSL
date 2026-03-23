@@ -6,6 +6,7 @@ system SistemaDrogadicto:
     contexts:
         ModoNormal
         ModoAlerta
+        ModoEmergencia
     
     concurrent:
         ModoFuego
@@ -51,3 +52,11 @@ context ModoAgua:
         on trigger -> accionFrio()
     transitions:
         on deactivate -> [stay]
+
+context ModoEmergencia:
+    input: r: Recurso
+    role fuego: Recurso (bind: r)
+        on trigger -> accionCalor()
+    -- rol 'agua' ausente → dispara Rule 5
+    transitions:
+        on deactivate -> ModoNormal
