@@ -53,14 +53,20 @@ fn main() {
                     println!("- ✅ Verificación Semántica: Superada impecablemente.");
                     if is_generate {
                         let rust_code = generator::generate_rust(&ast, &profile);
-                        let out_file = format!("{}_out.rs", filepath);
-                        fs::write(&out_file, rust_code).expect("Unable to write file");
-                        println!("- ✅ Código Strand 1 (Rust) generado en: {}", out_file);
-
                         let mermaid_code = generator::generate_mermaid(&ast);
-                        let mermaid_file = format!("{}_out.mermaid", filepath);
-                        fs::write(&mermaid_file, mermaid_code).expect("Unable to write file");
-                        println!("- ✅ Código Strand 3 (Mermaid) generado en: {}", mermaid_file);
+                        let audit_doc = generator::generate_audit(&ast);
+
+                        let out_rust = format!("{}_out.rs", filepath);
+                        let out_mermaid = format!("{}_out.mermaid", filepath);
+                        let out_audit = format!("{}_out_audit.md", filepath);
+
+                        fs::write(&out_rust, rust_code).expect("No se pudo escribir el archivo de salida Rust");
+                        fs::write(&out_mermaid, mermaid_code).expect("No se pudo escribir el archivo de salida Mermaid");
+                        fs::write(&out_audit, audit_doc).expect("No se pudo escribir el informe de auditoría");
+
+                        println!("- ✅ Código Strand 1 (Rust) generado en: {}", out_rust);
+                        println!("- ✅ Código Strand 3 (Mermaid) generado en: {}", out_mermaid);
+                        println!("- ✅ Informe Strand 4 (Auditoría) generado en: {}", out_audit);
                     } else {
                         println!("- IEFBR14 completado: El programa es válido y la hebra es limpia.");
                     }
