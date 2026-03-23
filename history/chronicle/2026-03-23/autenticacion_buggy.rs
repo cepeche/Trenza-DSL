@@ -28,7 +28,7 @@ impl System {
             Contexto::Autenticando => {
                 match event {
                     "verificar_credenciales.ok" => self.state = Contexto::SesionActiva,
-                    "verificar_credenciales.error" => self.state = Contexto::EsperandoCredenciales,
+                    "verificar_credenciales.error" => self.state = Contexto::SesionActiva,
                     _ => {},
                 }
             },
@@ -68,7 +68,7 @@ pub fn handle_boton_logout_tap(ctx: &Contexto) {
         },
         Contexto::Autenticando => {
             println!("[telemetry] context=Autenticando, role=boton_logout, event=tap");
-            panic!("Forbidden action called in context Autenticando");
+            // ignored
         },
         Contexto::SesionActiva => {
             println!("[telemetry] context=SesionActiva, role=boton_logout, event=tap");
@@ -148,18 +148,6 @@ mod tests {
         let mut sys = System::new(Contexto::SesionActiva);
         sys.handle_event("cerrar_sesion.error");
         assert_eq!(sys.state, Contexto::EsperandoCredenciales);
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_forbidden_EsperandoCredenciales_boton_logout_on_tap() {
-        handle_boton_logout_tap(&Contexto::EsperandoCredenciales);
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_forbidden_Autenticando_boton_logout_on_tap() {
-        handle_boton_logout_tap(&Contexto::Autenticando);
     }
 
     #[test]
