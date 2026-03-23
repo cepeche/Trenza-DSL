@@ -210,7 +210,8 @@ pub fn generate_mermaid(program: &Program) -> String {
     for def in &program.definitions {
         if let Definition::Context(ctx) = def {
             for trans in &ctx.transitions {
-                output.push_str(&format!("    {} --> {} : {}\n", ctx.name, trans.target, trans.event));
+                let target = trans.target.replace("[", "").replace("]", "");
+                output.push_str(&format!("    {} --> {} : {}\n", ctx.name, target, trans.event));
             }
         }
     }
@@ -233,10 +234,10 @@ pub fn generate_mermaid(program: &Program) -> String {
                 }
                 for effect in &ctx.effects {
                     let trigger = match &effect.trigger {
-                        EffectTrigger::Lifecycle(s) => s.clone(),
+                        EffectTrigger::Lifecycle(s) => s.replace("[", "").replace("]", ""),
                         EffectTrigger::Event(s) => s.clone(),
                     };
-                    output.push_str(&format!("        [{}] --> {}\n", trigger, effect.call.function));
+                    output.push_str(&format!("        {} --> {}\n", trigger, effect.call.function));
                 }
                 output.push_str("    }\n\n");
             }

@@ -8,32 +8,32 @@ stateDiagram-v2
     MenuConfiguracion --> ModalHistorial : abrirHistorial
     MenuConfiguracion --> ModalAcercaDe : abrirAcercaDe
     MenuConfiguracion --> ModalReset : abrirReset
-    MenuConfiguracion --> [cerrar_overlay] : cerrar
-    ModalAcercaDe --> [cerrar_overlay] : cerrar
-    ModalComentario --> [cerrar_overlay] : confirmarInicio
-    ModalComentario --> [cerrar_overlay] : cancelar
-    ModalCrearActividad --> [cerrar_overlay] : guardarNuevaActividad
-    ModalCrearActividad --> [cerrar_overlay] : cancelar
-    ModalCrearTarea --> [cerrar_overlay] : guardarNuevaTarea
-    ModalCrearTarea --> [cerrar_overlay] : cancelar
-    ModalEditarActividad --> [cerrar_overlay] : guardarEdicionActividad
-    ModalEditarActividad --> [cerrar_overlay] : cancelar
-    ModalEditarTarea --> [cerrar_overlay] : guardarEdicion
-    ModalEditarTarea --> [cerrar_overlay] : cancelar
-    ModalHistorial --> [cerrar_overlay] : cerrar
+    MenuConfiguracion --> cerrar_overlay : cerrar
+    ModalAcercaDe --> cerrar_overlay : cerrar
+    ModalComentario --> cerrar_overlay : confirmarInicio
+    ModalComentario --> cerrar_overlay : cancelar
+    ModalCrearActividad --> cerrar_overlay : guardarNuevaActividad
+    ModalCrearActividad --> cerrar_overlay : cancelar
+    ModalCrearTarea --> cerrar_overlay : guardarNuevaTarea
+    ModalCrearTarea --> cerrar_overlay : cancelar
+    ModalEditarActividad --> cerrar_overlay : guardarEdicionActividad
+    ModalEditarActividad --> cerrar_overlay : cancelar
+    ModalEditarTarea --> cerrar_overlay : guardarEdicion
+    ModalEditarTarea --> cerrar_overlay : cancelar
+    ModalHistorial --> cerrar_overlay : cerrar
     Historial7Dias --> Historial30Dias : cambiarA30Dias
     Historial7Dias --> ModalHistorial : cerrar
     Historial30Dias --> Historial7Dias : cambiarA7Dias
     Historial30Dias --> ModalHistorial : cerrar
-    ModalReset --> [cerrar_overlay] : cerrar
+    ModalReset --> cerrar_overlay : cerrar
     ResetFase1 --> ResetFase2 : avanzarAFase2
     ResetFase1 --> ModalReset : cerrar
     ResetFase2 --> ResetFase3 : avanzarAFase3
     ResetFase2 --> ResetFase1 : retrocederAFase1
-    ResetFase3 --> [cerrar_overlay] : ejecutarReset
+    ResetFase3 --> cerrar_overlay : ejecutarReset
     ResetFase3 --> ResetFase2 : retrocederAFase2
     ModalSeleccionActividad --> ModalComentario : elegirActividad
-    ModalSeleccionActividad --> [cerrar_overlay] : cancelar
+    ModalSeleccionActividad --> cerrar_overlay : cancelar
     ModoEdicion --> ModoNormal : desactivarEdicion
     ModoEdicion --> ModalEditarTarea : abrirEditarTarea
     ModoEdicion --> ModalEditarActividad : abrirEditarActividad
@@ -43,7 +43,7 @@ stateDiagram-v2
     ModoNormal --> ModalCrearTarea : abrirCrearTarea
     ModoNormal --> MenuConfiguracion : abrirMenuConfiguracion
     ModoNormal --> ModalComentario : seleccionarTipoTarea
-    SesionActiva --> [deactivate] : sesionFinalizada
+    SesionActiva --> deactivate : sesionFinalizada
 
     state MenuConfiguracion {
         tap_item_nueva_actividad --> abrirCrearActividad
@@ -55,8 +55,8 @@ stateDiagram-v2
 
     state ModalAcercaDe {
         tap_boton_cerrar --> cerrar
-        [on_entry] --> verificar_conexion
-        [on_entry] --> cargar_tiempo_acumulado
+        on_entry --> verificar_conexion
+        on_entry --> cargar_tiempo_acumulado
     }
 
     state ModalComentario {
@@ -64,7 +64,7 @@ stateDiagram-v2
         cambio_campo_retroactivo --> actualizarRetroactivo
         tap_boton_confirmar --> confirmarInicio
         tap_boton_cancelar --> cancelar
-        [confirmarInicio] --> iniciar_sesion
+        confirmarInicio --> iniciar_sesion
     }
 
     state ModalCrearActividad {
@@ -73,7 +73,7 @@ stateDiagram-v2
         cambio_checkbox_permanente --> marcarPermanenteNueva
         tap_boton_guardar --> guardarNuevaActividad
         tap_boton_cancelar --> cancelar
-        [guardarNuevaActividad] --> crear_actividad
+        guardarNuevaActividad --> crear_actividad
     }
 
     state ModalCrearTarea {
@@ -83,7 +83,7 @@ stateDiagram-v2
         cambio_checkbox_actividad --> toggleActividadPermitida
         tap_boton_guardar --> guardarNuevaTarea
         tap_boton_cancelar --> cancelar
-        [guardarNuevaTarea] --> crear_tipo_tarea
+        guardarNuevaTarea --> crear_tipo_tarea
     }
 
     state ModalEditarActividad {
@@ -92,7 +92,7 @@ stateDiagram-v2
         cambio_checkbox_permanente --> marcarPermanente
         tap_boton_guardar --> guardarEdicionActividad
         tap_boton_cancelar --> cancelar
-        [guardarEdicionActividad] --> actualizar_actividad
+        guardarEdicionActividad --> actualizar_actividad
     }
 
     state ModalEditarTarea {
@@ -101,7 +101,7 @@ stateDiagram-v2
         seleccion_selector_icono --> seleccionarIcono
         tap_boton_guardar --> guardarEdicion
         tap_boton_cancelar --> cancelar
-        [guardarEdicion] --> editar_tipo_tarea
+        guardarEdicion --> editar_tipo_tarea
     }
 
     state ModalHistorial {
@@ -111,13 +111,13 @@ stateDiagram-v2
     state Historial7Dias {
         tap_boton_7dias --> ignored
         tap_boton_30dias --> cambiarA30Dias
-        [on_entry] --> cargar_historial
+        on_entry --> cargar_historial
     }
 
     state Historial30Dias {
         tap_boton_7dias --> cambiarA7Dias
         tap_boton_30dias --> ignored
-        [on_entry] --> cargar_historial
+        on_entry --> cargar_historial
     }
 
     state ModalReset {
@@ -128,7 +128,7 @@ stateDiagram-v2
         tap_boton_cancelar --> cerrar
         tap_boton_continuar --> avanzarAFase2
         tap_boton_exportar_csv --> exportarCSV
-        [exportarCSV] --> descargar_csv
+        exportarCSV --> descargar_csv
     }
 
     state ResetFase2 {
@@ -141,7 +141,7 @@ stateDiagram-v2
         cambio_campo_confirmacion --> actualizarConfirmacion
         tap_boton_ejecutar --> ejecutarReset
         tap_boton_atras --> retrocederAFase2
-        [ejecutarReset] --> reset_datos
+        ejecutarReset --> reset_datos
     }
 
     state ModalSeleccionActividad {
@@ -167,13 +167,13 @@ stateDiagram-v2
         tap_boton_edicion --> activarEdicion
         tap_boton_nuevo --> abrirCrearTarea
         tap_boton_configuracion --> abrirMenuConfiguracion
-        [cambiarPestana] --> actualizarGridVisible
-        [iniciarTarea] --> iniciar_sesion
+        cambiarPestana --> actualizarGridVisible
+        iniciarTarea --> iniciar_sesion
     }
 
     state SesionActiva {
         tap_display_timer --> ignored
-        [actualizarTimer] --> calcular_tiempo_transcurrido
+        actualizarTimer --> calcular_tiempo_transcurrido
     }
 
 

@@ -125,8 +125,8 @@ fn main() {
                 );
 
                 let html_report = format!(
-                    "<!DOCTYPE html><html><head><title>Trenza: {}</title><script src='https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js'></script></head><body><h1>Trenza System Overview: {}</h1><div class='mermaid'>{}</div><hr><h2>Audit Report</h2><div>{}</div><script>mermaid.initialize({{startOnLoad:true}});</script></body></html>",
-                    system_name, system_name, mermaid_code, audit_doc.replace("\n", "<br>")
+                    "<!DOCTYPE html><html><head><title>Trenza: {}</title><script src='https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js'></script><style>body {{ font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }} .container {{ max-width: 1200px; margin: auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }} .mermaid {{ background: #fafafa; border: 1px solid #eee; border_radius: 8px; padding: 20px; margin: 20px 0; }} h1 {{ color: #1a73e8; }} h2 {{ border-bottom: 2px solid #1a73e8; padding-bottom: 10px; margin-top: 40px; }} .audit {{ font-family: monospace; background: #202124; color: #e8eaed; padding: 20px; border-radius: 8px; overflow-x: auto; line-height: 1.6; }}</style></head><body><div class='container'><h1>Trenza System Overview: {}</h1><p>Formal Verification Passport for project <strong>{}</strong></p><div class='mermaid'>{}</div><h2>Audit Report (Strand 4)</h2><div class='audit'>{}</div></div><script>mermaid.initialize({{startOnLoad:true, theme: 'forest'}});</script></body></html>",
+                    system_name, system_name, system_name, mermaid_code, audit_doc.replace("\n", "<br>")
                 );
 
                 fs::write(&out_rust, rust_code).expect("No se pudo escribir el archivo Rust");
