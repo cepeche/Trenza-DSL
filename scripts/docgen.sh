@@ -103,7 +103,7 @@ else
         fi
 
         echo "  tsc --noEmit --strict $ts_file"
-        if tsc --noEmit --strict --target ES2020 --moduleResolution node "$ts_file" ; then
+        if npx tsc --noEmit --strict --target ES2020 --moduleResolution node "$ts_file" ; then
             step_ok "tsc $ts_file"
         else
             step_fail "tsc $ts_file"

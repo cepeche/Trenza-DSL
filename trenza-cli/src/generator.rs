@@ -96,10 +96,9 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
     for (func, args) in &unique_functions {
         let func_safe = func.replace(".", "_");
         let arg_list = args.iter().enumerate().map(|(i, a)| {
-            // "self" passes a full object — type unknown at this point; use any
-            // "self.field" passes a scalar — use string as safe default
-            // anything else is a literal string
-            let ty = if a == "self" { "any" } else { "string" };
+            // Type inference for effect args is not yet implemented.
+            // All args use `any` until the generator can resolve field types.
+            let ty = "any";
             format!("arg{}: {}", i, ty)
         }).collect::<Vec<_>>().join(", ");
         output.push_str(&format!("    {}({}): void;\n", func_safe, arg_list));

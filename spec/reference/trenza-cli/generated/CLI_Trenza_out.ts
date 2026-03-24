@@ -29,13 +29,13 @@ export interface ErrorCompilacion {
 
 export interface Effects {
     comprobarIntegridad(arg0: any): void;
-    emitirCodigoRust(arg0: string): void;
-    emitirCodigoTS(arg0: string): void;
+    emitirCodigoRust(arg0: any): void;
+    emitirCodigoTS(arg0: any): void;
     imprimirAyudaCLI(): void;
-    imprimirErrorFatal(arg0: string, arg1: string): void;
-    imprimirMensajeExito(arg0: string): void;
-    leerYEvaluarArgumentos(arg0: string, arg1: string): void;
-    leerYParsear(arg0: string): void;
+    imprimirErrorFatal(arg0: any, arg1: any): void;
+    imprimirMensajeExito(arg0: any): void;
+    leerYEvaluarArgumentos(arg0: any, arg1: any): void;
+    leerYParsear(arg0: any): void;
 }
 
 export class System {

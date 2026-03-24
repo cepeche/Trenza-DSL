@@ -185,3 +185,5 @@ data OpcionActividad:
     permanente: Booleano
 
     conservar: Booleano     -- checkbox en fase 2
+
+    mutable marcado: Booleano  -- estado UI del checkbox (transient)
