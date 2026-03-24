@@ -98,9 +98,11 @@ context ErrorFatal:
         on iniciar_validacion -> forbidden
     role generador_rust: AST
         on iniciar_generacion -> forbidden
+    transitions:
+        on finalizar -> EsperandoComando
         
 context Exito:
-    role logger: ArgumentosUsuario
+    role logger: ErrorCompilacion
         on entrar -> imprimirMensajeExito(self.archivoTrz)
     role terminal: ArgumentosUsuario
         on ejecutar -> forbidden
@@ -110,9 +112,11 @@ context Exito:
         on iniciar_validacion -> forbidden
     role generador_rust: AST
         on iniciar_generacion -> forbidden
+    transitions:
+        on finalizar -> EsperandoComando
 
 context MostrarAyuda:
-    role logger: ArgumentosUsuario
+    role logger: ErrorCompilacion
         on entrar -> imprimirAyudaCLI
     role terminal: ArgumentosUsuario
         on ejecutar -> forbidden
@@ -122,3 +126,5 @@ context MostrarAyuda:
         on iniciar_validacion -> forbidden
     role generador_rust: AST
         on iniciar_generacion -> forbidden
+    transitions:
+        on finalizar -> EsperandoComando
