@@ -24,3 +24,9 @@ trenza-cli/target/
 
 # Claude Code (configuración local)
 .claude/settings.local.json
+
+# VS Code Extension
+editors/vscode/node_modules/
+editors/vscode/out/
+editors/vscode/dist/
+*.vsix
