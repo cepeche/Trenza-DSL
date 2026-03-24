@@ -33,6 +33,7 @@ stateDiagram-v2
         EsperandoComando_iniciar_generacion_rust_generador --> forbidden
         EsperandoComando_iniciar_generacion_ts_generador --> forbidden
         EsperandoComando_entrar_logger --> forbidden
+        EsperandoComando_entrar_resultado --> forbidden
     }
 
 ```
@@ -49,6 +50,7 @@ stateDiagram-v2
         ParseandoArchivo_iniciar_generacion_rust_generador --> forbidden
         ParseandoArchivo_iniciar_generacion_ts_generador --> forbidden
         ParseandoArchivo_entrar_logger --> forbidden
+        ParseandoArchivo_entrar_resultado --> forbidden
     }
 
 ```
@@ -65,6 +67,7 @@ stateDiagram-v2
         VerificandoReglas_iniciar_generacion_rust_generador --> forbidden
         VerificandoReglas_iniciar_generacion_ts_generador --> forbidden
         VerificandoReglas_entrar_logger --> forbidden
+        VerificandoReglas_entrar_resultado --> forbidden
     }
 
 ```
@@ -81,6 +84,7 @@ stateDiagram-v2
         GenerandoStrands_iniciar_lectura_lector_fs --> forbidden
         GenerandoStrands_iniciar_validacion_validador --> forbidden
         GenerandoStrands_entrar_logger --> forbidden
+        GenerandoStrands_entrar_resultado --> forbidden
     }
 
 ```
@@ -97,6 +101,7 @@ stateDiagram-v2
         ErrorFatal_iniciar_validacion_validador --> forbidden
         ErrorFatal_iniciar_generacion_rust_generador --> forbidden
         ErrorFatal_iniciar_generacion_ts_generador --> forbidden
+        ErrorFatal_entrar_resultado --> forbidden
     }
 
 ```
@@ -107,7 +112,8 @@ stateDiagram-v2
 stateDiagram-v2
 
     state Exito {
-        Exito_entrar_logger --> imprimirMensajeExito
+        Exito_entrar_resultado --> imprimirMensajeExito
+        Exito_entrar_logger --> forbidden
         Exito_ejecutar_terminal --> forbidden
         Exito_iniciar_lectura_lector_fs --> forbidden
         Exito_iniciar_validacion_validador --> forbidden
@@ -129,6 +135,7 @@ stateDiagram-v2
         MostrarAyuda_iniciar_validacion_validador --> forbidden
         MostrarAyuda_iniciar_generacion_rust_generador --> forbidden
         MostrarAyuda_iniciar_generacion_ts_generador --> forbidden
+        MostrarAyuda_entrar_resultado --> forbidden
     }
 
 ```

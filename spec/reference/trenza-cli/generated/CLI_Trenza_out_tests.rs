@@ -138,6 +138,14 @@ mod algebraic_tests {
     }
 
     #[test]
+    #[should_panic(expected = "Forbidden")]
+    fn test_forbidden_EsperandoComando_resultado_on_entrar() {
+        let effects = NoOpEffects;
+        let data = ArgumentosUsuario::default();
+        handle_resultado_entrar(&Contexto::EsperandoComando, &data, &effects);
+    }
+
+    #[test]
     fn test_call_ParseandoArchivo_lector_fs_on_iniciar_lectura_invokes_leerYParsear() {
         let effects = RecordingEffects::new();
         let data = ArgumentosUsuario::default();
@@ -183,6 +191,14 @@ mod algebraic_tests {
         let effects = NoOpEffects;
         let data = ErrorCompilacion::default();
         handle_logger_entrar(&Contexto::ParseandoArchivo, &data, &effects);
+    }
+
+    #[test]
+    #[should_panic(expected = "Forbidden")]
+    fn test_forbidden_ParseandoArchivo_resultado_on_entrar() {
+        let effects = NoOpEffects;
+        let data = ArgumentosUsuario::default();
+        handle_resultado_entrar(&Contexto::ParseandoArchivo, &data, &effects);
     }
 
     #[test]
@@ -234,6 +250,14 @@ mod algebraic_tests {
     }
 
     #[test]
+    #[should_panic(expected = "Forbidden")]
+    fn test_forbidden_VerificandoReglas_resultado_on_entrar() {
+        let effects = NoOpEffects;
+        let data = ArgumentosUsuario::default();
+        handle_resultado_entrar(&Contexto::VerificandoReglas, &data, &effects);
+    }
+
+    #[test]
     fn test_call_GenerandoStrands_generador_on_iniciar_generacion_rust_invokes_emitirCodigoRust() {
         let effects = RecordingEffects::new();
         let data = AST::default();
@@ -279,6 +303,14 @@ mod algebraic_tests {
         let effects = NoOpEffects;
         let data = ErrorCompilacion::default();
         handle_logger_entrar(&Contexto::GenerandoStrands, &data, &effects);
+    }
+
+    #[test]
+    #[should_panic(expected = "Forbidden")]
+    fn test_forbidden_GenerandoStrands_resultado_on_entrar() {
+        let effects = NoOpEffects;
+        let data = ArgumentosUsuario::default();
+        handle_resultado_entrar(&Contexto::GenerandoStrands, &data, &effects);
     }
 
     #[test]
@@ -330,11 +362,27 @@ mod algebraic_tests {
     }
 
     #[test]
-    fn test_call_Exito_logger_on_entrar_invokes_imprimirMensajeExito() {
+    #[should_panic(expected = "Forbidden")]
+    fn test_forbidden_ErrorFatal_resultado_on_entrar() {
+        let effects = NoOpEffects;
+        let data = ArgumentosUsuario::default();
+        handle_resultado_entrar(&Contexto::ErrorFatal, &data, &effects);
+    }
+
+    #[test]
+    fn test_call_Exito_resultado_on_entrar_invokes_imprimirMensajeExito() {
         let effects = RecordingEffects::new();
+        let data = ArgumentosUsuario::default();
+        handle_resultado_entrar(&Contexto::Exito, &data, &effects);
+        assert!(effects.was_called("imprimirMensajeExito"));
+    }
+
+    #[test]
+    #[should_panic(expected = "Forbidden")]
+    fn test_forbidden_Exito_logger_on_entrar() {
+        let effects = NoOpEffects;
         let data = ErrorCompilacion::default();
         handle_logger_entrar(&Contexto::Exito, &data, &effects);
-        assert!(effects.was_called("imprimirMensajeExito"));
     }
 
     #[test]
@@ -423,6 +471,14 @@ mod algebraic_tests {
         let effects = NoOpEffects;
         let data = AST::default();
         handle_generador_iniciar_generacion_ts(&Contexto::MostrarAyuda, &data, &effects);
+    }
+
+    #[test]
+    #[should_panic(expected = "Forbidden")]
+    fn test_forbidden_MostrarAyuda_resultado_on_entrar() {
+        let effects = NoOpEffects;
+        let data = ArgumentosUsuario::default();
+        handle_resultado_entrar(&Contexto::MostrarAyuda, &data, &effects);
     }
 
     // === Exhaustiveness Test ===

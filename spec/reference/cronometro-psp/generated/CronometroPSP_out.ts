@@ -22,99 +22,99 @@ export enum Contexto {
 }
 
 export interface TipoTarea {
-    tipoId: Id;
+    tipoId: string;
     nombre: string;
     icono: string;
-    usos7d: Entero;
-    actividades_permitidas: Lista<Id>;
+    usos7d: number;
+    actividades_permitidas: string[];
 }
 
 export interface Tarea {
-    tareaId: Id;
-    tipoId: Id;
-    actividadId: Id;
+    tareaId: string;
+    tipoId: string;
+    actividadId: string;
     nombre: string;
     icono: string;
 }
 
 export interface Actividad {
-    id: Id;
+    id: string;
     nombre: string;
-    color: Color;
+    color: string;
     permanente: boolean;
 }
 
 export interface Sesion {
-    sesionId: Id;
-    tareaId: Id;
-    inicio: Timestamp;
-    notas: Texto?;
+    sesionId: string;
+    tareaId: string;
+    inicio: number;
+    notas?: string;
 }
 
 export interface CampoTexto {
-    id: Id;
+    id: string;
     valor: string;
     valido: boolean;
 }
 
 export interface CampoNumerico {
-    id: Id;
-    valor: Entero;
-    minimo: Entero;
+    id: string;
+    valor: number;
+    minimo: number;
 }
 
 export interface Boton {
-    id: Id;
+    id: string;
     etiqueta: string;
     habilitado: boolean;
 }
 
 export interface Checkbox {
-    id: Id;
+    id: string;
     etiqueta: string;
     marcado: boolean;
 }
 
 export interface SelectorColor {
-    id: Id;
-    opciones: Lista<Color>;
-    seleccionado: Color;
+    id: string;
+    opciones: string[];
+    seleccionado: string;
 }
 
 export interface SelectorIcono {
-    id: Id;
-    iconos: Lista<Texto>;
+    id: string;
+    iconos: string[];
     seleccionado: string;
     filtro: string;
 }
 
 export interface Pestana {
-    id: Id;
+    id: string;
     etiqueta: string;
 }
 
 export interface ItemMenu {
-    id: Id;
+    id: string;
     etiqueta: string;
 }
 
 export interface DiaHistorial {
-    timestamp: Timestamp;
-    total: Entero;
-    por_actividad: Lista<ResumenActividad>;
+    timestamp: number;
+    total: number;
+    por_actividad: ResumenActividad[];
 }
 
 export interface ResumenActividad {
-    actividadId: Id;
+    actividadId: string;
     actividadNombre: string;
-    actividadColor: Color;
-    tiempo: Entero;
+    actividadColor: string;
+    tiempo: number;
 }
 
 export interface OpcionActividad {
-    id: Id;
+    id: string;
     nombre: string;
-    color: Color;
+    color: string;
     permanente: boolean;
     conservar: boolean;
 }
@@ -609,7 +609,7 @@ export function handle_boton_nuevo_tap(ctx: Contexto, boton_nuevo: Boton, effect
     }
 }
 
-export function handle_campo_busqueda_icono_cambio(ctx: Contexto, campo_busqueda_icono: Campostring, effects: Effects): void {
+export function handle_campo_busqueda_icono_cambio(ctx: Contexto, campo_busqueda_icono: CampoTexto, effects: Effects): void {
     switch (ctx) {
         case Contexto.ModalCrearTarea:
             console.log(`[telemetry] context=${ctx}, role=campo_busqueda_icono, event=cambio`);
@@ -622,7 +622,7 @@ export function handle_campo_busqueda_icono_cambio(ctx: Contexto, campo_busqueda
     }
 }
 
-export function handle_campo_comentario_cambio(ctx: Contexto, campo_comentario: Campostring, effects: Effects): void {
+export function handle_campo_comentario_cambio(ctx: Contexto, campo_comentario: CampoTexto, effects: Effects): void {
     switch (ctx) {
         case Contexto.ModalComentario:
             console.log(`[telemetry] context=${ctx}, role=campo_comentario, event=cambio`);
@@ -631,7 +631,7 @@ export function handle_campo_comentario_cambio(ctx: Contexto, campo_comentario: 
     }
 }
 
-export function handle_campo_confirmacion_cambio(ctx: Contexto, campo_confirmacion: Campostring, effects: Effects): void {
+export function handle_campo_confirmacion_cambio(ctx: Contexto, campo_confirmacion: CampoTexto, effects: Effects): void {
     switch (ctx) {
         case Contexto.ResetFase3:
             console.log(`[telemetry] context=${ctx}, role=campo_confirmacion, event=cambio`);
@@ -640,7 +640,7 @@ export function handle_campo_confirmacion_cambio(ctx: Contexto, campo_confirmaci
     }
 }
 
-export function handle_campo_nombre_cambio(ctx: Contexto, campo_nombre: Campostring, effects: Effects): void {
+export function handle_campo_nombre_cambio(ctx: Contexto, campo_nombre: CampoTexto, effects: Effects): void {
     switch (ctx) {
         case Contexto.ModalCrearActividad:
             console.log(`[telemetry] context=${ctx}, role=campo_nombre, event=cambio`);

@@ -32,6 +32,8 @@ context EsperandoComando:
         on iniciar_generacion_ts -> forbidden
     role logger: ErrorCompilacion
         on entrar -> forbidden
+    role resultado: ArgumentosUsuario
+        on entrar -> forbidden
 
     transitions:
         on comandoGenerate -> ParseandoArchivo
@@ -49,6 +51,8 @@ context ParseandoArchivo:
         on iniciar_generacion_rust -> forbidden
         on iniciar_generacion_ts -> forbidden
     role logger: ErrorCompilacion
+        on entrar -> forbidden
+    role resultado: ArgumentosUsuario
         on entrar -> forbidden
 
     transitions:
@@ -68,6 +72,8 @@ context VerificandoReglas:
         on iniciar_generacion_ts -> forbidden
     role logger: ErrorCompilacion
         on entrar -> forbidden
+    role resultado: ArgumentosUsuario
+        on entrar -> forbidden
 
     transitions:
         on validacionExitosa -> GenerandoStrands
@@ -77,9 +83,9 @@ context VerificandoReglas:
 context GenerandoStrands:
     role generador: AST
         @audit("Generación de Strand 1 (Rust) iniciada internamente")
-        on iniciar_generacion_rust -> emitirCodigoRust(self.pares, self.perfil)
+        on iniciar_generacion_rust -> emitirCodigoRust(self.pares)
         @audit("Generación de Strand 1 (TypeScript) iniciada internamente")
-        on iniciar_generacion_ts -> emitirCodigoTS(self.pares, self.perfil)
+        on iniciar_generacion_ts -> emitirCodigoTS(self.pares)
     role terminal: ArgumentosUsuario
         on ejecutar -> forbidden
     role lector_fs: ArgumentosUsuario
@@ -87,6 +93,8 @@ context GenerandoStrands:
     role validador: AST
         on iniciar_validacion -> forbidden
     role logger: ErrorCompilacion
+        on entrar -> forbidden
+    role resultado: ArgumentosUsuario
         on entrar -> forbidden
 
     transitions:
@@ -105,12 +113,16 @@ context ErrorFatal:
     role generador: AST
         on iniciar_generacion_rust -> forbidden
         on iniciar_generacion_ts -> forbidden
+    role resultado: ArgumentosUsuario
+        on entrar -> forbidden
     transitions:
         on finalizar -> EsperandoComando
         
 context Exito:
-    role logger: ErrorCompilacion
+    role resultado: ArgumentosUsuario
         on entrar -> imprimirMensajeExito(self.archivoTrz)
+    role logger: ErrorCompilacion
+        on entrar -> forbidden
     role terminal: ArgumentosUsuario
         on ejecutar -> forbidden
     role lector_fs: ArgumentosUsuario
@@ -135,5 +147,7 @@ context MostrarAyuda:
     role generador: AST
         on iniciar_generacion_rust -> forbidden
         on iniciar_generacion_ts -> forbidden
+    role resultado: ArgumentosUsuario
+        on entrar -> forbidden
     transitions:
         on finalizar -> EsperandoComando

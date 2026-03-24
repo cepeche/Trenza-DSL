@@ -1,6 +1,32 @@
 use crate::ast::*;
 use std::collections::{BTreeMap, HashSet};
 
+fn ts_type(s: &str) -> String {
+    // Handle optional suffix (e.g. "Texto?")
+    if s.ends_with('?') {
+        return ts_type(&s[..s.len() - 1]);
+    }
+    // Handle Lista<X>
+    if s.starts_with("Lista<") && s.ends_with('>') {
+        let inner = &s[6..s.len() - 1];
+        return format!("{}[]", ts_type(inner));
+    }
+    // Handle bare Lista (no type param)
+    if s == "Lista" {
+        return "any[]".to_string();
+    }
+    match s {
+        "Texto"     => "string".to_string(),
+        "Numero"    => "number".to_string(),
+        "Booleano"  => "boolean".to_string(),
+        "Id"        => "string".to_string(),
+        "Entero"    => "number".to_string(),
+        "Color"     => "string".to_string(),
+        "Timestamp" => "number".to_string(),
+        other       => other.to_string(),
+    }
+}
+
 pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str) -> String {
     let mut output = String::new();
 
@@ -25,13 +51,13 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
         if let Definition::Data(d) = def {
             output.push_str(&format!("export interface {} {{\n", d.name));
             for field in &d.fields {
-                let ty = match field.datatype.as_str() {
-                    "Texto" => "string",
-                    "Numero" => "number",
-                    "Booleano" => "boolean",
-                    _ => &field.datatype,
-                };
-                output.push_str(&format!("    {}: {};\n", field.name, ty));
+                let optional = field.datatype.ends_with('?');
+                let ty = ts_type(&field.datatype);
+                if optional {
+                    output.push_str(&format!("    {}?: {};\n", field.name, ty));
+                } else {
+                    output.push_str(&format!("    {}: {};\n", field.name, ty));
+                }
             }
             output.push_str("}\n\n");
         }
@@ -69,7 +95,13 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
     output.push_str("export interface Effects {\n");
     for (func, args) in &unique_functions {
         let func_safe = func.replace(".", "_");
-        let arg_list = args.iter().enumerate().map(|(i, _)| format!("arg{}: string", i)).collect::<Vec<_>>().join(", ");
+        let arg_list = args.iter().enumerate().map(|(i, a)| {
+            // "self" passes a full object — type unknown at this point; use any
+            // "self.field" passes a scalar — use string as safe default
+            // anything else is a literal string
+            let ty = if a == "self" { "any" } else { "string" };
+            format!("arg{}: {}", i, ty)
+        }).collect::<Vec<_>>().join(", ");
         output.push_str(&format!("    {}({}): void;\n", func_safe, arg_list));
     }
     output.push_str("}\n\n");
@@ -158,11 +190,11 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
         'find_role: for def in &program.definitions {
             if let Definition::Context(ctx) = def {
                 for role in &ctx.roles {
-                    if role.name == role_name { role_type = role.datatype.replace("Texto", "string").replace("Numero", "number").replace("Booleano", "boolean"); break 'find_role; }
+                    if role.name == role_name { role_type = ts_type(&role.datatype); break 'find_role; }
                 }
                 for fills in &ctx.fills {
                     for role in &fills.roles {
-                        if role.name == role_name { role_type = role.datatype.replace("Texto", "string").replace("Numero", "number").replace("Booleano", "boolean"); break 'find_role; }
+                        if role.name == role_name { role_type = ts_type(&role.datatype); break 'find_role; }
                     }
                 }
             }

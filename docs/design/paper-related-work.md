@@ -138,15 +138,18 @@ systems: they produce one implementation, for one execution environment,
 from one model. Their specification and implementation are the same
 artifact. Trenza separates them explicitly: the `.trz` file is the
 specification; the generated code is one of several simultaneous
-projections. The same specification produces a Rust single-threaded
-runtime for browser environments, an `mpsc`-driven actor model for
-high-performance backends, algebraically tested unit tests, and
-topological Mermaid diagrams. The braid is not a front-end discipline
-imposed on a single target; it is a behavioral contract from which
-multiple coherent implementations are derived without divergence. The
-completeness, determinism, and reachability guarantees hold across all
-targets simultaneously, enforced at the specification level before any
-target-specific code is generated.
+projections. The same specification currently produces four coherent
+artifacts: a TypeScript module for direct browser integration (validated
+by `tsc --strict`), a Rust single-threaded runtime composable with
+WebAssembly, an `mpsc`-driven actor model for high-performance backends,
+and algebraically tested unit tests—alongside topological Mermaid
+diagrams and narrative audit reports. The critical property is that
+Trenza's completeness, determinism, and reachability guarantees are
+enforced at specification level and hold across all targets
+simultaneously. A structural error—a role with no handler in a given
+context, a transition to an unreachable state—is caught once, before any
+target-specific code is generated, rather than once per target in each
+target's own type system.
 
 ---
 

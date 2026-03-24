@@ -26,31 +26,37 @@
 | EsperandoComando | generador | iniciar_generacion_rust | 🚫 Forbidden |
 | EsperandoComando | generador | iniciar_generacion_ts | 🚫 Forbidden |
 | EsperandoComando | logger | entrar | 🚫 Forbidden |
+| EsperandoComando | resultado | entrar | 🚫 Forbidden |
 | ParseandoArchivo | lector_fs | iniciar_lectura | Call: `leerYParsear` |
 | ParseandoArchivo | terminal | ejecutar | 🚫 Forbidden |
 | ParseandoArchivo | validador | iniciar_validacion | 🚫 Forbidden |
 | ParseandoArchivo | generador | iniciar_generacion_rust | 🚫 Forbidden |
 | ParseandoArchivo | generador | iniciar_generacion_ts | 🚫 Forbidden |
 | ParseandoArchivo | logger | entrar | 🚫 Forbidden |
+| ParseandoArchivo | resultado | entrar | 🚫 Forbidden |
 | VerificandoReglas | validador | iniciar_validacion | Call: `comprobarIntegridad` |
 | VerificandoReglas | terminal | ejecutar | 🚫 Forbidden |
 | VerificandoReglas | lector_fs | iniciar_lectura | 🚫 Forbidden |
 | VerificandoReglas | generador | iniciar_generacion_rust | 🚫 Forbidden |
 | VerificandoReglas | generador | iniciar_generacion_ts | 🚫 Forbidden |
 | VerificandoReglas | logger | entrar | 🚫 Forbidden |
+| VerificandoReglas | resultado | entrar | 🚫 Forbidden |
 | GenerandoStrands | generador | iniciar_generacion_rust | Call: `emitirCodigoRust` |
 | GenerandoStrands | generador | iniciar_generacion_ts | Call: `emitirCodigoTS` |
 | GenerandoStrands | terminal | ejecutar | 🚫 Forbidden |
 | GenerandoStrands | lector_fs | iniciar_lectura | 🚫 Forbidden |
 | GenerandoStrands | validador | iniciar_validacion | 🚫 Forbidden |
 | GenerandoStrands | logger | entrar | 🚫 Forbidden |
+| GenerandoStrands | resultado | entrar | 🚫 Forbidden |
 | ErrorFatal | logger | entrar | Call: `imprimirErrorFatal` |
 | ErrorFatal | terminal | ejecutar | 🚫 Forbidden |
 | ErrorFatal | lector_fs | iniciar_lectura | 🚫 Forbidden |
 | ErrorFatal | validador | iniciar_validacion | 🚫 Forbidden |
 | ErrorFatal | generador | iniciar_generacion_rust | 🚫 Forbidden |
 | ErrorFatal | generador | iniciar_generacion_ts | 🚫 Forbidden |
-| Exito | logger | entrar | Call: `imprimirMensajeExito` |
+| ErrorFatal | resultado | entrar | 🚫 Forbidden |
+| Exito | resultado | entrar | Call: `imprimirMensajeExito` |
+| Exito | logger | entrar | 🚫 Forbidden |
 | Exito | terminal | ejecutar | 🚫 Forbidden |
 | Exito | lector_fs | iniciar_lectura | 🚫 Forbidden |
 | Exito | validador | iniciar_validacion | 🚫 Forbidden |
@@ -62,6 +68,7 @@
 | MostrarAyuda | validador | iniciar_validacion | 🚫 Forbidden |
 | MostrarAyuda | generador | iniciar_generacion_rust | 🚫 Forbidden |
 | MostrarAyuda | generador | iniciar_generacion_ts | 🚫 Forbidden |
+| MostrarAyuda | resultado | entrar | 🚫 Forbidden |
 
 ## 3. Formal Verification Summary
 - [x] **Rule 1: Completeness** - verified by exhaustive match on Strand 1.
