@@ -1,6 +1,6 @@
-﻿-- contexts/ModalEditarTarea.trz
+-- contexts/ModalEditarTarea.trz
 
--- Overlay: ediciÃ³n de nombre e icono de un TipoTarea existente.
+-- Overlay: edición de nombre e icono de un TipoTarea existente.
 
 -- Se abre desde ModoEdicion (tap en tarjeta).
 
@@ -58,13 +58,13 @@ context ModalEditarTarea:
 
 
 
-    -- PROPUESTA GAP-5: transiciÃ³n condicional.
+    -- PROPUESTA GAP-5: transición condicional.
 
-    -- guardarEdicion solo debe proceder si campo_nombre.valor no estÃ¡ vacÃ­o.
+    -- guardarEdicion solo debe proceder si campo_nombre.valor no está vacío.
 
     -- Sintaxis propuesta:
 
-    --   on guardarEdicion si campo_nombre.valido -> [cerrar_overlay]
+    --   on guardarEdicion si campo_nombre.valido -> [close_overlay]
 
     --   on guardarEdicion si not campo_nombre.valido -> mostrarErrorNombre
 
@@ -72,9 +72,9 @@ context ModalEditarTarea:
 
     transitions:
 
-        on guardarEdicion -> [cerrar_overlay]    -- vuelve a ModoEdicion
+        on guardarEdicion -> [close_overlay]    -- vuelve a ModoEdicion
 
-        on cancelar       -> [cerrar_overlay]
+        on cancelar       -> [close_overlay]
 
 
 

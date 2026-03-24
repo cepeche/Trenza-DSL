@@ -1,8 +1,8 @@
-﻿-- contexts/ModalSeleccionActividad.trz
+-- contexts/ModalSeleccionActividad.trz
 
--- Overlay: aparece cuando un TipoTarea tiene mÃ¡s de una actividad
+-- Overlay: aparece cuando un TipoTarea tiene más de una actividad
 
--- permitida. El usuario elige a quÃ© actividad imputar la sesiÃ³n.
+-- permitida. El usuario elige a qué actividad imputar la sesión.
 
 -- Convertido de ModalSeleccionActividad.trz (6 marzo 2026) a .trz (12 marzo 2026)
 
@@ -10,19 +10,19 @@
 
 -- PROPUESTA GAP-1: necesita recibir el tipoTareaId del contexto padre.
 
--- Los botones de actividad se generan dinÃ¡micamente a partir de
+-- Los botones de actividad se generan dinámicamente a partir de
 
 -- tipoTarea.actividades_permitidas.
 
 --
 
--- PROPUESTA GAP-6: roles dinÃ¡micos.
+-- PROPUESTA GAP-6: roles dinámicos.
 
--- El nÃºmero de botones de actividad no es fijo â€” depende de los datos.
+-- El número de botones de actividad no es fijo — depende de los datos.
 
 -- El DSL actual asume roles fijos declarados en el contexto.
 
--- Â¿CÃ³mo expresar "un rol por cada elemento de una lista"?
+-- ¿Cómo expresar "un rol por cada elemento de una lista"?
 
 
 
@@ -40,7 +40,7 @@ context ModalSeleccionActividad:
 
 
 
-    -- PROPUESTA GAP-6: rol dinÃ¡mico (uno por actividad permitida)
+    -- PROPUESTA GAP-6: rol dinámico (uno por actividad permitida)
 
     -- role boton_actividad[]: Actividad
 
@@ -48,7 +48,7 @@ context ModalSeleccionActividad:
 
     --
 
-    -- AproximaciÃ³n con rol genÃ©rico (no expresa la multiplicidad):
+    -- Aproximación con rol genérico (no expresa la multiplicidad):
 
     role boton_actividad: Actividad
 
@@ -66,11 +66,11 @@ context ModalSeleccionActividad:
 
         on elegirActividad -> ModalComentario    -- pasa a comentario con actividad elegida
 
-        on cancelar        -> [cerrar_overlay]
+        on cancelar        -> [close_overlay]
 
 
 
-    -- PROPUESTA GAP-1: elegirActividad necesita encadenar parÃ¡metros:
+    -- PROPUESTA GAP-1: elegirActividad necesita encadenar parámetros:
 
     --   tipoTareaId (viene del input de este contexto)
 

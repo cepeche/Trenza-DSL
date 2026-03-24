@@ -115,10 +115,18 @@ mod algebraic_tests {
 
     #[test]
     #[should_panic(expected = "Forbidden")]
-    fn test_forbidden_EsperandoComando_generador_rust_on_iniciar_generacion() {
+    fn test_forbidden_EsperandoComando_generador_on_iniciar_generacion_rust() {
         let effects = NoOpEffects;
         let data = AST::default();
-        handle_generador_rust_iniciar_generacion(&Contexto::EsperandoComando, &data, &effects);
+        handle_generador_iniciar_generacion_rust(&Contexto::EsperandoComando, &data, &effects);
+    }
+
+    #[test]
+    #[should_panic(expected = "Forbidden")]
+    fn test_forbidden_EsperandoComando_generador_on_iniciar_generacion_ts() {
+        let effects = NoOpEffects;
+        let data = AST::default();
+        handle_generador_iniciar_generacion_ts(&Contexto::EsperandoComando, &data, &effects);
     }
 
     #[test]
@@ -155,10 +163,18 @@ mod algebraic_tests {
 
     #[test]
     #[should_panic(expected = "Forbidden")]
-    fn test_forbidden_ParseandoArchivo_generador_rust_on_iniciar_generacion() {
+    fn test_forbidden_ParseandoArchivo_generador_on_iniciar_generacion_rust() {
         let effects = NoOpEffects;
         let data = AST::default();
-        handle_generador_rust_iniciar_generacion(&Contexto::ParseandoArchivo, &data, &effects);
+        handle_generador_iniciar_generacion_rust(&Contexto::ParseandoArchivo, &data, &effects);
+    }
+
+    #[test]
+    #[should_panic(expected = "Forbidden")]
+    fn test_forbidden_ParseandoArchivo_generador_on_iniciar_generacion_ts() {
+        let effects = NoOpEffects;
+        let data = AST::default();
+        handle_generador_iniciar_generacion_ts(&Contexto::ParseandoArchivo, &data, &effects);
     }
 
     #[test]
@@ -195,10 +211,18 @@ mod algebraic_tests {
 
     #[test]
     #[should_panic(expected = "Forbidden")]
-    fn test_forbidden_VerificandoReglas_generador_rust_on_iniciar_generacion() {
+    fn test_forbidden_VerificandoReglas_generador_on_iniciar_generacion_rust() {
         let effects = NoOpEffects;
         let data = AST::default();
-        handle_generador_rust_iniciar_generacion(&Contexto::VerificandoReglas, &data, &effects);
+        handle_generador_iniciar_generacion_rust(&Contexto::VerificandoReglas, &data, &effects);
+    }
+
+    #[test]
+    #[should_panic(expected = "Forbidden")]
+    fn test_forbidden_VerificandoReglas_generador_on_iniciar_generacion_ts() {
+        let effects = NoOpEffects;
+        let data = AST::default();
+        handle_generador_iniciar_generacion_ts(&Contexto::VerificandoReglas, &data, &effects);
     }
 
     #[test]
@@ -210,11 +234,19 @@ mod algebraic_tests {
     }
 
     #[test]
-    fn test_call_GenerandoStrands_generador_rust_on_iniciar_generacion_invokes_emitirCodigoRust() {
+    fn test_call_GenerandoStrands_generador_on_iniciar_generacion_rust_invokes_emitirCodigoRust() {
         let effects = RecordingEffects::new();
         let data = AST::default();
-        handle_generador_rust_iniciar_generacion(&Contexto::GenerandoStrands, &data, &effects);
+        handle_generador_iniciar_generacion_rust(&Contexto::GenerandoStrands, &data, &effects);
         assert!(effects.was_called("emitirCodigoRust"));
+    }
+
+    #[test]
+    fn test_call_GenerandoStrands_generador_on_iniciar_generacion_ts_invokes_emitirCodigoTS() {
+        let effects = RecordingEffects::new();
+        let data = AST::default();
+        handle_generador_iniciar_generacion_ts(&Contexto::GenerandoStrands, &data, &effects);
+        assert!(effects.was_called("emitirCodigoTS"));
     }
 
     #[test]
@@ -283,10 +315,18 @@ mod algebraic_tests {
 
     #[test]
     #[should_panic(expected = "Forbidden")]
-    fn test_forbidden_ErrorFatal_generador_rust_on_iniciar_generacion() {
+    fn test_forbidden_ErrorFatal_generador_on_iniciar_generacion_rust() {
         let effects = NoOpEffects;
         let data = AST::default();
-        handle_generador_rust_iniciar_generacion(&Contexto::ErrorFatal, &data, &effects);
+        handle_generador_iniciar_generacion_rust(&Contexto::ErrorFatal, &data, &effects);
+    }
+
+    #[test]
+    #[should_panic(expected = "Forbidden")]
+    fn test_forbidden_ErrorFatal_generador_on_iniciar_generacion_ts() {
+        let effects = NoOpEffects;
+        let data = AST::default();
+        handle_generador_iniciar_generacion_ts(&Contexto::ErrorFatal, &data, &effects);
     }
 
     #[test]
@@ -323,10 +363,18 @@ mod algebraic_tests {
 
     #[test]
     #[should_panic(expected = "Forbidden")]
-    fn test_forbidden_Exito_generador_rust_on_iniciar_generacion() {
+    fn test_forbidden_Exito_generador_on_iniciar_generacion_rust() {
         let effects = NoOpEffects;
         let data = AST::default();
-        handle_generador_rust_iniciar_generacion(&Contexto::Exito, &data, &effects);
+        handle_generador_iniciar_generacion_rust(&Contexto::Exito, &data, &effects);
+    }
+
+    #[test]
+    #[should_panic(expected = "Forbidden")]
+    fn test_forbidden_Exito_generador_on_iniciar_generacion_ts() {
+        let effects = NoOpEffects;
+        let data = AST::default();
+        handle_generador_iniciar_generacion_ts(&Contexto::Exito, &data, &effects);
     }
 
     #[test]
@@ -363,10 +411,18 @@ mod algebraic_tests {
 
     #[test]
     #[should_panic(expected = "Forbidden")]
-    fn test_forbidden_MostrarAyuda_generador_rust_on_iniciar_generacion() {
+    fn test_forbidden_MostrarAyuda_generador_on_iniciar_generacion_rust() {
         let effects = NoOpEffects;
         let data = AST::default();
-        handle_generador_rust_iniciar_generacion(&Contexto::MostrarAyuda, &data, &effects);
+        handle_generador_iniciar_generacion_rust(&Contexto::MostrarAyuda, &data, &effects);
+    }
+
+    #[test]
+    #[should_panic(expected = "Forbidden")]
+    fn test_forbidden_MostrarAyuda_generador_on_iniciar_generacion_ts() {
+        let effects = NoOpEffects;
+        let data = AST::default();
+        handle_generador_iniciar_generacion_ts(&Contexto::MostrarAyuda, &data, &effects);
     }
 
     // === Exhaustiveness Test ===

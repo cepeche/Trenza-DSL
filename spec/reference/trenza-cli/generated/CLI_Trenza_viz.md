@@ -30,7 +30,8 @@ stateDiagram-v2
         EsperandoComando_ejecutar_terminal --> leerYEvaluarArgumentos
         EsperandoComando_iniciar_lectura_lector_fs --> forbidden
         EsperandoComando_iniciar_validacion_validador --> forbidden
-        EsperandoComando_iniciar_generacion_generador_rust --> forbidden
+        EsperandoComando_iniciar_generacion_rust_generador --> forbidden
+        EsperandoComando_iniciar_generacion_ts_generador --> forbidden
         EsperandoComando_entrar_logger --> forbidden
     }
 
@@ -45,7 +46,8 @@ stateDiagram-v2
         ParseandoArchivo_iniciar_lectura_lector_fs --> leerYParsear
         ParseandoArchivo_ejecutar_terminal --> forbidden
         ParseandoArchivo_iniciar_validacion_validador --> forbidden
-        ParseandoArchivo_iniciar_generacion_generador_rust --> forbidden
+        ParseandoArchivo_iniciar_generacion_rust_generador --> forbidden
+        ParseandoArchivo_iniciar_generacion_ts_generador --> forbidden
         ParseandoArchivo_entrar_logger --> forbidden
     }
 
@@ -60,7 +62,8 @@ stateDiagram-v2
         VerificandoReglas_iniciar_validacion_validador --> comprobarIntegridad
         VerificandoReglas_ejecutar_terminal --> forbidden
         VerificandoReglas_iniciar_lectura_lector_fs --> forbidden
-        VerificandoReglas_iniciar_generacion_generador_rust --> forbidden
+        VerificandoReglas_iniciar_generacion_rust_generador --> forbidden
+        VerificandoReglas_iniciar_generacion_ts_generador --> forbidden
         VerificandoReglas_entrar_logger --> forbidden
     }
 
@@ -72,7 +75,8 @@ stateDiagram-v2
 stateDiagram-v2
 
     state GenerandoStrands {
-        GenerandoStrands_iniciar_generacion_generador_rust --> emitirCodigoRust
+        GenerandoStrands_iniciar_generacion_rust_generador --> emitirCodigoRust
+        GenerandoStrands_iniciar_generacion_ts_generador --> emitirCodigoTS
         GenerandoStrands_ejecutar_terminal --> forbidden
         GenerandoStrands_iniciar_lectura_lector_fs --> forbidden
         GenerandoStrands_iniciar_validacion_validador --> forbidden
@@ -91,7 +95,8 @@ stateDiagram-v2
         ErrorFatal_ejecutar_terminal --> forbidden
         ErrorFatal_iniciar_lectura_lector_fs --> forbidden
         ErrorFatal_iniciar_validacion_validador --> forbidden
-        ErrorFatal_iniciar_generacion_generador_rust --> forbidden
+        ErrorFatal_iniciar_generacion_rust_generador --> forbidden
+        ErrorFatal_iniciar_generacion_ts_generador --> forbidden
     }
 
 ```
@@ -106,7 +111,8 @@ stateDiagram-v2
         Exito_ejecutar_terminal --> forbidden
         Exito_iniciar_lectura_lector_fs --> forbidden
         Exito_iniciar_validacion_validador --> forbidden
-        Exito_iniciar_generacion_generador_rust --> forbidden
+        Exito_iniciar_generacion_rust_generador --> forbidden
+        Exito_iniciar_generacion_ts_generador --> forbidden
     }
 
 ```
@@ -121,7 +127,8 @@ stateDiagram-v2
         MostrarAyuda_ejecutar_terminal --> forbidden
         MostrarAyuda_iniciar_lectura_lector_fs --> forbidden
         MostrarAyuda_iniciar_validacion_validador --> forbidden
-        MostrarAyuda_iniciar_generacion_generador_rust --> forbidden
+        MostrarAyuda_iniciar_generacion_rust_generador --> forbidden
+        MostrarAyuda_iniciar_generacion_ts_generador --> forbidden
     }
 
 ```

@@ -1,8 +1,8 @@
-﻿-- contexts/SesionActiva.trz
+-- contexts/SesionActiva.trz
 
 -- Contexto CONCURRENTE: coexiste con ModoNormal o ModoEdicion.
 
--- Se activa cuando hay una sesiÃ³n en curso; se desactiva cuando termina.
+-- Se activa cuando hay una sesión en curso; se desactiva cuando termina.
 
 -- Convertido de SesionActiva.trz (6 marzo 2026) a .trz (12 marzo 2026)
 
@@ -10,9 +10,9 @@
 
 -- En DCI: SesionActiva es un Context que asigna comportamiento
 
--- adicional a los roles cuando hay sesiÃ³n activa. No reemplaza
+-- adicional a los roles cuando hay sesión activa. No reemplaza
 
--- al contexto base â€” lo enriquece.
+-- al contexto base — lo enriquece.
 
 
 
@@ -24,13 +24,13 @@ context SesionActiva:
 
     -- El timer en el header: muestra tiempo transcurrido
 
-    role display_timer: Boton          -- rol de solo lectura (Boton es aproximaciÃ³n)
+    role display_timer: Boton          -- rol de solo lectura (Boton es aproximación)
 
         on tap -> ignored              -- el timer no responde a tap
 
 
 
-    -- GAP-4: InyecciÃ³n de roles en overlays mediante slots explÃ­citos
+    -- GAP-4: Inyección de roles en overlays mediante slots explícitos
 
     fills ModalComentario.sesion_opts:
 
@@ -51,6 +51,6 @@ context SesionActiva:
     effects:
 
 
-        -- El timer se actualiza cada 60s vÃ­a efecto externo
+        -- El timer se actualiza cada 60s vía efecto externo
 
         actualizarTimer -> calcular_tiempo_transcurrido(sesion_activa.inicio)

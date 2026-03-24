@@ -11,6 +11,7 @@
 Trenza is a domain-specific language (DSL) designed to specify interactive systems
 in a verifiable way. From a Trenza specification, the compiler generates three
 artifacts — implementation, tests, and schematics — that cannot fall out of sync.
+The compiler has reached a significant maturity milestone: it is **self-hosting**, meaning its own core logic is specified in Trenza DSL and verified by its own validator.
 
 Trenza does not replace all code in an application. It governs state logic,
 events, and transitions, delegating side effects (API calls, DOM operations, etc.)
@@ -517,8 +518,7 @@ ERROR [reachability]: ModoMantenimiento is not reachable from
                       ModoNormal (initial context)
 ```
 
-**Rule 4 — Return**: Every non-initial context has a path
-back to the initial context.
+**Rule 4 — Return**: Every context in the system must have a valid transition path back to the initial context (Initial Context). This eliminates "sink states" where the user could get trapped without a way out.
 
 **Rule 5 — Role exhaustiveness**: Every role declared in the system
 appears in all contexts.
@@ -541,6 +541,13 @@ concurrent+overlay intersection.
 ```
 ERROR [slot-integrity]: SesionActiva fills ModalComentario.opts
                         but ModalComentario does not declare slot opts
+
+**Rule 8 — Role Type Consistency**: Every role with the same name across all contexts and `fills` blocks must share the identical `datatype`. This prevents type safety violations in code generation and ensures predictable behavior for shared roles.
+
+```
+ERROR [type-consistency]: role 'logger' has type 'AST' in ModoNormal 
+                         but type 'Error' in ModoError
+```
 ```
 
 ### 6.2 Slot Rules (S1–S5)
@@ -729,7 +736,8 @@ a unit.
 ```bash
 trenza verify sistema.tzp         -- verifies the complete system
 trenza verify contexto.trz        -- verifies an isolated context
-trenza generate sistema.tzp       -- generates the three strands
+trenza generate sistema.tzp       -- generates the strands in the current dir
+trenza generate --out-dir=out/ s.trz -- generates in a specific directory
 trenza check sistema.tzp          -- verify + generate + runs tests
 trenza inspect contexto.trz       -- shows expanded inheritance
 ```

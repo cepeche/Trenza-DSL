@@ -1,8 +1,8 @@
-﻿-- contexts/ModalCrearTarea.trz
+-- contexts/ModalCrearTarea.trz
 
--- Overlay: creaciÃ³n de nuevo TipoTarea.
+-- Overlay: creación de nuevo TipoTarea.
 
--- Accesible desde ModoNormal y ModoEdicion (botÃ³n +).
+-- Accesible desde ModoNormal y ModoEdicion (botón +).
 
 -- Convertido de ModalCrearTarea.trz (6 marzo 2026) a .trz (12 marzo 2026)
 
@@ -32,7 +32,7 @@ context ModalCrearTarea:
 
 
 
-    -- PROPUESTA GAP-6: checkboxes de actividades son dinÃ¡micos.
+    -- PROPUESTA GAP-6: checkboxes de actividades son dinámicos.
 
     -- Uno por actividad existente en el sistema.
 
@@ -40,7 +40,7 @@ context ModalCrearTarea:
 
     --     on cambio -> toggleActividadPermitida(self.id, self.marcado)
 
-    role checkbox_actividad: Actividad
+    role checkbox_actividad: OpcionActividad
 
         on cambio -> toggleActividadPermitida(self.id, self.marcado)
 
@@ -60,15 +60,15 @@ context ModalCrearTarea:
 
     -- PROPUESTA GAP-5: guardarNuevaTarea condicional
 
-    -- (campo_nombre no vacÃ­o Y al menos una actividad seleccionada)
+    -- (campo_nombre no vacío Y al menos una actividad seleccionada)
 
 
 
     transitions:
 
-        on guardarNuevaTarea -> [cerrar_overlay]
+        on guardarNuevaTarea -> [close_overlay]
 
-        on cancelar          -> [cerrar_overlay]
+        on cancelar          -> [close_overlay]
 
 
 

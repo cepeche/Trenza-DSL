@@ -1,30 +1,30 @@
-﻿-- system.trz â€” DeclaraciÃ³n del sistema CronometroPSP
+-- system.trz — Declaración del sistema CronometroPSP
 
 -- Convertido de system.trz (6 marzo 2026) a .trz (12 marzo 2026)
 
 
 
--- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- ─────────────────────────────────────────────────────────────────
 
--- NOTA DE DISEÃ‘O: Este archivo revela tres tipos de contexto
+-- NOTA DE DISEÑO: Este archivo revela tres tipos de contexto
 
--- que el DSL actual no distingue sintÃ¡cticamente:
+-- que el DSL actual no distingue sintácticamente:
 
 --
 
 --   (1) Contextos BASE: mutuamente excluyentes. En cada momento
 
---       exactamente uno estÃ¡ activo. Son el "modo" del sistema.
+--       exactamente uno está activo. Son el "modo" del sistema.
 
 --
 
 --   (2) Contextos CONCURRENTES: coexisten con el contexto base.
 
---       AÃ±aden comportamiento sin reemplazarlo.
+--       Añaden comportamiento sin reemplazarlo.
 
---       Ejemplo: SesionActiva aÃ±ade el timer y la lÃ³gica de
+--       Ejemplo: SesionActiva añade el timer y la lógica de
 
---       sustituciÃ³n, sin importar si estamos en ModoNormal o
+--       sustitución, sin importar si estamos en ModoNormal o
 
 --       ModoEdicion.
 
@@ -32,23 +32,23 @@
 
 --   (3) Contextos OVERLAY (modal): se apilan sobre el contexto
 
---       base. Bloquean la interacciÃ³n con Ã©l. Cuando terminan,
+--       base. Bloquean la interacción con él. Cuando terminan,
 
---       el sistema vuelve al contexto base que habÃ­a debajo.
+--       el sistema vuelve al contexto base que había debajo.
 
 --       Ejemplo: ModalComentario se abre desde ModoNormal, pero
 
---       ModoNormal sigue "ahÃ­" esperando.
+--       ModoNormal sigue "ahí" esperando.
 
 --
 
--- El diseÃ±o actual solo prevÃ© la composiciÃ³n con prioridad entre
+-- El diseño actual solo prevé la composición con prioridad entre
 
 -- contextos iguales. PROPUESTA: los tres tipos necesitan
 
--- sintaxis explÃ­cita (ver ANALISIS_GAPS.md, GAP-2, GAP-3).
+-- sintaxis explícita (ver ANALISIS_GAPS.md, GAP-2, GAP-3).
 
--- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- ─────────────────────────────────────────────────────────────────
 
 
 
@@ -58,7 +58,7 @@ system CronometroPSP:
 
 
 
-    -- (1) Contextos base â€” mutuamente excluyentes (exactamente uno activo)
+    -- (1) Contextos base — mutuamente excluyentes (exactamente uno activo)
 
     contexts:
 
@@ -68,15 +68,15 @@ system CronometroPSP:
 
 
 
-    -- (2) Contextos concurrentes â€” coexisten ortogonalmente con el base
+    -- (2) Contextos concurrentes — coexisten ortogonalmente con el base
 
     concurrent:
 
-        SesionActiva        -- activo cuando hay sesiÃ³n en curso
+        SesionActiva        -- activo cuando hay sesión en curso
 
 
 
-    -- (3) Contextos overlay â€” apilables, suspenden la interacciÃ³n con el base
+    -- (3) Contextos overlay — apilables, suspenden la interacción con el base
 
     overlays:
 

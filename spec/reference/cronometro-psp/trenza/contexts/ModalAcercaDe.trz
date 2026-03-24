@@ -1,8 +1,8 @@
-﻿-- contexts/ModalAcercaDe.trz
+-- contexts/ModalAcercaDe.trz
 
--- Overlay: informaciÃ³n sobre la aplicaciÃ³n y estado de conexiÃ³n.
+-- Overlay: información sobre la aplicación y estado de conexión.
 
--- Es el contexto mÃ¡s simple: solo lectura, un botÃ³n de cierre.
+-- Es el contexto más simple: solo lectura, un botón de cierre.
 
 -- Convertido de ModalAcercaDe.trz (6 marzo 2026) a .trz (12 marzo 2026)
 
@@ -22,7 +22,7 @@ context ModalAcercaDe:
 
     transitions:
 
-        on cerrar -> [cerrar_overlay]
+        on cerrar -> [close_overlay]
 
 
 

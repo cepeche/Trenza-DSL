@@ -68,10 +68,11 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
 
             let mut targets = Vec::new();
             for trans in &ctx.transitions {
-                let target = if trans.target == "deactivate" || trans.target == "cerrar_overlay" {
+                let target = if trans.target == "[close_overlay]" || trans.target == "[deactivate]" {
                     initial_context.clone()
                 } else {
-                    trans.target.clone()
+                    // Remove brackets if it's a simple context name like [ContextName]
+                    trans.target.trim_matches(|c| c == '[' || c == ']').to_string()
                 };
                 targets.push(target);
             }

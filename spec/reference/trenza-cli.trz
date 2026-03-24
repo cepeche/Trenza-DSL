@@ -6,6 +6,7 @@ data ArgumentosUsuario:
     comando: Texto
     perfil: Texto
     archivoTrz: Texto
+    lang: Texto
 
 data AST:
     pares: Lista
@@ -26,8 +27,9 @@ context EsperandoComando:
         on iniciar_lectura -> forbidden
     role validador: AST
         on iniciar_validacion -> forbidden
-    role generador_rust: AST
-        on iniciar_generacion -> forbidden
+    role generador: AST
+        on iniciar_generacion_rust -> forbidden
+        on iniciar_generacion_ts -> forbidden
     role logger: ErrorCompilacion
         on entrar -> forbidden
 
@@ -43,8 +45,9 @@ context ParseandoArchivo:
         on ejecutar -> forbidden
     role validador: AST
         on iniciar_validacion -> forbidden
-    role generador_rust: AST
-        on iniciar_generacion -> forbidden
+    role generador: AST
+        on iniciar_generacion_rust -> forbidden
+        on iniciar_generacion_ts -> forbidden
     role logger: ErrorCompilacion
         on entrar -> forbidden
 
@@ -60,8 +63,9 @@ context VerificandoReglas:
         on ejecutar -> forbidden
     role lector_fs: ArgumentosUsuario
         on iniciar_lectura -> forbidden
-    role generador_rust: AST
-        on iniciar_generacion -> forbidden
+    role generador: AST
+        on iniciar_generacion_rust -> forbidden
+        on iniciar_generacion_ts -> forbidden
     role logger: ErrorCompilacion
         on entrar -> forbidden
 
@@ -71,9 +75,11 @@ context VerificandoReglas:
 
 -- FASE 4: Emisión de Código
 context GenerandoStrands:
-    role generador_rust: AST
+    role generador: AST
         @audit("Generación de Strand 1 (Rust) iniciada internamente")
-        on iniciar_generacion -> emitirCodigoRust(self.pares, self.perfil)
+        on iniciar_generacion_rust -> emitirCodigoRust(self.pares, self.perfil)
+        @audit("Generación de Strand 1 (TypeScript) iniciada internamente")
+        on iniciar_generacion_ts -> emitirCodigoTS(self.pares, self.perfil)
     role terminal: ArgumentosUsuario
         on ejecutar -> forbidden
     role lector_fs: ArgumentosUsuario
@@ -96,8 +102,9 @@ context ErrorFatal:
         on iniciar_lectura -> forbidden
     role validador: AST
         on iniciar_validacion -> forbidden
-    role generador_rust: AST
-        on iniciar_generacion -> forbidden
+    role generador: AST
+        on iniciar_generacion_rust -> forbidden
+        on iniciar_generacion_ts -> forbidden
     transitions:
         on finalizar -> EsperandoComando
         
@@ -110,8 +117,9 @@ context Exito:
         on iniciar_lectura -> forbidden
     role validador: AST
         on iniciar_validacion -> forbidden
-    role generador_rust: AST
-        on iniciar_generacion -> forbidden
+    role generador: AST
+        on iniciar_generacion_rust -> forbidden
+        on iniciar_generacion_ts -> forbidden
     transitions:
         on finalizar -> EsperandoComando
 
@@ -124,7 +132,8 @@ context MostrarAyuda:
         on iniciar_lectura -> forbidden
     role validador: AST
         on iniciar_validacion -> forbidden
-    role generador_rust: AST
-        on iniciar_generacion -> forbidden
+    role generador: AST
+        on iniciar_generacion_rust -> forbidden
+        on iniciar_generacion_ts -> forbidden
     transitions:
         on finalizar -> EsperandoComando

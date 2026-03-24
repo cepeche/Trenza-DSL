@@ -86,7 +86,11 @@ context ModoNormal:
 
         --   on seleccionarTipoTarea si multiples_actividades -> ModalSeleccionActividad
 
-        on seleccionarTipoTarea  -> ModalComentario         -- caso simplificado
+        on iniciarTarea          -> SesionActiva
+
+        on seleccionarTipoTarea  -> ModalComentario         -- con EXACTAMENTE 1 actividad
+
+        on elegirActividad       -> ModalSeleccionActividad  -- con >1 actividades
 
 
 

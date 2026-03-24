@@ -42,6 +42,8 @@ fn main() {
     let mut is_generate = false;
     let mut profile = "pre".to_string();
     let mut concurrency = "composite".to_string();
+    let mut out_dir = ".".to_string();
+    let mut lang = "rust".to_string();
     let mut filepath = "".to_string();
 
     for arg in &args[1..] {
@@ -51,6 +53,10 @@ fn main() {
             profile = arg.split('=').nth(1).unwrap().to_string();
         } else if arg.starts_with("--concurrency=") {
             concurrency = arg.split('=').nth(1).unwrap().to_string();
+        } else if arg.starts_with("--out-dir=") {
+            out_dir = arg.split('=').nth(1).unwrap().to_string();
+        } else if arg.starts_with("--lang=") {
+            lang = arg.split('=').nth(1).unwrap().to_string();
         } else {
             filepath = arg.to_string();
         }
@@ -59,6 +65,10 @@ fn main() {
     if filepath.is_empty() {
         eprintln!("Debe especificar una ruta .trz o un directorio");
         std::process::exit(1);
+    }
+
+    if is_generate && out_dir != "." {
+        fs::create_dir_all(&out_dir).expect("No se pudo crear el directorio de salida");
     }
 
     let path = Path::new(&filepath);
@@ -101,7 +111,11 @@ fn main() {
         Ok(_) => {
             println!("- ✅ Verificación Semántica: Superada impecablemente para {} archivos.", files_to_parse.len());
             if is_generate {
-                let rust_code = generator::generate_rust(&program_ast, &profile, &concurrency);
+                let logic_code = if lang == "ts" {
+                    generator::generate_typescript(&program_ast, &profile, &concurrency)
+                } else {
+                    generator::generate_rust(&program_ast, &profile, &concurrency)
+                };
                 let test_code = generator::generate_tests(&program_ast);
                 let topology_mermaid = generator::generate_mermaid_topology(&program_ast);
                 let detailed_mermaid = generator::generate_mermaid_details(&program_ast);
@@ -115,12 +129,17 @@ fn main() {
                     }
                 }
 
-                let out_rust = format!("{}_out.rs", system_name);
-                let out_tests = format!("{}_out_tests.rs", system_name);
-                let out_mermaid = format!("{}_out.mermaid", system_name);
-                let out_audit = format!("{}_out_audit.md", system_name);
-                let out_viz = format!("{}_viz.md", system_name);
-                let out_html = format!("{}_summary.html", system_name);
+                let ext = if lang == "ts" { "ts" } else { "rs" };
+                let out_logic = Path::new(&out_dir).join(format!("{}_out.{}", system_name, ext));
+                let out_tests = Path::new(&out_dir).join(format!("{}_out_tests.rs", system_name));
+                let out_mermaid = Path::new(&out_dir).join(format!("{}_out.mermaid", system_name));
+                let out_audit = Path::new(&out_dir).join(format!("{}_out_audit.md", system_name));
+                let out_viz = Path::new(&out_dir).join(format!("{}_viz.md", system_name));
+                let out_html = Path::new(&out_dir).join(format!("{}_summary.html", system_name));
+
+                // ... (rest of the code remains the same as for Markdown/HTML building)
+                // Wait, I need to make sure I don't break the Markdown/HTML variables.
+                // I'll just change the fs::write calls.
 
                 // Build decomposed Markdown
                 let mut viz_md = format!("# System Visualization: {}\n\n", system_name);
@@ -143,19 +162,19 @@ fn main() {
                     system_name, system_name, system_name, topology_mermaid, html_details, audit_doc.replace("\n", "<br>")
                 );
 
-                fs::write(&out_rust, rust_code).expect("No se pudo escribir el archivo Rust");
+                fs::write(&out_logic, logic_code).expect("No se pudo escribir el archivo de Logica");
                 fs::write(&out_tests, test_code).expect("No se pudo escribir el archivo de Tests");
                 fs::write(&out_mermaid, topology_mermaid).expect("No se pudo escribir el archivo Mermaid");
                 fs::write(&out_audit, audit_doc).expect("No se pudo escribir el archivo Audit");
                 fs::write(&out_viz, viz_md).expect("No se pudo escribir el archivo Viz");
                 fs::write(&out_html, html_report).expect("No se pudo escribir el archivo HTML");
 
-                println!("- ✅ Código Strand 1 (Lógica) generado en: {}", out_rust);
-                println!("- ✅ Código Strand 2 (Tests Algebraicos) generado en: {}", out_tests);
-                println!("- ✅ Código Strand 3 (Arquitectura) generado en: {}", out_mermaid);
-                println!("- ✅ Informe Strand 4 (Auditoría) generado en: {}", out_audit);
-                println!("- ✅ Vista de Hebras (Markdown) generado en: {}", out_viz);
-                println!("- ✅ Reporte Interactivo (HTML) generado en: {}", out_html);
+                println!("- ✅ Código Strand 1 (Lógica {}) generado en: {}", if lang == "ts" { "TS" } else { "Rust" }, out_logic.display());
+                println!("- ✅ Código Strand 2 (Tests Algebraicos) generado en: {}", out_tests.display());
+                println!("- ✅ Código Strand 3 (Arquitectura) generado en: {}", out_mermaid.display());
+                println!("- ✅ Informe Strand 4 (Auditoría) generado en: {}", out_audit.display());
+                println!("- ✅ Vista de Hebras (Markdown) generado en: {}", out_viz.display());
+                println!("- ✅ Reporte Interactivo (HTML) generado en: {}", out_html.display());
             } else {
                 println!("- IEFBR14 completado: El programa es válido y la hebra es limpia.");
             }

@@ -18,6 +18,7 @@ pub struct ArgumentosUsuario {
     pub comando: String,
     pub perfil: String,
     pub archivoTrz: String,
+    pub lang: String,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -35,6 +36,7 @@ pub struct ErrorCompilacion {
 pub trait Effects {
     fn comprobarIntegridad(&self, arg0: &str);
     fn emitirCodigoRust(&self, arg0: &str, arg1: &str);
+    fn emitirCodigoTS(&self, arg0: &str, arg1: &str);
     fn imprimirAyudaCLI(&self, );
     fn imprimirErrorFatal(&self, arg0: &str, arg1: &str);
     fn imprimirMensajeExito(&self, arg0: &str);
@@ -46,6 +48,7 @@ pub struct NoOpEffects;
 impl Effects for NoOpEffects {
     fn comprobarIntegridad(&self, arg0: &str) {}
     fn emitirCodigoRust(&self, arg0: &str, arg1: &str) {}
+    fn emitirCodigoTS(&self, arg0: &str, arg1: &str) {}
     fn imprimirAyudaCLI(&self, ) {}
     fn imprimirErrorFatal(&self, arg0: &str, arg1: &str) {}
     fn imprimirMensajeExito(&self, arg0: &str) {}
@@ -70,6 +73,9 @@ impl Effects for RecordingEffects {
     }
     fn emitirCodigoRust(&self, arg0: &str, arg1: &str) {
         self.calls.borrow_mut().push(format!("emitirCodigoRust({}, {})".to_string(), arg0, arg1));
+    }
+    fn emitirCodigoTS(&self, arg0: &str, arg1: &str) {
+        self.calls.borrow_mut().push(format!("emitirCodigoTS({}, {})".to_string(), arg0, arg1));
     }
     fn imprimirAyudaCLI(&self, ) {
         self.calls.borrow_mut().push("imprimirAyudaCLI".to_string());
@@ -161,34 +167,68 @@ impl<'a> System<'a> {
     }
 }
 
-pub fn handle_generador_rust_iniciar_generacion(ctx: &Contexto, generador_rust: &AST, effects: &dyn Effects) {
+pub fn handle_generador_iniciar_generacion_rust(ctx: &Contexto, generador: &AST, effects: &dyn Effects) {
     match ctx {
         Contexto::EsperandoComando => {
-            println!("[telemetry] context=EsperandoComando, role=generador_rust, event=iniciar_generacion");
+            println!("[telemetry] context=EsperandoComando, role=generador, event=iniciar_generacion_rust");
             panic!("Forbidden action called in context EsperandoComando");
         },
         Contexto::ParseandoArchivo => {
-            println!("[telemetry] context=ParseandoArchivo, role=generador_rust, event=iniciar_generacion");
+            println!("[telemetry] context=ParseandoArchivo, role=generador, event=iniciar_generacion_rust");
             panic!("Forbidden action called in context ParseandoArchivo");
         },
         Contexto::VerificandoReglas => {
-            println!("[telemetry] context=VerificandoReglas, role=generador_rust, event=iniciar_generacion");
+            println!("[telemetry] context=VerificandoReglas, role=generador, event=iniciar_generacion_rust");
             panic!("Forbidden action called in context VerificandoReglas");
         },
         Contexto::GenerandoStrands => {
-            println!("[telemetry] context=GenerandoStrands, role=generador_rust, event=iniciar_generacion");
-            effects.emitirCodigoRust(&generador_rust.pares, &generador_rust.perfil);
+            println!("[telemetry] context=GenerandoStrands, role=generador, event=iniciar_generacion_rust");
+            effects.emitirCodigoRust(&generador.pares, &generador.perfil);
         },
         Contexto::ErrorFatal => {
-            println!("[telemetry] context=ErrorFatal, role=generador_rust, event=iniciar_generacion");
+            println!("[telemetry] context=ErrorFatal, role=generador, event=iniciar_generacion_rust");
             panic!("Forbidden action called in context ErrorFatal");
         },
         Contexto::Exito => {
-            println!("[telemetry] context=Exito, role=generador_rust, event=iniciar_generacion");
+            println!("[telemetry] context=Exito, role=generador, event=iniciar_generacion_rust");
             panic!("Forbidden action called in context Exito");
         },
         Contexto::MostrarAyuda => {
-            println!("[telemetry] context=MostrarAyuda, role=generador_rust, event=iniciar_generacion");
+            println!("[telemetry] context=MostrarAyuda, role=generador, event=iniciar_generacion_rust");
+            panic!("Forbidden action called in context MostrarAyuda");
+        },
+        _ => {},
+    }
+}
+
+pub fn handle_generador_iniciar_generacion_ts(ctx: &Contexto, generador: &AST, effects: &dyn Effects) {
+    match ctx {
+        Contexto::EsperandoComando => {
+            println!("[telemetry] context=EsperandoComando, role=generador, event=iniciar_generacion_ts");
+            panic!("Forbidden action called in context EsperandoComando");
+        },
+        Contexto::ParseandoArchivo => {
+            println!("[telemetry] context=ParseandoArchivo, role=generador, event=iniciar_generacion_ts");
+            panic!("Forbidden action called in context ParseandoArchivo");
+        },
+        Contexto::VerificandoReglas => {
+            println!("[telemetry] context=VerificandoReglas, role=generador, event=iniciar_generacion_ts");
+            panic!("Forbidden action called in context VerificandoReglas");
+        },
+        Contexto::GenerandoStrands => {
+            println!("[telemetry] context=GenerandoStrands, role=generador, event=iniciar_generacion_ts");
+            effects.emitirCodigoTS(&generador.pares, &generador.perfil);
+        },
+        Contexto::ErrorFatal => {
+            println!("[telemetry] context=ErrorFatal, role=generador, event=iniciar_generacion_ts");
+            panic!("Forbidden action called in context ErrorFatal");
+        },
+        Contexto::Exito => {
+            println!("[telemetry] context=Exito, role=generador, event=iniciar_generacion_ts");
+            panic!("Forbidden action called in context Exito");
+        },
+        Contexto::MostrarAyuda => {
+            println!("[telemetry] context=MostrarAyuda, role=generador, event=iniciar_generacion_ts");
             panic!("Forbidden action called in context MostrarAyuda");
         },
         _ => {},

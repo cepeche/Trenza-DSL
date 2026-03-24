@@ -1,0 +1,197 @@
+<!DOCTYPE html><html><head><title>Trenza: CronometroPSP</title><script src='https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js'></script><style>body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 20px; } .container { max-width: 1200px; margin: auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); } .mermaid { background: #fafafa; border: 1px solid #eee; border_radius: 8px; padding: 20px; margin: 20px 0; } h1 { color: #1a73e8; } h2 { border-bottom: 2px solid #1a73e8; padding-bottom: 10px; margin-top: 40px; } .audit { font-family: monospace; background: #202124; color: #e8eaed; padding: 20px; border-radius: 8px; overflow-x: auto; line-height: 1.6; }</style></head><body><div class='container'><h1>Trenza System Overview: CronometroPSP</h1><p>Formal Verification Passport for project <strong>CronometroPSP</strong></p><h2>1. High-Level Map</h2><div class='mermaid'>stateDiagram-v2
+
+    MenuConfiguracion --> ModalCrearActividad : abrirCrearActividad
+    MenuConfiguracion --> ModalHistorial : abrirHistorial
+    MenuConfiguracion --> ModalAcercaDe : abrirAcercaDe
+    MenuConfiguracion --> ModalReset : abrirReset
+    MenuConfiguracion --> close_overlay : cerrar
+    ModalAcercaDe --> close_overlay : cerrar
+    ModalComentario --> close_overlay : confirmarInicio
+    ModalComentario --> close_overlay : cancelar
+    ModalCrearActividad --> close_overlay : guardarNuevaActividad
+    ModalCrearActividad --> close_overlay : cancelar
+    ModalCrearTarea --> close_overlay : guardarNuevaTarea
+    ModalCrearTarea --> close_overlay : cancelar
+    ModalEditarActividad --> close_overlay : guardarEdicionActividad
+    ModalEditarActividad --> close_overlay : cancelar
+    ModalEditarTarea --> close_overlay : guardarEdicion
+    ModalEditarTarea --> close_overlay : cancelar
+    ModalHistorial --> Historial7Dias : iniciar
+    ModalHistorial --> close_overlay : cerrar
+    Historial7Dias --> Historial30Dias : cambiarA30Dias
+    Historial7Dias --> ModalHistorial : cerrar
+    Historial30Dias --> Historial7Dias : cambiarA7Dias
+    Historial30Dias --> ModalHistorial : cerrar
+    ModalReset --> ResetFase1 : iniciar
+    ModalReset --> close_overlay : cerrar
+    ResetFase1 --> ResetFase2 : avanzarAFase2
+    ResetFase1 --> ModalReset : cerrar
+    ResetFase2 --> ResetFase3 : avanzarAFase3
+    ResetFase2 --> ResetFase1 : retrocederAFase1
+    ResetFase3 --> close_overlay : ejecutarReset
+    ResetFase3 --> ResetFase2 : retrocederAFase2
+    ModalSeleccionActividad --> ModalComentario : elegirActividad
+    ModalSeleccionActividad --> close_overlay : cancelar
+    ModoEdicion --> ModoNormal : desactivarEdicion
+    ModoEdicion --> ModalEditarTarea : abrirEditarTarea
+    ModoEdicion --> ModalEditarActividad : abrirEditarActividad
+    ModoEdicion --> ModalCrearTarea : abrirCrearTarea
+    ModoEdicion --> MenuConfiguracion : abrirMenuConfiguracion
+    ModoNormal --> ModoEdicion : activarEdicion
+    ModoNormal --> ModalCrearTarea : abrirCrearTarea
+    ModoNormal --> MenuConfiguracion : abrirMenuConfiguracion
+    ModoNormal --> SesionActiva : iniciarTarea
+    ModoNormal --> ModalComentario : seleccionarTipoTarea
+    ModoNormal --> ModalSeleccionActividad : elegirActividad
+    SesionActiva --> deactivate : sesionFinalizada
+    [*] --> ModoNormal
+</div><h2>2. Context Details</h2><h3>Context: MenuConfiguracion</h3><div class='mermaid'>stateDiagram-v2
+
+    state MenuConfiguracion {
+        MenuConfiguracion_tap_item_nueva_actividad --> abrirCrearActividad
+        MenuConfiguracion_tap_item_historial --> abrirHistorial
+        MenuConfiguracion_tap_item_acerca_de --> abrirAcercaDe
+        MenuConfiguracion_tap_item_reset --> abrirReset
+        MenuConfiguracion_tap_overlay --> cerrar
+    }
+</div><h3>Context: ModalAcercaDe</h3><div class='mermaid'>stateDiagram-v2
+
+    state ModalAcercaDe {
+        ModalAcercaDe_tap_boton_cerrar --> cerrar
+        ModalAcercaDe_on_entry --> verificar_conexion
+        ModalAcercaDe_on_entry --> cargar_tiempo_acumulado
+    }
+</div><h3>Context: ModalComentario</h3><div class='mermaid'>stateDiagram-v2
+
+    state ModalComentario {
+        ModalComentario_cambio_campo_comentario --> actualizarComentario
+        ModalComentario_cambio_campo_retroactivo --> actualizarRetroactivo
+        ModalComentario_tap_boton_confirmar --> confirmarInicio
+        ModalComentario_tap_boton_cancelar --> cancelar
+        ModalComentario_confirmarInicio --> iniciar_sesion
+    }
+</div><h3>Context: ModalCrearActividad</h3><div class='mermaid'>stateDiagram-v2
+
+    state ModalCrearActividad {
+        ModalCrearActividad_cambio_campo_nombre --> actualizarNombreNuevaActividad
+        ModalCrearActividad_seleccion_selector_color --> seleccionarColorNuevo
+        ModalCrearActividad_cambio_checkbox_permanente --> marcarPermanenteNueva
+        ModalCrearActividad_tap_boton_guardar --> guardarNuevaActividad
+        ModalCrearActividad_tap_boton_cancelar --> cancelar
+        ModalCrearActividad_guardarNuevaActividad --> crear_actividad
+    }
+</div><h3>Context: ModalCrearTarea</h3><div class='mermaid'>stateDiagram-v2
+
+    state ModalCrearTarea {
+        ModalCrearTarea_cambio_campo_nombre --> actualizarNuevoNombre
+        ModalCrearTarea_cambio_campo_busqueda_icono --> filtrarIconosCrear
+        ModalCrearTarea_seleccion_selector_icono --> seleccionarIconoNuevo
+        ModalCrearTarea_cambio_checkbox_actividad --> toggleActividadPermitida
+        ModalCrearTarea_tap_boton_guardar --> guardarNuevaTarea
+        ModalCrearTarea_tap_boton_cancelar --> cancelar
+        ModalCrearTarea_guardarNuevaTarea --> crear_tipo_tarea
+    }
+</div><h3>Context: ModalEditarActividad</h3><div class='mermaid'>stateDiagram-v2
+
+    state ModalEditarActividad {
+        ModalEditarActividad_cambio_campo_nombre --> actualizarNombreActividad
+        ModalEditarActividad_seleccion_selector_color --> seleccionarColor
+        ModalEditarActividad_cambio_checkbox_permanente --> marcarPermanente
+        ModalEditarActividad_tap_boton_guardar --> guardarEdicionActividad
+        ModalEditarActividad_tap_boton_cancelar --> cancelar
+        ModalEditarActividad_guardarEdicionActividad --> actualizar_actividad
+    }
+</div><h3>Context: ModalEditarTarea</h3><div class='mermaid'>stateDiagram-v2
+
+    state ModalEditarTarea {
+        ModalEditarTarea_cambio_campo_nombre --> actualizarNombre
+        ModalEditarTarea_cambio_campo_busqueda_icono --> filtrarIconos
+        ModalEditarTarea_seleccion_selector_icono --> seleccionarIcono
+        ModalEditarTarea_tap_boton_guardar --> guardarEdicion
+        ModalEditarTarea_tap_boton_cancelar --> cancelar
+        ModalEditarTarea_guardarEdicion --> editar_tipo_tarea
+    }
+</div><h3>Context: ModalHistorial</h3><div class='mermaid'>stateDiagram-v2
+
+    state ModalHistorial {
+        ModalHistorial_tap_boton_cerrar --> cerrar
+    }
+</div><h3>Context: Historial7Dias</h3><div class='mermaid'>stateDiagram-v2
+
+    state Historial7Dias {
+        Historial7Dias_tap_boton_7dias --> ignored
+        Historial7Dias_tap_boton_30dias --> cambiarA30Dias
+        Historial7Dias_on_entry --> cargar_historial
+    }
+</div><h3>Context: Historial30Dias</h3><div class='mermaid'>stateDiagram-v2
+
+    state Historial30Dias {
+        Historial30Dias_tap_boton_7dias --> cambiarA7Dias
+        Historial30Dias_tap_boton_30dias --> ignored
+        Historial30Dias_on_entry --> cargar_historial
+    }
+</div><h3>Context: ModalReset</h3><div class='mermaid'>stateDiagram-v2
+
+    state ModalReset {
+        ModalReset_tap_boton_cancelar --> cerrar
+    }
+</div><h3>Context: ResetFase1</h3><div class='mermaid'>stateDiagram-v2
+
+    state ResetFase1 {
+        ResetFase1_tap_boton_cancelar --> cerrar
+        ResetFase1_tap_boton_continuar --> avanzarAFase2
+        ResetFase1_tap_boton_exportar_csv --> exportarCSV
+        ResetFase1_exportarCSV --> descargar_csv
+    }
+</div><h3>Context: ResetFase2</h3><div class='mermaid'>stateDiagram-v2
+
+    state ResetFase2 {
+        ResetFase2_cambio_checkbox_actividad --> toggleConservar
+        ResetFase2_tap_boton_continuar --> avanzarAFase3
+        ResetFase2_tap_boton_atras --> retrocederAFase1
+    }
+</div><h3>Context: ResetFase3</h3><div class='mermaid'>stateDiagram-v2
+
+    state ResetFase3 {
+        ResetFase3_cambio_campo_confirmacion --> actualizarConfirmacion
+        ResetFase3_tap_boton_ejecutar --> ejecutarReset
+        ResetFase3_tap_boton_atras --> retrocederAFase2
+        ResetFase3_ejecutarReset --> reset_datos
+    }
+</div><h3>Context: ModalSeleccionActividad</h3><div class='mermaid'>stateDiagram-v2
+
+    state ModalSeleccionActividad {
+        ModalSeleccionActividad_tap_boton_actividad --> elegirActividad
+        ModalSeleccionActividad_tap_boton_cancelar --> cancelar
+    }
+</div><h3>Context: ModoEdicion</h3><div class='mermaid'>stateDiagram-v2
+
+    state ModoEdicion {
+        ModoEdicion_tap_tarjeta_tipo --> abrirEditarTarea
+        ModoEdicion_tap_tarjeta_tarea --> abrirEditarTarea
+        ModoEdicion_tap_pestana_actividad --> abrirEditarActividad
+        ModoEdicion_tap_pestana_frecuentes --> ignored
+        ModoEdicion_tap_boton_edicion --> desactivarEdicion
+        ModoEdicion_tap_boton_nuevo --> abrirCrearTarea
+        ModoEdicion_tap_boton_configuracion --> abrirMenuConfiguracion
+    }
+</div><h3>Context: ModoNormal</h3><div class='mermaid'>stateDiagram-v2
+
+    state ModoNormal {
+        ModoNormal_tap_tarjeta_tipo --> seleccionarTipoTarea
+        ModoNormal_tap_tarjeta_tarea --> iniciarTarea
+        ModoNormal_tap_pestana_actividad --> cambiarPestana
+        ModoNormal_tap_pestana_frecuentes --> cambiarPestana
+        ModoNormal_tap_boton_edicion --> activarEdicion
+        ModoNormal_tap_boton_nuevo --> abrirCrearTarea
+        ModoNormal_tap_boton_configuracion --> abrirMenuConfiguracion
+        ModoNormal_cambiarPestana --> actualizarGridVisible
+        ModoNormal_iniciarTarea --> iniciar_sesion
+    }
+</div><h3>Context: SesionActiva</h3><div class='mermaid'>stateDiagram-v2
+
+    state SesionActiva {
+        SesionActiva_tap_display_timer --> ignored
+        SesionActiva_actualizarTimer --> calcular_tiempo_transcurrido
+    }
+</div><h2>Audit Report (Strand 4)</h2><div class='audit'># Audit Report: CronometroPSP<br><br>## 1. System Topology<br>- **Initial Context**: `ModoNormal`<br><br>### Transitions Table<br>| From Context | Event | Target Context |<br>|--------------|-------|----------------|<br>| MenuConfiguracion | abrirCrearActividad | ModalCrearActividad |<br>| MenuConfiguracion | abrirHistorial | ModalHistorial |<br>| MenuConfiguracion | abrirAcercaDe | ModalAcercaDe |<br>| MenuConfiguracion | abrirReset | ModalReset |<br>| MenuConfiguracion | cerrar | [close_overlay] |<br>| ModalAcercaDe | cerrar | [close_overlay] |<br>| ModalComentario | confirmarInicio | [close_overlay] |<br>| ModalComentario | cancelar | [close_overlay] |<br>| ModalCrearActividad | guardarNuevaActividad | [close_overlay] |<br>| ModalCrearActividad | cancelar | [close_overlay] |<br>| ModalCrearTarea | guardarNuevaTarea | [close_overlay] |<br>| ModalCrearTarea | cancelar | [close_overlay] |<br>| ModalEditarActividad | guardarEdicionActividad | [close_overlay] |<br>| ModalEditarActividad | cancelar | [close_overlay] |<br>| ModalEditarTarea | guardarEdicion | [close_overlay] |<br>| ModalEditarTarea | cancelar | [close_overlay] |<br>| ModalHistorial | iniciar | Historial7Dias |<br>| ModalHistorial | cerrar | [close_overlay] |<br>| Historial7Dias | cambiarA30Dias | Historial30Dias |<br>| Historial7Dias | cerrar | ModalHistorial |<br>| Historial30Dias | cambiarA7Dias | Historial7Dias |<br>| Historial30Dias | cerrar | ModalHistorial |<br>| ModalReset | iniciar | ResetFase1 |<br>| ModalReset | cerrar | [close_overlay] |<br>| ResetFase1 | avanzarAFase2 | ResetFase2 |<br>| ResetFase1 | cerrar | ModalReset |<br>| ResetFase2 | avanzarAFase3 | ResetFase3 |<br>| ResetFase2 | retrocederAFase1 | ResetFase1 |<br>| ResetFase3 | ejecutarReset | [close_overlay] |<br>| ResetFase3 | retrocederAFase2 | ResetFase2 |<br>| ModalSeleccionActividad | elegirActividad | ModalComentario |<br>| ModalSeleccionActividad | cancelar | [close_overlay] |<br>| ModoEdicion | desactivarEdicion | ModoNormal |<br>| ModoEdicion | abrirEditarTarea | ModalEditarTarea |<br>| ModoEdicion | abrirEditarActividad | ModalEditarActividad |<br>| ModoEdicion | abrirCrearTarea | ModalCrearTarea |<br>| ModoEdicion | abrirMenuConfiguracion | MenuConfiguracion |<br>| ModoNormal | activarEdicion | ModoEdicion |<br>| ModoNormal | abrirCrearTarea | ModalCrearTarea |<br>| ModoNormal | abrirMenuConfiguracion | MenuConfiguracion |<br>| ModoNormal | iniciarTarea | SesionActiva |<br>| ModoNormal | seleccionarTipoTarea | ModalComentario |<br>| ModoNormal | elegirActividad | ModalSeleccionActividad |<br>| SesionActiva | sesionFinalizada | [deactivate] |<br><br>## 2. Role Behavior Audit<br>| Context | Role | Event | Result |<br>|---------|------|-------|--------|<br>| MenuConfiguracion | item_nueva_actividad | tap | Call: `abrirCrearActividad` |<br>| MenuConfiguracion | item_historial | tap | Call: `abrirHistorial` |<br>| MenuConfiguracion | item_acerca_de | tap | Call: `abrirAcercaDe` |<br>| MenuConfiguracion | item_reset | tap | Call: `abrirReset` |<br>| MenuConfiguracion | overlay | tap | Call: `cerrar` |<br>| ModalAcercaDe | boton_cerrar | tap | Call: `cerrar` |<br>| ModalComentario | campo_comentario | cambio | Call: `actualizarComentario` |<br>| ModalComentario | campo_retroactivo | cambio | Call: `actualizarRetroactivo` |<br>| ModalComentario | boton_confirmar | tap | Call: `confirmarInicio` |<br>| ModalComentario | boton_cancelar | tap | Call: `cancelar` |<br>| ModalCrearActividad | campo_nombre | cambio | Call: `actualizarNombreNuevaActividad` |<br>| ModalCrearActividad | selector_color | seleccion | Call: `seleccionarColorNuevo` |<br>| ModalCrearActividad | checkbox_permanente | cambio | Call: `marcarPermanenteNueva` |<br>| ModalCrearActividad | boton_guardar | tap | Call: `guardarNuevaActividad` |<br>| ModalCrearActividad | boton_cancelar | tap | Call: `cancelar` |<br>| ModalCrearTarea | campo_nombre | cambio | Call: `actualizarNuevoNombre` |<br>| ModalCrearTarea | campo_busqueda_icono | cambio | Call: `filtrarIconosCrear` |<br>| ModalCrearTarea | selector_icono | seleccion | Call: `seleccionarIconoNuevo` |<br>| ModalCrearTarea | checkbox_actividad | cambio | Call: `toggleActividadPermitida` |<br>| ModalCrearTarea | boton_guardar | tap | Call: `guardarNuevaTarea` |<br>| ModalCrearTarea | boton_cancelar | tap | Call: `cancelar` |<br>| ModalEditarActividad | campo_nombre | cambio | Call: `actualizarNombreActividad` |<br>| ModalEditarActividad | selector_color | seleccion | Call: `seleccionarColor` |<br>| ModalEditarActividad | checkbox_permanente | cambio | Call: `marcarPermanente` |<br>| ModalEditarActividad | boton_guardar | tap | Call: `guardarEdicionActividad` |<br>| ModalEditarActividad | boton_cancelar | tap | Call: `cancelar` |<br>| ModalEditarTarea | campo_nombre | cambio | Call: `actualizarNombre` |<br>| ModalEditarTarea | campo_busqueda_icono | cambio | Call: `filtrarIconos` |<br>| ModalEditarTarea | selector_icono | seleccion | Call: `seleccionarIcono` |<br>| ModalEditarTarea | boton_guardar | tap | Call: `guardarEdicion` |<br>| ModalEditarTarea | boton_cancelar | tap | Call: `cancelar` |<br>| ModalHistorial | boton_cerrar | tap | Call: `cerrar` |<br>| Historial7Dias | boton_7dias | tap | ⚠️ Ignored |<br>| Historial7Dias | boton_30dias | tap | Call: `cambiarA30Dias` |<br>| Historial30Dias | boton_7dias | tap | Call: `cambiarA7Dias` |<br>| Historial30Dias | boton_30dias | tap | ⚠️ Ignored |<br>| ModalReset | boton_cancelar | tap | Call: `cerrar` |<br>| ResetFase1 | boton_cancelar | tap | Call: `cerrar` |<br>| ResetFase1 | boton_continuar | tap | Call: `avanzarAFase2` |<br>| ResetFase1 | boton_exportar_csv | tap | Call: `exportarCSV` |<br>| ResetFase2 | checkbox_actividad | cambio | Call: `toggleConservar` |<br>| ResetFase2 | boton_continuar | tap | Call: `avanzarAFase3` |<br>| ResetFase2 | boton_atras | tap | Call: `retrocederAFase1` |<br>| ResetFase3 | campo_confirmacion | cambio | Call: `actualizarConfirmacion` |<br>| ResetFase3 | boton_ejecutar | tap | Call: `ejecutarReset` |<br>| ResetFase3 | boton_atras | tap | Call: `retrocederAFase2` |<br>| ModalSeleccionActividad | boton_actividad | tap | Call: `elegirActividad` |<br>| ModalSeleccionActividad | boton_cancelar | tap | Call: `cancelar` |<br>| ModoEdicion | tarjeta_tipo | tap | Call: `abrirEditarTarea` |<br>| ModoEdicion | tarjeta_tarea | tap | Call: `abrirEditarTarea` |<br>| ModoEdicion | pestana_actividad | tap | Call: `abrirEditarActividad` |<br>| ModoEdicion | pestana_frecuentes | tap | ⚠️ Ignored |<br>| ModoEdicion | boton_edicion | tap | Call: `desactivarEdicion` |<br>| ModoEdicion | boton_nuevo | tap | Call: `abrirCrearTarea` |<br>| ModoEdicion | boton_configuracion | tap | Call: `abrirMenuConfiguracion` |<br>| ModoNormal | tarjeta_tipo | tap | Call: `seleccionarTipoTarea` |<br>| ModoNormal | tarjeta_tarea | tap | Call: `iniciarTarea` |<br>| ModoNormal | pestana_actividad | tap | Call: `cambiarPestana` |<br>| ModoNormal | pestana_frecuentes | tap | Call: `cambiarPestana` |<br>| ModoNormal | boton_edicion | tap | Call: `activarEdicion` |<br>| ModoNormal | boton_nuevo | tap | Call: `abrirCrearTarea` |<br>| ModoNormal | boton_configuracion | tap | Call: `abrirMenuConfiguracion` |<br>| SesionActiva | display_timer | tap | ⚠️ Ignored |<br><br>## 3. Formal Verification Summary<br>- [x] **Rule 1: Completeness** - verified by exhaustive match on Strand 1.<br>- [x] **Rule 2: Determinism** - verified by DSL grammar and validator.<br>- [x] **Rule 3: Reachability** - verified by topological analysis.<br>- [x] **Rule 4: Return** - verified by reverse topological search (no sink states).<br>- [x] **Rule 5: Role Exhaustiveness** - verified by cross-context role presence check.<br>- [x] **Rule 6: Data Conformance (GDPR)** - verified by role access validation.<br><br>---<br>*Report generated by Trenza CLI v0.1.0* - Proof of Correctness by Design.<br></div></div><script>mermaid.initialize({startOnLoad:true, theme: 'forest'});</script></body></html>

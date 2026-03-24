@@ -1,6 +1,6 @@
-﻿-- contexts/ModalCrearActividad.trz
+-- contexts/ModalCrearActividad.trz
 
--- Overlay: creaciÃ³n de nueva Actividad.
+-- Overlay: creación de nueva Actividad.
 
 -- Accesible desde MenuConfiguracion.
 
@@ -46,15 +46,15 @@ context ModalCrearActividad:
 
     -- PROPUESTA GAP-5: guardarNuevaActividad condicional
 
-    -- (campo_nombre no vacÃ­o)
+    -- (campo_nombre no vacío)
 
 
 
     transitions:
 
-        on guardarNuevaActividad -> [cerrar_overlay]
+        on guardarNuevaActividad -> [close_overlay]
 
-        on cancelar              -> [cerrar_overlay]
+        on cancelar              -> [close_overlay]
 
 
 

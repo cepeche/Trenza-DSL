@@ -1,26 +1,26 @@
-﻿-- contexts/ModalHistorial.trz
+-- contexts/ModalHistorial.trz
 
--- Overlay: visualizaciÃ³n del historial de sesiones.
+-- Overlay: visualización del historial de sesiones.
 
--- Tiene dos sub-estados: vista de 7 dÃ­as y vista de 30 dÃ­as.
+-- Tiene dos sub-estados: vista de 7 días y vista de 30 días.
 
 -- Convertido de ModalHistorial.trz (6 marzo 2026) a .trz (12 marzo 2026)
 
 --
 
--- CONFORMIDAD H1â€“H5 (12 marzo 2026):
+-- CONFORMIDAD H1–H5 (12 marzo 2026):
 
 -- - H1: Historial7Dias y Historial30Dias heredan boton_cerrar del padre.
 
 -- - H2: boton_7dias y boton_30dias son roles locales de cada sub-contexto.
 
--- - H3: completitud aplica por nivel â€” los roles locales de un hermano
+-- - H3: completitud aplica por nivel — los roles locales de un hermano
 
---        no obligan al otro (aunque aquÃ­ ambos declaran los mismos roles).
+--        no obligan al otro (aunque aquí ambos declaran los mismos roles).
 
--- - H4: ningÃºn sub-contexto sobrescribe handlers heredados.
+-- - H4: ningún sub-contexto sobrescribe handlers heredados.
 
--- - H5: ningÃºn sub-contexto aÃ±ade eventos nuevos a roles heredados.
+-- - H5: ningún sub-contexto añade eventos nuevos a roles heredados.
 
 
 
@@ -37,12 +37,12 @@ context ModalHistorial:
 
 
     transitions:
+        on iniciar -> Historial7Dias
+        on cerrar -> [close_overlay]
 
-        on cerrar -> [cerrar_overlay]
 
 
-
-    -- Sub-contexto: vista de 7 dÃ­as (activo por defecto)
+    -- Sub-contexto: vista de 7 días (activo por defecto)
 context Historial7Dias:
     role *: ignored
 
@@ -51,7 +51,7 @@ context Historial7Dias:
 
         role boton_7dias: Boton
 
-            on tap -> ignored              -- ya estamos en 7 dÃ­as, no hace nada
+            on tap -> ignored              -- ya estamos en 7 días, no hace nada
 
 
 
@@ -77,7 +77,7 @@ context Historial7Dias:
 
 
 
-    -- Sub-contexto: vista de 30 dÃ­as
+    -- Sub-contexto: vista de 30 días
 context Historial30Dias:
     role *: ignored
 
@@ -92,7 +92,7 @@ context Historial30Dias:
 
         role boton_30dias: Boton
 
-            on tap -> ignored              -- ya estamos en 30 dÃ­as
+            on tap -> ignored              -- ya estamos en 30 días
 
 
 

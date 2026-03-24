@@ -1,10 +1,10 @@
-﻿-- contexts/ModalComentario.trz
+-- contexts/ModalComentario.trz
 
--- Overlay: se muestra antes de iniciar una sesiÃ³n.
+-- Overlay: se muestra antes de iniciar una sesión.
 
--- El usuario puede aÃ±adir comentario, indicar minutos retroactivos,
+-- El usuario puede añadir comentario, indicar minutos retroactivos,
 
--- y (si hay SesionActiva) optar por sustituir la sesiÃ³n en curso.
+-- y (si hay SesionActiva) optar por sustituir la sesión en curso.
 
 -- Convertido de ModalComentario.trz (6 marzo 2026) a .trz (12 marzo 2026)
 
@@ -14,13 +14,13 @@
 
 -- (y opcionalmente tareaId) del contexto que lo abre.
 
--- En app.js esto se resuelve con AppState.tareaIdPendiente â€”
+-- En app.js esto se resuelve con AppState.tareaIdPendiente —
 
--- exactamente el estado implÃ­cito que Trenza quiere eliminar.
+-- exactamente el estado implícito que Trenza quiere eliminar.
 
 --
 
--- Sintaxis propuesta para parÃ¡metros de entrada:
+-- Sintaxis propuesta para parámetros de entrada:
 
 --   context ModalComentario:
 
@@ -32,13 +32,13 @@ context ModalComentario:
 
 
 
-    -- PROPUESTA GAP-1: declarar parÃ¡metros de entrada del overlay
+    -- PROPUESTA GAP-1: declarar parámetros de entrada del overlay
 
     -- input:
 
     --     tipoTareaId: Id
 
-    --     tareaId: Id?      -- opcional: si ya se eligiÃ³ actividad
+    --     tareaId: Id?      -- opcional: si ya se eligió actividad
 
 
 
@@ -54,7 +54,7 @@ context ModalComentario:
 
 
 
-    -- Este botÃ³n siempre existe
+    -- Este botón siempre existe
 
     role boton_confirmar: Boton
 
@@ -68,29 +68,29 @@ context ModalComentario:
 
 
 
-    -- GAP-4: Punto de extensiÃ³n para opciones dinÃ¡micas de sesiÃ³n
+    -- GAP-4: Punto de extensión para opciones dinámicas de sesión
 
     slot sesion_opts
 
 
 
-    -- PROPUESTA GAP-5: transiciÃ³n condicional basada en validaciÃ³n.
+    -- PROPUESTA GAP-5: transición condicional basada en validación.
 
-    -- confirmarInicio solo debe proceder si el estado del modal es vÃ¡lido
+    -- confirmarInicio solo debe proceder si el estado del modal es válido
 
-    -- (en este caso siempre es vÃ¡lido; no hay campo obligatorio vacÃ­o).
+    -- (en este caso siempre es válido; no hay campo obligatorio vacío).
 
-    -- Pero en ModalCrearTarea y ModalEditarTarea SÃ hay validaciÃ³n.
+    -- Pero en ModalCrearTarea y ModalEditarTarea SÍ hay validación.
 
 
 
     transitions:
 
-        on confirmarInicio -> [cerrar_overlay]   -- PROPUESTA GAP-2: cerrar overlay
+        on confirmarInicio -> [close_overlay]   -- PROPUESTA GAP-2: cerrar overlay
 
                                                   -- y volver al contexto base
 
-        on cancelar        -> [cerrar_overlay]
+        on cancelar        -> [close_overlay]
 
 
 
@@ -100,6 +100,6 @@ context ModalComentario:
 
         -- Nota: 'sustituir' viene del checkbox_sustituir de SesionActiva,
 
-        -- que puede no estar presente si no hay sesiÃ³n activa.
+        -- que puede no estar presente si no hay sesión activa.
 
         -- Default: sustituir = false
