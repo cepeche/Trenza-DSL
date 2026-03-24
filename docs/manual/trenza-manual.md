@@ -489,10 +489,10 @@ context EditandoTarea (child of ModoEdicion):
 
 ## 6. Verification
 
-Trenza verifies six formal properties expressed as readable rules.
+Trenza verifies seven formal properties expressed as readable rules.
 Each rule can be checked by inspection, without executing code.
 
-### 6.1 The Six Rules
+### 6.1 The Seven Rules
 
 **Rule 1 — Completeness**: Every role that handles an event in any
 context must handle it in all contexts of the system.
@@ -531,6 +531,18 @@ ERROR [conformance]: DatosSesion [clasificacion: personal] flows to
                      modulo_analytics which does not declare [autorizado_para: personal]
 ```
 
+**Rule 7 — Slot/fills integrity**: Every `fills X.slot_name` reference
+must point to a declared `slot slot_name` in context `X`. Each slot may
+be filled by at most one concurrent context unless an explicit resolution
+is declared in `system.trz`. Roles inside a `fills` block obey the same
+completeness rules as regular roles (Rule 1) within the scope of the
+concurrent+overlay intersection.
+
+```
+ERROR [slot-integrity]: SesionActiva fills ModalComentario.opts
+                        but ModalComentario does not declare slot opts
+```
+
 ### 6.2 Slot Rules (S1–S5)
 
 Slots introduce five additional rules:
@@ -557,7 +569,7 @@ context individually.
 
 ## 7. Artifact Generation
 
-Each Trenza specification generates three artifacts — the three strands:
+Each Trenza specification generates four artifacts — the four strands:
 
 ### 7.1 Strand 1: Implementation (Rust)
 
@@ -625,8 +637,25 @@ stateDiagram-v2
     }
 ```
 
-The three strands are projections of the same artifact. Modifying one
-implies regenerating the other two. They cannot fall out of sync.
+### 7.4 Strand 4: Audit Report
+
+A narrative Markdown report (`_out_audit.md`) with:
+
+- **System topology table**: all transitions, events and target contexts
+- **Role behavior audit**: for each role in each context, the event handled
+  and the action taken (`call`, `ignored`, `forbidden`)
+- **Data access audit**: any role accessing classified data, with its
+  authorization annotation
+
+Additionally, the compiler generates an **interactive HTML report**
+(`_summary.html`) that renders the Mermaid diagram in-browser alongside
+the audit, with no external dependencies beyond a CDN-hosted Mermaid
+script. This serves as the primary human-readable verification artifact.
+
+---
+
+The four strands are projections of the same artifact. Modifying the
+specification implies regenerating all four. They cannot fall out of sync.
 
 ---
 
