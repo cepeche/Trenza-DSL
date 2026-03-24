@@ -1,109 +1,164 @@
 ---
-title: "Related Work — draft for ONWARD! Essays 2026"
+title: "Related Work — Trenza ONWARD! 2026"
 status: draft
 date: 2026-03-24
 ---
 
 # Related Work
 
-## Statecharts and Behavioral Specification
+## Statecharts
 
-Harel's statecharts [HAREL87] extended finite automata with hierarchy,
-concurrency, and broadcast communication, providing the first visual
-formalism expressive enough for realistic reactive systems. UML State
-Machines [OMG17] standardized a variant for industry use. Trenza inherits
-the core insight — behavior as explicit state topology — but departs in
-three ways: (1) the source of truth is plain text, not a diagram; (2) the
-formalism is deliberately *less* expressive than statecharts (no
-broadcast, no history states, no fork/join), because the restriction is
-what enables mechanical verification by LLMs; (3) the role layer
-separates *who* reacts from *what* state is active, a distinction absent
-in statecharts.
+Harel's statecharts [HAREL87] introduced hierarchical, concurrent finite
+state machines as a visual formalism for reactive systems, providing the
+first notation expressive enough to describe realistic event-driven
+behavior without combinatorial explosion. The influence on Trenza is
+direct: contexts and transitions are semantically grounded in the same
+intuition that state topology is the right primitive for behavioral
+specification. The departure is equally direct. Statecharts are a
+diagrammatic notation; their primary artifact is a drawing, not a
+text file. This makes them incompatible with version control workflows,
+diff-based review, and consumption by language models. Trenza inverts
+the artifact hierarchy: the `.trz` specification is the source of truth,
+stored as plain text under Git, and the Mermaid statechart is a derived
+projection synthesized from it at compile time. The diagram serves the
+spec, not the other way around. Statecharts also make no provision for
+role-based access control, data scope restrictions, GDPR conformance, or
+multi-strand synthesis. They describe what transitions are valid; Trenza
+additionally enforces who may trigger them, on what data, and with what
+mechanically verifiable obligations.
 
-## Role-Based Programming and DCI
+## Data, Context, and Interaction (DCI)
 
-The Data-Context-Interaction architecture [REENSKAUG09] separates data
-objects from the roles they play in use cases. Trenza's `role` construct
-is a direct descendant: a role is a typed participant within a named
-context, not a property of a class. The key difference is that DCI does
-not constrain which roles must appear in which contexts — that constraint
-(Rule 1, Completeness) is Trenza's primary contribution to the DCI
-lineage. Coplien and Bjørnvig [COPLIEN10] argued for lean architecture
-grounded in roles; Trenza makes that argument executable and verifiable.
+Reenskaug and Coplien's Data-Context-Interaction architecture [DCI09]
+elevated roles to first-class citizens by separating the stable structure
+of domain objects (Data) from situational use-case logic (Context) and
+dynamic execution paths (Interaction). This separation addresses the
+central tension in object-oriented design: domain models that are clean
+in isolation become entangled when they must support behavioral use cases,
+producing the mixed-concern objects and scattered state flags that
+motivated Trenza's original design. Trenza inherits DCI's core insight
+directly: a datum is inert until it assumes a transient role within a
+named context; outside that context, the role and its permissions do not
+exist. Where Trenza departs from DCI is in formalizing this insight as a
+set of mechanically enforced rules. DCI is an architectural philosophy;
+it imposes no compiler-checkable constraints on which roles must appear
+in which contexts or how data access must be scoped. Trenza does: Rule 1
+(Completeness) requires every role-event pair to be handled in every
+context; Rule 2 (Determinism) prohibits handler duplication; the data
+scoping rules enforce least privilege structurally. DCI provides the
+conceptual model. Trenza makes that model auditable.
 
-## Formal Specification Languages
+## CASE Tools and Model-Driven Engineering
 
-TLA+ [LAMPORT02] and Alloy [JACKSON02] are the most widely used formal
-specification languages in software engineering. Both can express the
-properties Trenza verifies (completeness, reachability, data
-conformance). The practical gap is accessibility: TLA+ requires temporal
-logic fluency; Alloy requires relational modeling. Neither is designed to
-be parsed or reasoned about by a large language model without
-translation. Trenza's grammar fits in under 70 lines of PEG and maps
-directly to concepts (context, role, event, transition) that LLMs
-encounter in natural language descriptions of software. This is not a
-claim of formal equivalence — it is a claim of a different design point:
-formal enough to verify the properties that matter most in practice,
-accessible enough that LLMs can generate, review, and critique
-specifications without a translation layer.
+Computer-Aided Software Engineering tools of the 1980s and 1990s, and
+their successors in the UML and Model-Driven Architecture era, pursued
+the same fundamental goal as Trenza: elevate specification above
+implementation and generate code from formal models [FUGGETTA93]. This
+project failed in practice for compounding reasons. Modeling notations
+grew to accommodate every possible use case — the full UML suite runs to
+thirteen diagram types — producing artifact ecosystems too large for any
+individual practitioner to manage coherently. The artifacts themselves
+lived in proprietary binary formats that were incompatible with version
+control and impossible to review in a pull request. Code generation was
+partial: the toolchains generated skeletal implementations that developers
+were then expected to hand-edit, breaking the round-trip guarantee and
+leaving models perpetually out of sync with production code. Most
+consequentially for the present work, these models were designed to be
+read by humans pointing at a GUI. They were not designed to be parsed,
+generated, or critiqued by a language model. Trenza is designed for the
+opposite constraints: a single plain-text file per specification, stored
+in Git, structured so that every semantic contract appears exactly once,
+and processable by a compiler and an LLM with equal facility.
 
-## CASE Tools and the Diagram-Code Gap
+## TLA+ and Alloy
 
-Computer-Aided Software Engineering tools of the 1980s and 1990s
-[FUGGETTA93] attempted to bridge specification and implementation through
-diagram-driven generation. Their failure modes are well documented:
-diagrams diverge from code, round-trip engineering is fragile, and the
-toolchains become proprietary lock-in. Trenza addresses these failure
-modes structurally: the source artifact is plain text under version
-control; the generated code is not edited (the spec is); and the
-toolchain is open-source and reproducible. The "CAD Lógico" framing
-[GEMINI26] recasts CASE's goal — visual architecture driving verified
-implementation — for an era in which the primary consumer of structured
-text is an LLM, not a diagram renderer.
+TLA+ [LAMPORT02] and Alloy [JACKSON02] are the most capable lightweight
+formal methods available for software specification. TLA+ can express and
+model-check liveness and safety properties of distributed systems; Alloy
+can find counterexamples to relational invariants across bounded domains.
+The power of both tools is not in question. The constraint is access.
+Writing a TLA+ specification requires comfort with temporal logic and the
+PlusCal notation; writing an Alloy model requires fluency with relational
+algebra. Neither maps naturally onto the vocabulary of application
+developers working on business systems, and neither was designed with LLM
+consumption as a design goal. A language model can read TLA+ but cannot
+reliably determine whether a given Rust function satisfies a liveness
+property without a translation layer that itself requires verification.
+Trenza occupies a different point in the design space. It sacrifices the
+expressive power of full temporal logic in exchange for a constraint set
+that is simultaneously enforceable by a fast compiler — eight
+verification rules, sub-100ms on a 16-module reference system — and
+traversable by an LLM as a finite truth table. The verification question
+in Trenza is not "does this system satisfy a temporal property under all
+interleavings?" but "does this implementation correspond, entry by entry,
+to what the specification declares?" That is a weaker question. It is
+also one that a language model answers deductively rather than
+probabilistically, which is the operative distinction in a collaborative
+human-AI workflow.
 
-## LLMs in Software Engineering
+## LLMs for Code Generation
 
-Code generation with LLMs [CHEN21, AUSTIN21] has demonstrated that
-models can produce syntactically correct and often functionally adequate
-code from natural language prompts. The central reliability problem is
-*hallucination*: the model generates plausible but incorrect behavior,
-particularly for edge cases, state management, and access control. Prior
-work on prompting strategies [WEI22] and retrieval-augmented generation
-[LEWIS20] reduces but does not eliminate this problem. Trenza's approach
-is orthogonal: rather than improving generation accuracy, it provides a
-formal artifact that makes *verification* mechanical. The specification
-acts as a truth table; review becomes a one-to-one correspondence check
-rather than a plausibility judgment. Our experiment (Section 4)
-documents this shift empirically.
+GitHub Copilot, ChatGPT, and their successors have demonstrated that
+large language models can produce syntactically correct and often
+functionally adequate code from natural language prompts [CHEN21,
+AUSTIN21]. The limitation is not generation quality per se but
+verifiability. Generated code is probabilistically coherent: it looks
+like code that should work. It carries no formal contract binding its
+behavior to an explicit specification. A reviewer — human or machine —
+must reconstruct the intended semantics from the implementation itself,
+which is inherently heuristic and incomplete. Prompting strategies
+[WEI22] and retrieval-augmented generation [LEWIS20] reduce generation
+errors but do not address this fundamental gap. Trenza addresses it
+structurally: the `.trz` specification is the contract, authored before
+any implementation exists, and the generated Rust is a derived artifact
+that must correspond to it mechanically. Empirical evidence for the
+resulting difference in review quality is reported in Section 4: without
+a Trenza specification, LLM-assisted review required approximately 22
+reasoning steps and produced probabilistic conclusions; with the
+specification, it required approximately 7 steps and produced deductive
+ones. The relevant finding is not a speed improvement. It is an epistemic
+regime shift — from "this looks correct" to "this corresponds" — that
+changes the nature of the guarantee an LLM-assisted review can provide.
+Trenza is not a competitor to LLM-based code generation; it is the formal
+substrate that makes LLM-assisted verification reliable.
 
-## Hybrid Human-AI Workflows
+## DSLs for Reactive and State-Managed Systems
 
-Recent work on AI-assisted pair programming [VAITHILINGAM22] and
-specification-driven development [ENDRES24] explores how LLMs and humans
-can collaborate on software artifacts. Trenza contributes a specific
-instance of this collaboration: the human acts as architect (authoring
-or approving the `.trz`), the LLM acts as implementer and first-pass
-verifier, and the compiler acts as the infallible judge. This tripartite
-structure is not claimed as novel in principle — it is the classic
-separation of specification, implementation, and verification — but its
-instantiation with contemporary LLMs and a purpose-built DSL is, to our
-knowledge, not previously documented.
+The Elm architecture [ELM] and its descendants — including Lustre for the
+Gleam ecosystem and similar typed reactive frameworks — demonstrate that
+a sufficiently restrictive type system, combined with a canonical state
+management pattern, can eliminate entire classes of runtime errors. The
+design philosophy is shared with Trenza: the right constraints, imposed
+early, reduce defect surface area more effectively than post-hoc testing
+or static analysis applied to an unconstrained language. These systems
+restrict the programmer's expressive freedom in exchange for guarantees
+about state updates and side effects. The difference lies in scope and
+synthesis target. Elm and Lustre are single-paradigm, single-target
+systems: they produce one implementation, for one execution environment,
+from one model. Their specification and implementation are the same
+artifact. Trenza separates them explicitly: the `.trz` file is the
+specification; the generated code is one of several simultaneous
+projections. The same specification produces a Rust single-threaded
+runtime for browser environments, an `mpsc`-driven actor model for
+high-performance backends, algebraically tested unit tests, and
+topological Mermaid diagrams. The braid is not a front-end discipline
+imposed on a single target; it is a behavioral contract from which
+multiple coherent implementations are derived without divergence. The
+completeness, determinism, and reachability guarantees hold across all
+targets simultaneously, enforced at the specification level before any
+target-specific code is generated.
 
 ---
 
 ## References (to be formatted per venue style)
 
 - [HAREL87] Harel, D. (1987). Statecharts: A visual formalism for complex systems. *Science of Computer Programming*, 8(3), 231–274.
-- [OMG17] Object Management Group. (2017). *Unified Modeling Language Specification, Version 2.5.1*.
-- [REENSKAUG09] Reenskaug, T., & Coplien, J. (2009). *The DCI Architecture: A New Vision of Object-Oriented Programming*.
-- [COPLIEN10] Coplien, J., & Bjørnvig, G. (2010). *Lean Architecture for Agile Software Development*. Wiley.
-- [LAMPORT02] Lamport, L. (2002). *Specifying Systems: The TLA+ Language and Tools*. Addison-Wesley.
-- [JACKSON02] Jackson, D. (2002). *Alloy: A Lightweight Object Modelling Notation*. TOSEM, 11(2), 256–290.
+- [DCI09] Reenskaug, T., & Coplien, J. (2009). *The DCI Architecture: A New Vision of Object-Oriented Programming*. Artima.
 - [FUGGETTA93] Fuggetta, A. (1993). A classification of CASE technology. *IEEE Computer*, 26(12), 25–38.
-- [GEMINI26] Pérez-Chirinos, C., et al. (2026). Trenza: A Role-Based State Machine DSL. *This paper*.
+- [LAMPORT02] Lamport, L. (2002). *Specifying Systems: The TLA+ Language and Tools*. Addison-Wesley.
+- [JACKSON02] Jackson, D. (2002). Alloy: A lightweight object modelling notation. *ACM TOSEM*, 11(2), 256–290.
 - [CHEN21] Chen, M., et al. (2021). Evaluating Large Language Models Trained on Code. *arXiv:2107.03374*.
 - [AUSTIN21] Austin, J., et al. (2021). Program Synthesis with Large Language Models. *arXiv:2108.07732*.
 - [WEI22] Wei, J., et al. (2022). Chain-of-Thought Prompting Elicits Reasoning in Large Language Models. *NeurIPS 2022*.
 - [LEWIS20] Lewis, P., et al. (2020). Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. *NeurIPS 2020*.
-- [VAITHILINGAM22] Vaithilingam, P., et al. (2022). Expectation vs. Experience: Evaluating the Usability of Code Generation Tools. *CHI EA 2022*.
-- [ENDRES24] Endres, M., et al. (2024). Specification-Driven Development with LLMs. *ICSE 2024*.
+- [ELM] Czaplicki, E. (2012). Elm: Concurrent FRP for Functional GUIs. Senior thesis, Harvard University.
