@@ -20,6 +20,7 @@ Thumbs.db
 
 # Rust build artifacts
 trenza-cli/target/
+*.pdb
 
 # Claude Code (configuración local)
 .claude/settings.local.json
