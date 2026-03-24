@@ -110,7 +110,7 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
     }
         
     for ctx_name in &all_contexts {
-        if !visited.contains(ctx_name) && base_contexts.contains(ctx_name) {
+        if !visited.contains(ctx_name) {
             errors.push(format!("ERROR [reachability]: El contexto '{}' es inalcanzable", ctx_name));
         }
     }
@@ -193,6 +193,33 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
         }
     }
 
+    // Pass 5.1: Rule 8 (Role Type Consistency)
+    let mut role_types: HashMap<String, String> = HashMap::new();
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for role in &ctx.roles {
+                let existing = role_types.entry(role.name.clone()).or_insert(role.datatype.clone());
+                if existing != &role.datatype {
+                    errors.push(format!(
+                        "ERROR [type-consistency]: role '{}' has conflicting types: '{}' and '{}'",
+                        role.name, existing, role.datatype
+                    ));
+                }
+            }
+            for fills in &ctx.fills {
+                for role in &fills.roles {
+                    let existing = role_types.entry(role.name.clone()).or_insert(role.datatype.clone());
+                    if existing != &role.datatype {
+                        errors.push(format!(
+                            "ERROR [type-consistency]: role '{}' in fills has conflicting types: '{}' and '{}'",
+                            role.name, existing, role.datatype
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
     // Pass 6: Rule 4 (Return/No Sinks)
     let mut reversed_adj: HashMap<String, Vec<String>> = HashMap::new();
     for (src, targets) in &adjacency_list {
@@ -218,7 +245,7 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
     }
 
     for ctx_name in &all_contexts {
-        if !can_return.contains(ctx_name) && base_contexts.contains(ctx_name) {
+        if !can_return.contains(ctx_name) {
             errors.push(format!(
                 "ERROR [return]: context '{}' cannot return to the initial state '{}'",
                 ctx_name, initial_context

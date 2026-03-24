@@ -225,7 +225,7 @@ fn parse_role(pair: pest::iterators::Pair<Rule>) -> RoleDef {
 
     for inner in it {
         match inner.as_rule() {
-            Rule::ident if datatype.is_empty() => datatype = inner.as_str().to_string(),
+            Rule::type_ident if datatype.is_empty() => datatype = inner.as_str().to_string(),
             Rule::role_annotation => {
                 let mut a_it = inner.into_inner();
                 let k = a_it.next().unwrap().as_str().to_string();

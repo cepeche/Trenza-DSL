@@ -102,6 +102,7 @@ fn main() {
             println!("- ✅ Verificación Semántica: Superada impecablemente para {} archivos.", files_to_parse.len());
             if is_generate {
                 let rust_code = generator::generate_rust(&program_ast, &profile, &concurrency);
+                let test_code = generator::generate_tests(&program_ast);
                 let topology_mermaid = generator::generate_mermaid_topology(&program_ast);
                 let detailed_mermaid = generator::generate_mermaid_details(&program_ast);
                 let audit_doc = generator::generate_audit(&program_ast);
@@ -115,6 +116,7 @@ fn main() {
                 }
 
                 let out_rust = format!("{}_out.rs", system_name);
+                let out_tests = format!("{}_out_tests.rs", system_name);
                 let out_mermaid = format!("{}_out.mermaid", system_name);
                 let out_audit = format!("{}_out_audit.md", system_name);
                 let out_viz = format!("{}_viz.md", system_name);
@@ -142,13 +144,15 @@ fn main() {
                 );
 
                 fs::write(&out_rust, rust_code).expect("No se pudo escribir el archivo Rust");
+                fs::write(&out_tests, test_code).expect("No se pudo escribir el archivo de Tests");
                 fs::write(&out_mermaid, topology_mermaid).expect("No se pudo escribir el archivo Mermaid");
                 fs::write(&out_audit, audit_doc).expect("No se pudo escribir el archivo Audit");
                 fs::write(&out_viz, viz_md).expect("No se pudo escribir el archivo Viz");
                 fs::write(&out_html, html_report).expect("No se pudo escribir el archivo HTML");
 
-                println!("- ✅ Código Strand 1 (Rust) generado en: {}", out_rust);
-                println!("- ✅ Código Strand 3 (Mermaid) generado en: {}", out_mermaid);
+                println!("- ✅ Código Strand 1 (Lógica) generado en: {}", out_rust);
+                println!("- ✅ Código Strand 2 (Tests Algebraicos) generado en: {}", out_tests);
+                println!("- ✅ Código Strand 3 (Arquitectura) generado en: {}", out_mermaid);
                 println!("- ✅ Informe Strand 4 (Auditoría) generado en: {}", out_audit);
                 println!("- ✅ Vista de Hebras (Markdown) generado en: {}", out_viz);
                 println!("- ✅ Reporte Interactivo (HTML) generado en: {}", out_html);

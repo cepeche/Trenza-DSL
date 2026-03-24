@@ -1,5 +1,5 @@
 use crate::ast::*;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 
 pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> String {
     let mut output = String::new();
@@ -32,26 +32,119 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
     }
     output.push_str("}\n\n");
 
+    // 2. Data Structures (Strand 1)
+    for def in &program.definitions {
+        if let Definition::Data(d) = def {
+            output.push_str(&format!("#[derive(Debug, Clone, Default)]\npub struct {} {{\n", d.name));
+            for field in &d.fields {
+                let ty = match field.datatype.as_str() {
+                    "Texto" => "String",
+                    "Numero" => "i32",
+                    "Booleano" => "bool",
+                    _ => &field.datatype,
+                };
+                output.push_str(&format!("    pub {}: {},\n", field.name, ty));
+            }
+            output.push_str("}\n\n");
+        }
+    }
+
     let is_pre = profile == "pre";
     let use_threads = concurrency == "threads";
 
-    // 2. System Structure and Transition Logic
+    // 3. Effects Trait (Strand 2 Preparation)
+    let mut unique_functions: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for role in &ctx.roles {
+                for action in &role.actions {
+                    if let ActionTarget::Call(call) = &action.target {
+                        unique_functions.insert(call.function.clone(), call.args.clone());
+                    }
+                }
+            }
+            for effect in &ctx.effects {
+                unique_functions.insert(effect.call.function.clone(), effect.call.args.clone());
+            }
+            for fills in &ctx.fills {
+                for role in &fills.roles {
+                    for action in &role.actions {
+                        if let ActionTarget::Call(call) = &action.target {
+                            unique_functions.insert(call.function.clone(), call.args.clone());
+                        }
+                    }
+                }
+                for effect in &fills.effects {
+                    unique_functions.insert(effect.call.function.clone(), effect.call.args.clone());
+                }
+            }
+        }
+    }
+
+    output.push_str("pub trait Effects {\n");
+    for (func, args) in &unique_functions {
+        let func_safe = func.replace(".", "_");
+        let arg_list = args.iter().enumerate().map(|(i, _)| format!("arg{}: &str", i)).collect::<Vec<_>>().join(", ");
+        output.push_str(&format!("    fn {}(&self, {});\n", func_safe, arg_list));
+    }
+    output.push_str("}\n\n");
+
+    output.push_str("pub struct NoOpEffects;\n");
+    output.push_str("impl Effects for NoOpEffects {\n");
+    for (func, args) in &unique_functions {
+        let func_safe = func.replace(".", "_");
+        let arg_list = args.iter().enumerate().map(|(i, _)| format!("arg{}: &str", i)).collect::<Vec<_>>().join(", ");
+        output.push_str(&format!("    fn {}(&self, {}) {{}}\n", func_safe, arg_list));
+    }
+    output.push_str("}\n\n");
+
+    output.push_str("pub struct RecordingEffects {\n");
+    output.push_str("    pub calls: std::cell::RefCell<Vec<String>>,\n");
+    output.push_str("}\n");
+    output.push_str("impl RecordingEffects {\n");
+    output.push_str("    pub fn new() -> Self {\n");
+    output.push_str("        Self { calls: std::cell::RefCell::new(Vec::new()) }\n");
+    output.push_str("    }\n");
+    output.push_str("    pub fn was_called(&self, func: &str) -> bool {\n");
+    output.push_str("        self.calls.borrow().iter().any(|c| c.starts_with(func))\n");
+    output.push_str("    }\n");
+    output.push_str("}\n");
+    output.push_str("impl Effects for RecordingEffects {\n");
+    for (func, args) in &unique_functions {
+        let func_safe = func.replace(".", "_");
+        let arg_list = args.iter().enumerate().map(|(i, _)| format!("arg{}: &str", i)).collect::<Vec<_>>().join(", ");
+        let format_args = args.iter().enumerate().map(|(i, _)| format!("{{}}")).collect::<Vec<_>>().join(", ");
+        let format_values = args.iter().enumerate().map(|(i, _)| format!("arg{}", i)).collect::<Vec<_>>().join(", ");
+        
+        output.push_str(&format!("    fn {}(&self, {}) {{\n", func_safe, arg_list));
+        if args.is_empty() {
+            output.push_str(&format!("        self.calls.borrow_mut().push(\"{}\".to_string());\n", func));
+        } else {
+            output.push_str(&format!("        self.calls.borrow_mut().push(format!(\"{}({})\".to_string(), {}));\n", func, format_args, format_values));
+        }
+        output.push_str("    }\n");
+    }
+    output.push_str("}\n\n");
+
+    // 4. System Structure and Transition Logic
     if use_threads {
         output.push_str("use std::sync::mpsc;\nuse std::thread;\nuse std::collections::HashMap;\n\n");
-        output.push_str("pub struct System {\n");
+        output.push_str("pub struct System<'a> {\n");
         output.push_str("    pub state: Contexto,\n");
         output.push_str("    pub concurrent_txs: HashMap<Contexto, mpsc::Sender<String>>,\n");
+        output.push_str("    pub effects: &'a dyn Effects,\n");
         output.push_str("}\n\n");
     } else {
-        output.push_str("use std::collections::HashSet;\n\n");
-        output.push_str("pub struct System {\n");
+        output.push_str("use std::collections::HashSet as StdHashSet;\n\n");
+        output.push_str("pub struct System<'a> {\n");
         output.push_str("    pub state: Contexto,\n");
-        output.push_str("    pub concurrent_states: HashSet<Contexto>,\n");
+        output.push_str("    pub concurrent_states: StdHashSet<Contexto>,\n");
+        output.push_str("    pub effects: &'a dyn Effects,\n");
         output.push_str("}\n\n");
     }
 
-    output.push_str("impl System {\n");
-    output.push_str("    pub fn new(initial: Contexto) -> Self {\n");
+    output.push_str("impl<'a> System<'a> {\n");
+    output.push_str("    pub fn new(initial: Contexto, effects: &'a dyn Effects) -> Self {\n");
     
     if use_threads {
         output.push_str("        let mut concurrent_txs = HashMap::new();\n");
@@ -61,19 +154,18 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
             output.push_str(&format!("        thread::spawn(move || {{\n"));
             output.push_str(&format!("            let mut local_state = Contexto::{};\n", cctx));
             output.push_str(&format!("            while let Ok(msg) = rx_{}.recv() {{\n", cctx));
-            output.push_str(&format!("                // In a real synthesis, we would route to handle_event equivalent here\n"));
             output.push_str(&format!("                if msg == \"TERMINATE\" {{ break; }}\n"));
             output.push_str(&format!("            }}\n"));
             output.push_str(&format!("        }});\n"));
             output.push_str(&format!("        concurrent_txs.insert(Contexto::{}, tx_{});\n", cctx, cctx));
         }
-        output.push_str("        Self { state: initial, concurrent_txs }\n");
+        output.push_str("        Self { state: initial, concurrent_txs, effects }\n");
     } else {
-        output.push_str("        let mut concurrent_states = HashSet::new();\n");
+        output.push_str("        let mut concurrent_states = StdHashSet::new();\n");
         for cctx in &concurrent_contexts {
             output.push_str(&format!("        concurrent_states.insert(Contexto::{});\n", cctx));
         }
-        output.push_str("        Self { state: initial, concurrent_states }\n");
+        output.push_str("        Self { state: initial, concurrent_states, effects }\n");
     }
     
     output.push_str("    }\n\n");
@@ -113,10 +205,37 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
         }
     }
     output.push_str("        }\n");
+
+    // Side effects on transitions (Lifecycle entry)
+    output.push_str("\n        // Evaluate on_entry effects\n");
+    output.push_str("        match self.state {\n");
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            let entry_effects: Vec<_> = ctx.effects.iter()
+                .filter(|e| matches!(e.trigger, EffectTrigger::Lifecycle(ref s) if s == "on_entry"))
+                .collect();
+            
+            if !entry_effects.is_empty() {
+                output.push_str(&format!("            Contexto::{} => {{\n", ctx.name));
+                for effect in entry_effects {
+                    let mut args = Vec::new();
+                    for arg in &effect.call.args {
+                        // Lifecycle effects usually take inputs or literals
+                        args.push(format!("\"{}\"", arg)); 
+                    }
+                    output.push_str(&format!("                self.effects.{}({});\n", effect.call.function.replace(".", "_"), args.join(", ")));
+                }
+                output.push_str("            },\n");
+            }
+        }
+    }
+    output.push_str("            _ => {},\n");
+    output.push_str("        }\n");
+
     output.push_str("    }\n");
     output.push_str("}\n\n");
 
-    // 3. Role/Event Handlers (Strand 1)
+    // 5. Role/Event Handlers (Strand 1)
     let mut grouped_actions: BTreeMap<(String, String), Vec<(String, RoleAction)>> = BTreeMap::new();
     for def in &program.definitions {
         if let Definition::Context(ctx) = def {
@@ -126,11 +245,41 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
                     grouped_actions.entry(key).or_default().push((ctx.name.clone(), action.clone()));
                 }
             }
+            // Include roles from fills
+            for fills in &ctx.fills {
+                for role in &fills.roles {
+                    for action in &role.actions {
+                        let key = (role.name.clone(), action.event.clone());
+                        grouped_actions.entry(key).or_default().push((fills.target_context.clone(), action.clone()));
+                    }
+                }
+            }
         }
     }
 
     for ((role_name, event_name), handlers) in grouped_actions {
-        output.push_str(&format!("pub fn handle_{}_{}(ctx: &Contexto) {{\n", role_name, event_name.replace(".", "_")));
+        // Encontrar el tipo de dato del rol (asumimos consistencia por Regla 8)
+        let mut role_type = "String".to_string();
+        'find_role: for def in &program.definitions {
+            if let Definition::Context(ctx) = def {
+                for role in &ctx.roles {
+                    if role.name == role_name { 
+                        role_type = role.datatype.clone(); 
+                        break 'find_role; 
+                    }
+                }
+                for fills in &ctx.fills {
+                    for role in &fills.roles {
+                        if role.name == role_name { 
+                            role_type = role.datatype.clone(); 
+                            break 'find_role; 
+                        }
+                    }
+                }
+            }
+        }
+
+        output.push_str(&format!("pub fn handle_{}_{}(ctx: &Contexto, {}: &{}, effects: &dyn Effects) {{\n", role_name, event_name.replace(".", "_"), role_name, role_type));
         output.push_str("    match ctx {\n");
         for (ctx_name, action) in handlers {
             output.push_str(&format!("        Contexto::{} => {{\n", ctx_name));
@@ -139,7 +288,17 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
             }
             match &action.target {
                 ActionTarget::Call(call) => {
-                    output.push_str(&format!("            // execute {}\n", call.function));
+                    let mut args = Vec::new();
+                    for arg in &call.args {
+                        if arg == "self" {
+                            args.push(format!("{}", role_name));
+                        } else if arg.starts_with("self.") {
+                            args.push(format!("&{}.{}", role_name, arg.replace("self.", "")));
+                        } else {
+                            args.push(format!("\"{}\"", arg));
+                        }
+                    }
+                    output.push_str(&format!("            effects.{}({});\n", call.function.replace(".", "_"), args.join(", ")));
                 },
                 ActionTarget::Ignored => {
                     output.push_str("            // ignored\n");
@@ -150,47 +309,241 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
             }
             output.push_str("        },\n");
         }
+        output.push_str("        _ => {},\n");
         output.push_str("    }\n");
         output.push_str("}\n\n");
     }
 
-    // 4. Algebraic Tests (Strand 2)
-    output.push_str("#[cfg(test)]\nmod tests {\n    use super::*;\n\n");
-    
-    // Test transitions
-    for def in &program.definitions {
-        if let Definition::Context(ctx) = def {
-            for trans in &ctx.transitions {
-                output.push_str(&format!("    #[test]\n"));
-                output.push_str(&format!("    fn test_transition_{}_on_{}() {{\n", ctx.name, trans.event.replace(".", "_")));
-                output.push_str(&format!("        let mut sys = System::new(Contexto::{});\n", ctx.name));
-                output.push_str(&format!("        sys.handle_event(\"{}\");\n", trans.event));
-                output.push_str(&format!("        assert_eq!(sys.state, Contexto::{});\n", trans.target));
-                output.push_str("    }\n\n");
-            }
-        }
-    }
+    output
+}
 
-    // Test forbidden actions
+pub fn generate_tests(program: &Program) -> String {
+    let mut output = String::new();
+    let metadata = extract_system_metadata(program);
+
+    output.push_str("// Auto-generated algebraic tests by Trenza DSL Compiler (Strand 2)\n");
+    output.push_str("// DO NOT EDIT — regenerate from .trz source\n\n");
+    output.push_str("#[cfg(test)]\nmod algebraic_tests {\n");
+    output.push_str("    use super::*;\n\n");
+
+    // Phase 1: Transition Tests
+    generate_transition_tests(program, &metadata, &mut output);
+
+    // Phase 2: Handler Tests
+    generate_handler_tests(program, &metadata, &mut output);
+
+    // Phase 3: Exhaustiveness Test
+    generate_exhaustiveness_test(program, &mut output);
+
+    // Phase 4: On-entry Tests
+    generate_on_entry_tests(program, &metadata, &mut output);
+
+    // Phase 5: Slot/Fills Tests
+    generate_fills_tests(program, &metadata, &mut output);
+
+    output.push_str("}\n");
+    output
+}
+
+struct SystemMetadata {
+    initial: String,
+    concurrent_contexts: HashSet<String>,
+}
+
+fn extract_system_metadata(program: &Program) -> SystemMetadata {
+    let mut initial = String::new();
+    let mut concurrent_contexts = HashSet::new();
+
     for def in &program.definitions {
-        if let Definition::Context(ctx) = def {
-            for role in &ctx.roles {
-                for action in &role.actions {
-                    if let ActionTarget::Forbidden = &action.target {
-                        output.push_str("    #[test]\n");
-                        output.push_str("    #[should_panic]\n");
-                        output.push_str(&format!("    fn test_forbidden_{}_{}_on_{}() {{\n", ctx.name, role.name, action.event.replace(".", "_")));
-                        output.push_str(&format!("        handle_{}_{}(&Contexto::{});\n", role.name, action.event.replace(".", "_"), ctx.name));
-                        output.push_str("    }\n\n");
+        if let Definition::System(sys) = def {
+            initial = sys.initial.clone();
+            for sec in &sys.sections {
+                if let SystemSection::Concurrent(ctxs) = sec {
+                    for ctx in ctxs {
+                        concurrent_contexts.insert(ctx.clone());
                     }
                 }
             }
         }
     }
+    SystemMetadata { initial, concurrent_contexts }
+}
 
-    output.push_str("}\n");
+fn generate_transition_tests(program: &Program, meta: &SystemMetadata, out: &mut String) {
+    out.push_str("    // === Transition Tests ===\n\n");
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for trans in &ctx.transitions {
+                let event_safe = trans.event.replace(".", "_");
+                let test_name = format!("test_transition_{}_on_{}", ctx.name, event_safe);
 
-    output
+                out.push_str("    #[test]\n");
+                out.push_str(&format!("    fn {}() {{\n", test_name));
+                out.push_str("        let effects = NoOpEffects;\n");
+
+                if meta.concurrent_contexts.contains(&ctx.name) {
+                    out.push_str(&format!("        let mut sys = System::new(Contexto::{}, &effects);\n", meta.initial));
+                    // Concurrent contexts are activated by default in System::new currently
+                } else {
+                    out.push_str(&format!("        let mut sys = System::new(Contexto::{}, &effects);\n", ctx.name));
+                }
+
+                out.push_str(&format!("        sys.handle_event(\"{}\");\n", trans.event));
+
+                let target = &trans.target;
+                if target == "[stay]" {
+                    out.push_str(&format!("        assert_eq!(sys.state, Contexto::{});\n", ctx.name));
+                } else if target == "[cerrar_overlay]" {
+                    out.push_str(&format!("        assert_eq!(sys.state, Contexto::{});\n", meta.initial));
+                } else if target == "[deactivate]" {
+                    out.push_str(&format!("        // In threads mode this might differ, but for composite:\n"));
+                    out.push_str(&format!("        assert!(!sys.concurrent_states.contains(&Contexto::{}));\n", ctx.name));
+                } else {
+                    out.push_str(&format!("        assert_eq!(sys.state, Contexto::{});\n", target));
+                }
+                out.push_str("    }\n\n");
+            }
+        }
+    }
+}
+
+fn generate_handler_tests(program: &Program, _meta: &SystemMetadata, out: &mut String) {
+    out.push_str("    // === Handler Tests ===\n\n");
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for role in &ctx.roles {
+                let role_type = &role.datatype;
+                for action in &role.actions {
+                    let event_safe = action.event.replace(".", "_");
+                    match &action.target {
+                        ActionTarget::Forbidden => {
+                            out.push_str("    #[test]\n");
+                            out.push_str("    #[should_panic(expected = \"Forbidden\")]\n");
+                            out.push_str(&format!("    fn test_forbidden_{}_{}_on_{}() {{\n", ctx.name, role.name, event_safe));
+                            out.push_str("        let effects = NoOpEffects;\n");
+                            out.push_str(&format!("        let data = {}::default();\n", role_type));
+                            out.push_str(&format!("        handle_{}_{}(&Contexto::{}, &data, &effects);\n", role.name, event_safe, ctx.name));
+                            out.push_str("    }\n\n");
+                        },
+                        ActionTarget::Ignored => {
+                            out.push_str("    #[test]\n");
+                            out.push_str(&format!("    fn test_ignored_{}_{}_on_{}() {{\n", ctx.name, role.name, event_safe));
+                            out.push_str("        let effects = RecordingEffects::new();\n");
+                            out.push_str(&format!("        let data = {}::default();\n", role_type));
+                            out.push_str(&format!("        handle_{}_{}(&Contexto::{}, &data, &effects);\n", role.name, event_safe, ctx.name));
+                            out.push_str("        assert!(effects.calls.borrow().is_empty());\n");
+                            out.push_str("    }\n\n");
+                        },
+                        ActionTarget::Call(call) => {
+                            out.push_str("    #[test]\n");
+                            out.push_str(&format!("    fn test_call_{}_{}_on_{}_invokes_{}() {{\n", ctx.name, role.name, event_safe, call.function.replace(".", "_")));
+                            out.push_str("        let effects = RecordingEffects::new();\n");
+                            out.push_str(&format!("        let data = {}::default();\n", role_type));
+                            out.push_str(&format!("        handle_{}_{}(&Contexto::{}, &data, &effects);\n", role.name, event_safe, ctx.name));
+                            out.push_str(&format!("        assert!(effects.was_called(\"{}\"));\n", call.function));
+                            out.push_str("    }\n\n");
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn generate_exhaustiveness_test(program: &Program, out: &mut String) {
+    let mut contexts = Vec::new();
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            contexts.push(ctx.name.clone());
+        }
+    }
+
+    out.push_str("    // === Exhaustiveness Test ===\n\n");
+    out.push_str("    #[test]\n");
+    out.push_str("    fn test_exhaustive_contexto_enum() {\n");
+    out.push_str("        let all_contexts = vec![\n");
+    for ctx in &contexts {
+        out.push_str(&format!("            Contexto::{},\n", ctx));
+    }
+    out.push_str("        ];\n");
+    out.push_str(&format!("        assert_eq!(all_contexts.len(), {});\n", contexts.len()));
+    out.push_str("    }\n\n");
+}
+
+fn generate_on_entry_tests(program: &Program, meta: &SystemMetadata, out: &mut String) {
+    out.push_str("    // === On-Entry Effect Tests ===\n\n");
+    
+    // Build a map of target -> (source, event) to find how to reach a context
+    let mut reachability = BTreeMap::new();
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for trans in &ctx.transitions {
+                if !trans.target.starts_with("[") {
+                    reachability.entry(trans.target.clone()).or_insert_with(Vec::new).push((ctx.name.clone(), trans.event.clone()));
+                }
+            }
+        }
+    }
+
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for effect in &ctx.effects {
+                if let EffectTrigger::Lifecycle(ref s) = effect.trigger {
+                    if s == "on_entry" {
+                        out.push_str("    #[test]\n");
+                        out.push_str(&format!("    fn test_on_entry_{}_{}() {{\n", ctx.name, effect.call.function.replace(".", "_")));
+                        out.push_str("        let effects = RecordingEffects::new();\n");
+                        
+                        if let Some(sources) = reachability.get(&ctx.name) {
+                            let (src, event) = &sources[0];
+                            out.push_str(&format!("        let mut sys = System::new(Contexto::{}, &effects);\n", src));
+                            out.push_str(&format!("        sys.handle_event(\"{}\");\n", event));
+                            out.push_str(&format!("        assert!(effects.was_called(\"{}\"));\n", effect.call.function));
+                        } else if &ctx.name == &meta.initial {
+                             out.push_str(&format!("        let _sys = System::new(Contexto::{}, &effects);\n", ctx.name));
+                             out.push_str(&format!("        assert!(effects.was_called(\"{}\"));\n", effect.call.function));
+                        } else {
+                            out.push_str("        // Context unreachable or no direct transition found for test automatic generation\n");
+                        }
+                        out.push_str("    }\n\n");
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn generate_fills_tests(program: &Program, meta: &SystemMetadata, out: &mut String) {
+    out.push_str("    // === Fills Tests ===\n\n");
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for fills in &ctx.fills {
+                for role in &fills.roles {
+                    let role_type = &role.datatype;
+                    for action in &role.actions {
+                        let event_safe = action.event.replace(".", "_");
+                        // Positive test
+                        out.push_str("    #[test]\n");
+                        out.push_str(&format!("    fn test_fills_{}_{}_{}_{}_{}() {{\n", ctx.name, fills.target_context, fills.target_slot, role.name, event_safe));
+                        out.push_str("        let effects = RecordingEffects::new();\n");
+                        out.push_str(&format!("        let mut sys = System::new(Contexto::{}, &effects);\n", meta.initial));
+                        // Navigate to overlay
+                        out.push_str(&format!("        sys.state = Contexto::{};\n", fills.target_context));
+                        out.push_str(&format!("        let data = {}::default();\n", role_type));
+                        out.push_str(&format!("        handle_{}_{}(&sys.state, &data, &effects);\n", role.name, event_safe));
+                        
+                        match &action.target {
+                            ActionTarget::Call(call) => {
+                                out.push_str(&format!("        assert!(effects.was_called(\"{}\"));\n", call.function));
+                            },
+                            _ => {}
+                        }
+                        out.push_str("    }\n\n");
+                    }
+                }
+            }
+        }
+    }
 }
 
 

@@ -1,0 +1,13 @@
+stateDiagram-v2
+
+    EsperandoComando --> ParseandoArchivo : comandoGenerate
+    EsperandoComando --> MostrarAyuda : comandoInvalido
+    ParseandoArchivo --> VerificandoReglas : parseoExitoso
+    ParseandoArchivo --> ErrorFatal : errorSintaxis
+    VerificandoReglas --> GenerandoStrands : validacionExitosa
+    VerificandoReglas --> ErrorFatal : validacionFallida
+    GenerandoStrands --> Exito : generacionCompleta
+    ErrorFatal --> EsperandoComando : finalizar
+    Exito --> EsperandoComando : finalizar
+    MostrarAyuda --> EsperandoComando : finalizar
+    [*] --> EsperandoComando
