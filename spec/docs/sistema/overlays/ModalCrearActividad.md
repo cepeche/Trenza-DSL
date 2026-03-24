@@ -6,6 +6,7 @@
 
 | Rol | Tipo | Origen |
 |-----|------|--------|
+| * | ignored | Local |
 | campo_nombre | CampoTexto | Local |
 | selector_color | SelectorColor | Local |
 | checkbox_permanente | Checkbox | Local |
@@ -16,11 +17,11 @@
 
 ```mermaid
 stateDiagram-v2
-    ModalCrearActividad --> SYS_cerrar_overlay : guardarNuevaActividad
-    ModalCrearActividad --> SYS_cerrar_overlay : cancelar
+    ModalCrearActividad --> SYS_close_overlay : guardarNuevaActividad
+    ModalCrearActividad --> SYS_close_overlay : cancelar
 ```
 
 | Evento | Destino |
 |--------|---------|
-| guardarNuevaActividad | [cerrar_overlay] |
-| cancelar | [cerrar_overlay] |
+| guardarNuevaActividad | [close_overlay] |
+| cancelar | [close_overlay] |

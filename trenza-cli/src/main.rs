@@ -44,11 +44,12 @@ fn main() {
     let mut concurrency = "composite".to_string();
     let mut out_dir = ".".to_string();
     let mut lang = "rust".to_string();
+    let mut format = "text".to_string();
     let mut filepath = "".to_string();
-
+ 
     for arg in &args[1..] {
-        if arg == "generate" {
-            is_generate = true;
+        if arg == "generate" || arg == "check" {
+            is_generate = arg == "generate";
         } else if arg.starts_with("--profile=") {
             profile = arg.split('=').nth(1).unwrap().to_string();
         } else if arg.starts_with("--concurrency=") {
@@ -57,6 +58,8 @@ fn main() {
             out_dir = arg.split('=').nth(1).unwrap().to_string();
         } else if arg.starts_with("--lang=") {
             lang = arg.split('=').nth(1).unwrap().to_string();
+        } else if arg.starts_with("--format=") {
+            format = arg.split('=').nth(1).unwrap().to_string();
         } else {
             filepath = arg.to_string();
         }
@@ -95,7 +98,11 @@ fn main() {
         unparsed_file = unparsed_file.trim_start_matches('\u{feff}').to_string();
         match parser::parse_file(&unparsed_file) {
             Ok(ast) => {
-                println!("✅ Archivo '{}' leido y parseado.", file.display());
+                if format == "text" {
+                    println!("✅ Archivo '{}' leido y parseado.", file.display());
+                } else {
+                    eprintln!("✅ Archivo '{}' leido y parseado.", file.display());
+                }
                 all_definitions.extend(ast.definitions);
             },
             Err(e) => {
@@ -109,7 +116,15 @@ fn main() {
 
     match validator::verify(&program_ast) {
         Ok(_) => {
-            println!("- ✅ Verificación Semántica: Superada impecablemente para {} archivos.", files_to_parse.len());
+            if format == "json" {
+                println!("[]");
+                return;
+            }
+            if format == "text" {
+                println!("- ✅ Verificación Semántica: Superada impecablemente para {} archivos.", files_to_parse.len());
+            } else {
+                eprintln!("- ✅ Verificación Semántica: Superada impecablemente para {} archivos.", files_to_parse.len());
+            }
             if is_generate {
                 let logic_code = if lang == "ts" {
                     generator::generate_typescript(&program_ast, &profile, &concurrency)
@@ -180,9 +195,13 @@ fn main() {
             }
         },
         Err(errores) => {
-            eprintln!("❌ Verificación Semántica Fallida:");
-            for err in errores {
-                eprintln!("  {}", err);
+            if format == "json" {
+                println!("{}", serde_json::to_string_pretty(&errores).unwrap());
+            } else {
+                eprintln!("❌ Verificación Semántica Fallida:");
+                for err in errores {
+                    eprintln!("  [{}:{}] {} [{}]", err.span.start.line, err.span.start.col, err.message, err.code);
+                }
             }
             std::process::exit(1);
         }

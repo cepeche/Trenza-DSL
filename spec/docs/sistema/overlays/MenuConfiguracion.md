@@ -6,6 +6,7 @@
 
 | Rol | Tipo | Origen |
 |-----|------|--------|
+| * | ignored | Local |
 | item_nueva_actividad | ItemMenu | Local |
 | item_historial | ItemMenu | Local |
 | item_acerca_de | ItemMenu | Local |
@@ -20,7 +21,7 @@ stateDiagram-v2
     MenuConfiguracion --> ModalHistorial : abrirHistorial
     MenuConfiguracion --> ModalAcercaDe : abrirAcercaDe
     MenuConfiguracion --> ModalReset : abrirReset
-    MenuConfiguracion --> SYS_cerrar_overlay : cerrar
+    MenuConfiguracion --> SYS_close_overlay : cerrar
 ```
 
 | Evento | Destino |
@@ -29,4 +30,4 @@ stateDiagram-v2
 | abrirHistorial | [ModalHistorial](../overlays/ModalHistorial.md) |
 | abrirAcercaDe | [ModalAcercaDe](../overlays/ModalAcercaDe.md) |
 | abrirReset | [ModalReset](../overlays/ModalReset.md) |
-| cerrar | [cerrar_overlay] |
+| cerrar | [close_overlay] |

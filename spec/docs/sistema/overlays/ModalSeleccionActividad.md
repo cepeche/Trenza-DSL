@@ -6,6 +6,7 @@
 
 | Rol | Tipo | Origen |
 |-----|------|--------|
+| * | ignored | Local |
 | boton_actividad | Actividad | Local |
 | boton_cancelar | Boton | Local |
 
@@ -14,10 +15,10 @@
 ```mermaid
 stateDiagram-v2
     ModalSeleccionActividad --> ModalComentario : elegirActividad
-    ModalSeleccionActividad --> SYS_cerrar_overlay : cancelar
+    ModalSeleccionActividad --> SYS_close_overlay : cancelar
 ```
 
 | Evento | Destino |
 |--------|---------|
 | elegirActividad | [ModalComentario](../overlays/ModalComentario.md) |
-| cancelar | [cerrar_overlay] |
+| cancelar | [close_overlay] |

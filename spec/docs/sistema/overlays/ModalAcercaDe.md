@@ -6,15 +6,16 @@
 
 | Rol | Tipo | Origen |
 |-----|------|--------|
+| * | ignored | Local |
 | boton_cerrar | Boton | Local |
 
 ## Transiciones
 
 ```mermaid
 stateDiagram-v2
-    ModalAcercaDe --> SYS_cerrar_overlay : cerrar
+    ModalAcercaDe --> SYS_close_overlay : cerrar
 ```
 
 | Evento | Destino |
 |--------|---------|
-| cerrar | [cerrar_overlay] |
+| cerrar | [close_overlay] |

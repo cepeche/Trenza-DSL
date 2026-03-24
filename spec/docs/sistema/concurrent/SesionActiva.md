@@ -6,6 +6,7 @@
 
 | Rol | Tipo | Origen |
 |-----|------|--------|
+| * | ignored | Local |
 | display_timer | Boton | Local |
 | checkbox_sustituir | Checkbox | Local |
 

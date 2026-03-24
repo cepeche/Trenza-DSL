@@ -16,6 +16,7 @@ context ModoCasa:
     input: r: Recurso
     role explorador: Recurso (bind: r)
         on salir -> ignored
+        on volver -> ignored
     transitions:
         on salir -> ModoBosque
 

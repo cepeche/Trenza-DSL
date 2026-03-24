@@ -2,6 +2,16 @@ use crate::ast::*;
 use crate::TrenzaParser;
 use crate::Rule;
 use pest::Parser;
+ 
+fn get_span(pair: &pest::iterators::Pair<Rule>) -> Span {
+    let span = pair.as_span();
+    let (line_start, col_start) = span.start_pos().line_col();
+    let (line_end, col_end) = span.end_pos().line_col();
+    Span {
+        start: Pos { line: line_start, col: col_start },
+        end: Pos { line: line_end, col: col_end },
+    }
+}
 
 pub fn parse_file(content: &str) -> std::result::Result<Program, pest::error::Error<Rule>> {
     let mut pairs = TrenzaParser::parse(Rule::program, content)?;
@@ -32,12 +42,17 @@ pub fn parse_file(content: &str) -> std::result::Result<Program, pest::error::Er
 
 fn parse_data(pair: pest::iterators::Pair<Rule>) -> DataDef {
     let mut name = String::new();
+    let mut name_span = get_span(&pair); // Fallback
     let mut annotations = Vec::new();
     let mut fields = Vec::new();
 
+    let span = get_span(&pair);
     for inner in pair.into_inner() {
         match inner.as_rule() {
-            Rule::ident => name = inner.as_str().to_string(),
+            Rule::ident => {
+                name = inner.as_str().to_string();
+                name_span = get_span(&inner);
+            },
             Rule::data_annotation => {
                 let mut iter = inner.into_inner();
                 let k = iter.next().unwrap().as_str().to_string();
@@ -64,17 +79,22 @@ fn parse_data(pair: pest::iterators::Pair<Rule>) -> DataDef {
             _ => {}
         }
     }
-    DataDef { name, annotations, fields }
+    DataDef { span, name, name_span, annotations, fields }
 }
 
 fn parse_external(pair: pest::iterators::Pair<Rule>) -> ExternalDef {
     let mut name = String::new();
+    let mut name_span = get_span(&pair); // Fallback
     let mut annotations = Vec::new();
     let mut actions = Vec::new();
 
+    let span = get_span(&pair);
     for inner in pair.into_inner() {
         match inner.as_rule() {
-            Rule::ident => name = inner.as_str().to_string(),
+            Rule::ident => {
+                name = inner.as_str().to_string();
+                name_span = get_span(&inner);
+            },
             Rule::data_annotation => {
                 let mut iter = inner.into_inner();
                 let k = iter.next().unwrap().as_str().to_string();
@@ -106,17 +126,27 @@ fn parse_external(pair: pest::iterators::Pair<Rule>) -> ExternalDef {
             _ => {}
         }
     }
-    ExternalDef { name, annotations, actions }
+    ExternalDef { span, name, name_span, annotations, actions }
 }
 
 fn parse_system(pair: pest::iterators::Pair<Rule>) -> SystemDef {
     let mut name = String::new();
+    let mut name_span = get_span(&pair); // Fallback
     let mut initial = String::new();
     let mut sections = Vec::new();
 
+    let span = get_span(&pair);
     for inner in pair.into_inner() {
         match inner.as_rule() {
-            Rule::ident => if name.is_empty() { name = inner.as_str().to_string(); } else { initial = inner.as_str().to_string(); },
+            Rule::ident => {
+                let s = inner.as_str().to_string();
+                if name.is_empty() { 
+                    name = s;
+                    name_span = get_span(&inner);
+                } else { 
+                    initial = s; 
+                }
+            },
             Rule::system_sections => {
                 let sec_inner = inner.into_inner().next().unwrap();
                 match sec_inner.as_rule() {
@@ -143,11 +173,12 @@ fn parse_system(pair: pest::iterators::Pair<Rule>) -> SystemDef {
             _ => {}
         }
     }
-    SystemDef { name, initial, sections }
+    SystemDef { span, name, name_span, initial, sections }
 }
 
 fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
     let mut name = String::new();
+    let mut name_span = get_span(&pair); // Fallback
     let mut inputs = Vec::new();
     let mut roles = Vec::new();
     let mut transitions = Vec::new();
@@ -156,9 +187,13 @@ fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
     let mut fills = Vec::new();
     let mut ignore_rest = false;
 
+    let span = get_span(&pair);
     for inner in pair.into_inner() {
         match inner.as_rule() {
-            Rule::ident => name = inner.as_str().to_string(),
+            Rule::ident => {
+                name = inner.as_str().to_string();
+                name_span = get_span(&inner);
+            },
             Rule::context_clause => {
                 let clause = inner.into_inner().next().unwrap();
                 match clause.as_rule() {
@@ -211,18 +246,21 @@ fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
             _ => {}
         }
     }
-    ContextDef { name, inputs, roles, transitions, effects, slots, fills, ignore_rest }
+    ContextDef { span, name, name_span, inputs, roles, transitions, effects, slots, fills, ignore_rest }
 }
 
 
 fn parse_role(pair: pest::iterators::Pair<Rule>) -> RoleDef {
+    let span = get_span(&pair);
     let mut it = pair.into_inner();
-    let name = it.next().unwrap().as_str().to_string();
+    let name_pair = it.next().unwrap();
+    let name = name_pair.as_str().to_string();
+    let name_span = get_span(&name_pair);
     let mut datatype = String::new();
     let mut annotations = Vec::new();
     let mut binding = None;
     let mut actions = Vec::new();
-
+ 
     for inner in it {
         match inner.as_rule() {
             Rule::type_ident if datatype.is_empty() => datatype = inner.as_str().to_string(),
@@ -241,7 +279,7 @@ fn parse_role(pair: pest::iterators::Pair<Rule>) -> RoleDef {
             _ => {}
         }
     }
-    RoleDef { name, datatype, annotations, binding, actions }
+    RoleDef { span, name, name_span, datatype, annotations, binding, actions }
 }
 
 fn parse_role_action(pair: pest::iterators::Pair<Rule>) -> RoleAction {

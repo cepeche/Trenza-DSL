@@ -1,7 +1,16 @@
 use crate::ast::*;
 use std::collections::{HashMap, HashSet};
+use serde::Serialize;
 
-pub fn verify(program: &Program) -> Result<(), Vec<String>> {
+#[derive(Debug, Serialize)]
+pub struct Diagnostic {
+    pub span: Span,
+    pub message: String,
+    pub severity: String,
+    pub code: String,
+}
+
+pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
     let mut errors = Vec::new();
     
     // Gather system metadata
@@ -40,29 +49,51 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
     let mut adjacency_list: HashMap<String, Vec<String>> = HashMap::new();
 
     // Pass 1: Build indexes & Check Determinism (Rule 2)
-    for def in &program.definitions {
-        if let Definition::Context(ctx) = def {
-            all_contexts.insert(ctx.name.clone());
-            if ctx.ignore_rest {
-                ignore_rest_contexts.insert(ctx.name.clone());
-            }
-
-            let mut ctx_re = HashSet::new();
-            let mut ctx_r = HashSet::new();
+            let mut context_spans: HashMap<String, Span> = HashMap::new();
+            let mut role_spans: HashMap<String, Span> = HashMap::new();
             
-            for role in &ctx.roles {
-                ctx_r.insert(role.name.clone());
-                all_roles.insert(role.name.clone());
-                for action in &role.actions {
-                    let re = (role.name.clone(), action.event.clone());
-                    role_events.insert(re.clone());
-                    
-                    if ctx_re.contains(&re) {
-                        errors.push(format!("ERROR [determinism]: El rol '{}' tiene manejadores duplicados para el evento '{}' en el contexto '{}'", role.name, action.event, ctx.name));
-                    }
-                    ctx_re.insert(re);
+            for def in &program.definitions {
+                match def {
+                    Definition::Context(ctx) => {
+                        context_spans.insert(ctx.name.clone(), ctx.name_span.clone());
+                        for role in &ctx.roles {
+                            role_spans.insert(format!("{}.{}", ctx.name, role.name), role.name_span.clone());
+                        }
+                    },
+                    Definition::Data(d) => {},
+                    Definition::External(e) => {},
+                    Definition::System(s) => {},
                 }
             }
+
+            for def in &program.definitions {
+                if let Definition::Context(ctx) = def {
+                    all_contexts.insert(ctx.name.clone());
+                    if ctx.ignore_rest {
+                        ignore_rest_contexts.insert(ctx.name.clone());
+                    }
+
+                    let mut ctx_re = HashSet::new();
+                    let mut ctx_r = HashSet::new();
+                    
+                    for role in &ctx.roles {
+                        ctx_r.insert(role.name.clone());
+                        all_roles.insert(role.name.clone());
+                        for action in &role.actions {
+                            let re = (role.name.clone(), action.event.clone());
+                            role_events.insert(re.clone());
+                            
+                            if ctx_re.contains(&re) {
+                                errors.push(Diagnostic {
+                                span: role.span.clone(),
+                                    message: format!("El rol '{}' tiene manejadores duplicados para el evento '{}' en el contexto '{}'", role.name, action.event, ctx.name),
+                                    severity: "error".to_string(),
+                                    code: "determinism".to_string(),
+                                });
+                            }
+                            ctx_re.insert(re);
+                        }
+                    }
             context_role_events.insert(ctx.name.clone(), ctx_re);
             context_roles.insert(ctx.name.clone(), ctx_r);
 
@@ -84,9 +115,18 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
     for ctx_name in &all_contexts {
         if ignore_rest_contexts.contains(ctx_name) { continue; }
         if let Some(ctx_re) = context_role_events.get(ctx_name) {
+            let context_span = context_spans.get(ctx_name).cloned().unwrap_or(Span { 
+                start: Pos { line: 1, col: 1 }, 
+                end: Pos { line: 1, col: 10 } 
+            });
             for re in &role_events {
                 if !ctx_re.contains(re) {
-                    errors.push(format!("ERROR [completeness]: La acción '{}.{}' no está declarada en el contexto '{}'", re.0, re.1, ctx_name));
+                    errors.push(Diagnostic {
+                        span: context_span.clone(),
+                        message: format!("La acción '{}.{}' no está declarada en el contexto '{}'", re.0, re.1, ctx_name),
+                        severity: "error".to_string(),
+                        code: "completeness".to_string(),
+                    });
                 }
             }
         }
@@ -112,7 +152,15 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
         
     for ctx_name in &all_contexts {
         if !visited.contains(ctx_name) {
-            errors.push(format!("ERROR [reachability]: El contexto '{}' es inalcanzable", ctx_name));
+            errors.push(Diagnostic {
+                span: context_spans.get(ctx_name).cloned().unwrap_or(Span { 
+                    start: Pos { line: 1, col: 1 }, 
+                    end: Pos { line: 1, col: 10 } 
+                }),
+                message: format!("El contexto '{}' es inalcanzable", ctx_name),
+                severity: "warning".to_string(),
+                code: "reachability".to_string(),
+            });
         }
     }
 
@@ -167,10 +215,15 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
 
                                 if let Some(t) = var_type {
                                     if data_privacy.contains_key(t) && !role_has_gdpr {
-                                        errors.push(format!(
-                                            "ERROR [privacy]: El rol '{}' de tipo '{}' en el contexto '{}' intenta acceder al campo protegido '{}' sin permiso [access: gdpr]",
-                                            role.name, t, ctx.name, arg
-                                        ));
+                                        errors.push(Diagnostic {
+                                        span: role.span.clone(),
+                                            message: format!(
+                                                "El rol '{}' de tipo '{}' en el contexto '{}' intenta acceder al campo protegido '{}' sin permiso [access: gdpr]",
+                                                role.name, t, ctx.name, arg
+                                            ),
+                                            severity: "error".to_string(),
+                                            code: "privacy".to_string(),
+                                        });
                                     }
                                 }
                             }
@@ -186,10 +239,15 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
         if ignore_rest_contexts.contains(ctx_name) { continue; }
         for role_name in &all_roles {
             if !roles.contains(role_name) {
-                errors.push(format!(
-                    "ERROR [exhaustiveness]: role '{}' appears in other contexts but is absent from context '{}'",
-                    role_name, ctx_name
-                ));
+                errors.push(Diagnostic {
+                    span: context_spans.get(ctx_name).cloned().unwrap_or(Span { 
+                    start: Pos { line: 1, col: 1 }, 
+                    end: Pos { line: 1, col: 10 } 
+                }),
+                    message: format!("role '{}' appears in other contexts but is absent from context '{}'", role_name, ctx_name),
+                    severity: "error".to_string(),
+                    code: "exhaustiveness".to_string(),
+                });
             }
         }
     }
@@ -201,23 +259,27 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
             for role in &ctx.roles {
                 let existing = role_types.entry(role.name.clone()).or_insert(role.datatype.clone());
                 if existing != &role.datatype {
-                    errors.push(format!(
-                        "ERROR [type-consistency]: role '{}' has conflicting types: '{}' and '{}'",
-                        role.name, existing, role.datatype
-                    ));
+                    errors.push(Diagnostic {
+                        span: role.span.clone(),
+                        message: format!("role '{}' has conflicting types: '{}' and '{}'", role.name, existing, role.datatype),
+                        severity: "error".to_string(),
+                        code: "type-consistency".to_string(),
+                    });
                 }
             }
-            for fills in &ctx.fills {
-                for role in &fills.roles {
-                    let existing = role_types.entry(role.name.clone()).or_insert(role.datatype.clone());
-                    if existing != &role.datatype {
-                        errors.push(format!(
-                            "ERROR [type-consistency]: role '{}' in fills has conflicting types: '{}' and '{}'",
-                            role.name, existing, role.datatype
-                        ));
+                for fills in &ctx.fills {
+                    for role in &fills.roles {
+                        let existing = role_types.entry(role.name.clone()).or_insert(role.datatype.clone());
+                        if existing != &role.datatype {
+                            errors.push(Diagnostic {
+                                span: role.span.clone(),
+                                message: format!("role '{}' in fills has conflicting types: '{}' and '{}'", role.name, existing, role.datatype),
+                                severity: "error".to_string(),
+                                code: "type-consistency".to_string(),
+                            });
+                        }
                     }
                 }
-            }
         }
     }
 
@@ -247,10 +309,15 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
 
     for ctx_name in &all_contexts {
         if !can_return.contains(ctx_name) {
-            errors.push(format!(
-                "ERROR [return]: context '{}' cannot return to the initial state '{}'",
-                ctx_name, initial_context
-            ));
+            errors.push(Diagnostic {
+                span: context_spans.get(ctx_name).cloned().unwrap_or(Span { 
+                    start: Pos { line: 1, col: 1 }, 
+                    end: Pos { line: 1, col: 10 } 
+                }),
+                message: format!("context '{}' cannot return to the initial state '{}'", ctx_name, initial_context),
+                severity: "error".to_string(),
+                code: "return".to_string(),
+            });
         }
     }
 
@@ -272,10 +339,12 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
                 
                 // Rule S1
                 if !slot_index.contains(&key) {
-                    errors.push(format!(
-                        "ERROR [slot]: context '{}' declares fills {}.{} but {} does not declare that slot",
-                        c.name, fills.target_context, fills.target_slot, fills.target_context
-                    ));
+                    errors.push(Diagnostic {
+                        span: c.name_span.clone(),
+                        message: format!("context '{}' declares fills {}.{} but {} does not declare that slot", c.name, fills.target_context, fills.target_slot, fills.target_context),
+                        severity: "error".to_string(),
+                        code: "slot".to_string(),
+                    });
                     continue;
                 }
                 fills_index.entry(key).or_default().push((c.name.clone(), fills.clone()));
@@ -287,10 +356,15 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
     for (key, sources) in &fills_index {
         if sources.len() > 1 {
             let names: Vec<String> = sources.iter().map(|s| s.0.clone()).collect();
-            errors.push(format!(
-                "ERROR [slot-conflict]: contexts {} both declare fills for {}.{}. Declare priority in the system block",
-                names.join(", "), key.0, key.1
-            ));
+            errors.push(Diagnostic {
+                span: context_spans.get(&key.0).cloned().unwrap_or(Span { 
+                    start: Pos { line: 1, col: 1 }, 
+                    end: Pos { line: 1, col: 10 } 
+                }),
+                message: format!("contexts {} both declare fills for {}.{}. Declare priority in the system block", names.join(", "), key.0, key.1),
+                severity: "error".to_string(),
+                code: "slot-conflict".to_string(),
+            });
         }
     }
 
@@ -302,10 +376,12 @@ pub fn verify(program: &Program) -> Result<(), Vec<String>> {
                 for action in &role.actions {
                     let re = (role.name.clone(), action.event.clone());
                     if !seen_role_events.insert(re) {
-                        errors.push(format!(
-                            "ERROR [determinism]: role '{}' has duplicate handlers for event '{}' in fills {}.{} of context '{}'",
-                            role.name, action.event, key.0, key.1, source_name
-                        ));
+                        errors.push(Diagnostic {
+                            span: role.span.clone(),
+                            message: format!("role '{}' has duplicate handlers for event '{}' in fills {}.{} of context '{}'", role.name, action.event, key.0, key.1, source_name),
+                            severity: "error".to_string(),
+                            code: "determinism-fills".to_string(),
+                        });
                     }
                 }
             }

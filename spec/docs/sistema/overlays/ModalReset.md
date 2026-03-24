@@ -6,15 +6,18 @@
 
 | Rol | Tipo | Origen |
 |-----|------|--------|
+| * | ignored | Local |
 | boton_cancelar | Boton | Local |
 
 ## Transiciones
 
 ```mermaid
 stateDiagram-v2
-    ModalReset --> SYS_cerrar_overlay : cerrar
+    ModalReset --> ResetFase1 : iniciar
+    ModalReset --> SYS_close_overlay : cerrar
 ```
 
 | Evento | Destino |
 |--------|---------|
-| cerrar | [cerrar_overlay] |
+| iniciar | [ResetFase1](../ResetFase1.md) |
+| cerrar | [close_overlay] |

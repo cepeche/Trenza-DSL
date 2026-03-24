@@ -6,6 +6,7 @@
 
 | Rol | Tipo | Origen |
 |-----|------|--------|
+| * | ignored | Local |
 | campo_comentario | CampoTexto | Local |
 | campo_retroactivo | CampoNumerico | Local |
 | boton_confirmar | Boton | Local |
@@ -19,11 +20,11 @@
 
 ```mermaid
 stateDiagram-v2
-    ModalComentario --> SYS_cerrar_overlay : confirmarInicio
-    ModalComentario --> SYS_cerrar_overlay : cancelar
+    ModalComentario --> SYS_close_overlay : confirmarInicio
+    ModalComentario --> SYS_close_overlay : cancelar
 ```
 
 | Evento | Destino |
 |--------|---------|
-| confirmarInicio | [cerrar_overlay] |
-| cancelar | [cerrar_overlay] |
+| confirmarInicio | [close_overlay] |
+| cancelar | [close_overlay] |

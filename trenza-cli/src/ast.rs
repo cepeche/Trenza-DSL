@@ -1,3 +1,15 @@
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct Pos {
+    pub line: usize,
+    pub col: usize,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct Span {
+    pub start: Pos,
+    pub end: Pos,
+}
+
 #[derive(Debug, Clone)]
 pub struct Program {
     pub definitions: Vec<Definition>,
@@ -13,7 +25,9 @@ pub enum Definition {
 
 #[derive(Debug, Clone)]
 pub struct DataDef {
+    pub span: Span,
     pub name: String,
+    pub name_span: Span,
     pub annotations: Vec<(String, String)>,
     pub fields: Vec<DataField>,
 }
@@ -27,7 +41,9 @@ pub struct DataField {
 
 #[derive(Debug, Clone)]
 pub struct ExternalDef {
+    pub span: Span,
     pub name: String,
+    pub name_span: Span,
     pub annotations: Vec<(String, String)>,
     pub actions: Vec<ExternalAction>,
 }
@@ -41,7 +57,9 @@ pub struct ExternalAction {
 
 #[derive(Debug, Clone)]
 pub struct SystemDef {
+    pub span: Span,
     pub name: String,
+    pub name_span: Span,
     pub initial: String,
     pub sections: Vec<SystemSection>,
 }
@@ -56,7 +74,9 @@ pub enum SystemSection {
 
 #[derive(Debug, Clone)]
 pub struct ContextDef {
+    pub span: Span,
     pub name: String,
+    pub name_span: Span,
     pub inputs: Vec<InputField>,
     pub roles: Vec<RoleDef>,
     pub transitions: Vec<TransitionRule>,
@@ -88,7 +108,9 @@ pub struct InputField {
 
 #[derive(Debug, Clone)]
 pub struct RoleDef {
+    pub span: Span,
     pub name: String,
+    pub name_span: Span,
     pub datatype: String,
     pub annotations: Vec<(String, String)>,
     pub binding: Option<String>,

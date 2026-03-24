@@ -6,6 +6,7 @@
 
 | Rol | Tipo | Origen |
 |-----|------|--------|
+| * | ignored | Local |
 | campo_nombre | CampoTexto | Local |
 | campo_busqueda_icono | CampoTexto | Local |
 | selector_icono | SelectorIcono | Local |
@@ -16,11 +17,11 @@
 
 ```mermaid
 stateDiagram-v2
-    ModalEditarTarea --> SYS_cerrar_overlay : guardarEdicion
-    ModalEditarTarea --> SYS_cerrar_overlay : cancelar
+    ModalEditarTarea --> SYS_close_overlay : guardarEdicion
+    ModalEditarTarea --> SYS_close_overlay : cancelar
 ```
 
 | Evento | Destino |
 |--------|---------|
-| guardarEdicion | [cerrar_overlay] |
-| cancelar | [cerrar_overlay] |
+| guardarEdicion | [close_overlay] |
+| cancelar | [close_overlay] |

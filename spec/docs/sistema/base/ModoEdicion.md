@@ -6,10 +6,11 @@
 
 | Rol | Tipo | Origen |
 |-----|------|--------|
+| * | ignored | Local |
 | tarjeta_tipo | TipoTarea | Local |
 | tarjeta_tarea | Tarea | Local |
 | pestana_actividad | Actividad | Local |
-| pestana_frecuentes | PestaÃ±a | Local |
+| pestana_frecuentes | Pestana | Local |
 | boton_edicion | Boton | Local |
 | boton_nuevo | Boton | Local |
 | boton_configuracion | Boton | Local |

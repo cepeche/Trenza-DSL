@@ -135,6 +135,7 @@ pub struct OpcionActividad {
     pub color: Color,
     pub permanente: bool,
     pub conservar: bool,
+    pub marcado: bool,
 }
 
 pub trait Effects {
