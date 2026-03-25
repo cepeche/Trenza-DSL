@@ -21,14 +21,54 @@ async function run() {
   log("Iniciando motor WASM...");
   await init();
 
-  // 1. Implementación de Efectos (Minimal para el demo)
+  let seconds = 0;
+  let timerInterval: number | undefined;
+
+  const formatTime = (totalSeconds: number) => {
+    const hrs = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+    const mins = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+    const secs = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${hrs}:${mins}:${secs}`;
+  };
+
+  const startTimer = () => {
+    if (timerInterval) return;
+    timerInterval = setInterval(() => {
+      seconds++;
+      const display = document.getElementById('display');
+      if (display) display.textContent = formatTime(seconds);
+    }, 1000);
+  };
+
+  const stopTimer = () => {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = undefined;
+    }
+  };
+
+  // 1. Implementación de Efectos
   const effects = {
-    iniciar_sesion: (tareaId: string) => log(`Efecto de Negocio: Iniciar Sesión para Tarea ${tareaId}`),
-    parar_sesion: () => log("Efecto de Negocio: Detener Sesión"),
+    iniciar_sesion: (tareaId: string) => {
+      log(`Efecto de Negocio: Iniciar Sesión para Tarea ${tareaId}`);
+      startTimer();
+    },
+    parar_sesion: () => {
+      log("Efecto de Negocio: Detener Sesión");
+      stopTimer();
+    },
     abrirMenuConfiguracion: () => log("UI: Abriendo Menú Configuración"),
-    abrirReset: () => log("UI: Abriendo Modal Reset"),
+    abrirReset: () => {
+      log("UI: Abriendo Modal Reset");
+      stopTimer();
+    },
     confirmarInicio: () => log("Validación: Inicio confirmado por usuario"),
-    // El resto de los 183 efectos pueden quedar como no-ops para este demo
+    reset_datos: () => {
+      log("Efecto de Negocio: Reset de todos los datos");
+      seconds = 0;
+      const display = document.getElementById('display');
+      if (display) display.textContent = "00:00:00";
+    }
   } as any;
 
   // 2. Instanciar Sistema (Pasando el DSL consolidado)
