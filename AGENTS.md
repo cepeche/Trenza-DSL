@@ -1,34 +1,45 @@
 # Trenza-DSL — Protocolo de Coordinación para Agentes (IA)
 
-Este documento define el contrato de colaboración para cualquier IA (especialmente Claude y Gemini/Antigravity) que participe en este repositorio. Su cumplimiento es obligatorio para garantizar la "red de seguridad" y la escalabilidad del proyecto.
+Este documento define el contrato de colaboración para cualquier IA que participe en este repositorio. Su cumplimiento es obligatorio para garantizar la "red de seguridad" y la escalabilidad del proyecto.
+
+## 0. Jerarquía de Autoridad
+
+En caso de contradicciones, el agente debe seguir este orden:
+1. **Instrucciones del Humano** (Directas en chat) — Siempre mandan.
+2. **Instrucciones de Modelo** (`CLAUDE.md`, configuración de Antigravity, etc.) — Ajustes individuales.
+3. **AGENTS.md** — Protocolo de coordinación compartido (este documento).
+4. **ADRs** (`history/decisions/`) — Decisiones arquitectónicas firmes.
+5. **Manual / Spec / Crónicas** (`history/chronicle/`) — Referencia técnica e histórica.
 
 ## 1. Fase 0: Inicialización (Sincronización)
 
-Antes de realizar cualquier cambio o propuesta, el agente **DEBE**:
-1. **Leer la Cronología**: Leer la última entrada en `history/chronicle/` para entender qué se hizo en la sesión anterior y por quién.
-2. **Cargar el Contexto Crítico**: Leer `spec/language/`, `docs/manual/` y las ADRs en `history/decisions/`.
-3. **Estado Interno (si aplica)**: Si el agente usa un sistema de seguimiento (como `task.md` o planes de implementación), sincronizarlo con el estado actual del código.
+Al iniciar una sesión, el agente **DEBE**:
+1. **Sincronización Crítica**: Leer la última entrada en `history/chronicle/` y los documentos de nivel 2 y 3 de la jerarquía.
+2. **Contexto On-Demand**: Cargar archivos técnicos (`src/`, `spec/`, `docs/`) solo según lo requiera la tarea específica.
 
-## 2. Fase 1: Estilo de Trabajo (Razonamiento)
+## 2. Fase 1: Colaboración e Integridad
 
-- **Documentar el "Por Qué"**: No te limites a escribir código. Documenta el razonamiento y las decisiones de diseño en el propio código o en la crónica.
-- **Anotar Preguntas**: Si algo es ambiguo en la especificación, anótalo como una "Pregunta Abierta" en la crónica.
-- **Respetar la Trenza**: Cada cambio debe considerar las cuatro hebras (Implementación, Tests, Esquema, Requerimientos).
+- **Documentar el "Por Qué"**: Documentar razonamientos en el código o en la crónica.
+- **Protocolo de Briefing (Relevo)**: Para delegar trabajo o comunicar cambios a otro agente, incluir en la crónica: (1) Objetivo, (2) Contexto mínimo, (3) Criterios de aceptación y (4) Preguntas abiertas.
+- **Respetar los Strands**: Cada cambio debe considerar las cuatro hebras:
+  - **Strand 1 (Implementation)**: Código generado y lógica de negocio.
+  - **Strand 2 (Tests)**: Tests algebraicos y de integración.
+  - **Strand 3 (Schematic)**: Diagramas y topología.
+  - **Strand 4 (Audit/Requirements)**: Auditoría formal y cumplimiento de reglas.
+- **Integridad del Repositorio**:
+  - No editar manualmente el código generado (Strand 1). Arreglar el generador.
+  - El código DEBE compilar y los tests (`cargo test`) DEBEN pasar antes de realizar un push.
+  - No renombrar ni borrar archivos creados por otros agentes sin consenso previo en la crónica.
 
 ## 3. Fase 2: Cierre de Sesión (Consolidación)
 
-Al terminar la iteración o cuando el humano indique el cierre, el agente **DEBE**:
-1. **Actualizar la Cronología**: Crear una entrada en `history/chronicle/YYYY-MM-DD/NN_<descripcion>.md`.
-   - Incluir: Resumen de cambios, decisiones tomadas, preguntas abiertas y estado de los artefactos.
-2. **Ejecutar `/cierre_de_sesion`**: Invocar el workflow de automatización para DocGen, Backup y Git.
-3. **Notificar**: Confirmar que la sesión "documental y mental" está a salvo.
+Independientemente de la existencia de scripts de automatización, el contrato de cierre exige:
+1. **Entrada en Crónica**: Crear `history/chronicle/YYYY-MM-DD/NN_<descripcion>.md` con:
+   - Resumen de cambios y decisiones.
+   - Estado de los artefactos (`task.md`, etc.).
+   - Preguntas abiertas y briefings para el siguiente agente.
+2. **Commit y Push**: Realizar un commit unificado con los cambios y la crónica.
 
----
+## 4. Resolución de Conflictos
 
-## Precedencia de Documentos
-
-Cuando haya contradicciones, el agente debe seguir este orden de autoridad:
-1. **ADRs** (`history/decisions/`) - Decisiones arquitectónicas firmes.
-2. **Manual** (`docs/manual/`) - Comportamiento esperado por el usuario.
-3. **Spec** (`spec/language/`) - Definición formal.
-4. **Crónicas** (`history/chronicle/`) - Registro histórico (pueden contener ideas obsoletas).
+Si un agente objeta una implementación anterior: (1) Documentar objeción en crónica, (2) Escalar al humano. No se revierte trabajo ajeno sin autorización del responsable del proyecto.

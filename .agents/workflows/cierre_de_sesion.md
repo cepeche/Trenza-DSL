@@ -2,21 +2,25 @@
 description: Rutina de Cierre de Sesión y Backup de IA
 ---
 // turbo-all
-Esta es la rutina que los agentes (como Antigravity y Claude) deben seguir al cerrar cada iteración o día de trabajo (ej. cuando el humano dice "cierro por hoy", "haz backup", "sistematiza esto"):
+Esta es la rutina que los agentes (como Antigravity y Claude) deben seguir al cerrar cada sesión. El cumplimiento de este protocolo es parte del contrato definido en **AGENTS.md**.
 
-0. **Sincronización de Contexto**: Al INICIO de cada sesión, lee la última entrada en `history/chronicle/` para sincronizar con otros agentes.
+### Pasos Obligatorios (Contrato)
 
-1. **DocGen**: Ejecuta el recompilador de Python y el DocGen para sincronizar el código con el Markdown de documentación.
-   `python -m src.trenza.cli spec\reference\cronometro-psp\trenza`
+1. **Crónica de Sesión**: Crear una nueva entrada en `history/chronicle/YYYY-MM-DD/NN_<nombre>.md` detallando:
+   - Resumen de cambios y decisiones técnicas.
+   - Estado de los artefactos (`task.md`, etc.).
+   - **Briefing para el siguiente agente**: Objetivo, contexto mínimo y criterios de aceptación.
+   - Preguntas abiertas.
 
-2. **Crónica de Sesión**: Escribe una nueva entrada en `history/chronicle/YYYY-MM-DD/NN_<nombre>.md` detallando las decisiones, razonamientos y estado de los artefactos. Este es el **contrato de coordinación fundamental**.
-
-3. **Backup de Conversaciones**: Ejecuta el script de respaldo local de las conversaciones de la IA a zip.
-   `python docs\backup_conversaciones.py`
-
-4. **Commit y Push**: Empaqueta todo en un commit unificado y súbelo al remoto.
-   `git add docs\historial_ias\*.zip docs\sistema\* docs\ history/chronicle\* backup_conversaciones.py`
-   `git commit -m "chore: rutina diaria automatica de docgen, cronica y backup de contexto IA"`
+2. **Commit y Push**: Empaquetar todo en un commit unificado que incluya el código, los artefactos y la nueva crónica.
+   `git add .`
+   `git commit -m "chore: rutina de cierre - crónica y consolidación de estado"`
    `git push`
 
-5. **Reporte**: Notifica al humano que la sesión documental y mental está a salvo.
+### Acciones Complementarias (Helpers)
+
+- **DocGen**: Si el proyecto tiene scripts de documentación (ej. `scripts/docgen.sh`), ejecutarlos antes del commit.
+- **Backup de Contexto**: Realizar cualquier copia de seguridad local necesaria de la sesión.
+
+---
+*Este workflow garantiza que ningún hilo de pensamiento se pierda entre relevos.*
