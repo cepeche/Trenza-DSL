@@ -126,10 +126,10 @@ fn main() {
                 eprintln!("- ✅ Verificación Semántica: Superada impecablemente para {} archivos.", files_to_parse.len());
             }
             if is_generate {
-                let logic_code = if lang == "ts" {
-                    generator::generate_typescript(&program_ast, &profile, &concurrency)
-                } else {
-                    generator::generate_rust(&program_ast, &profile, &concurrency)
+                let logic_code = match lang.as_str() {
+                    "ts"   => generator::generate_typescript(&program_ast, &profile, &concurrency),
+                    "wasm" => generator::generate_rust_wasm(&program_ast),
+                    _      => generator::generate_rust(&program_ast, &profile, &concurrency),
                 };
                 let test_code = generator::generate_tests(&program_ast);
                 let topology_mermaid = generator::generate_mermaid_topology(&program_ast);
@@ -144,7 +144,7 @@ fn main() {
                     }
                 }
 
-                let ext = if lang == "ts" { "ts" } else { "rs" };
+                let ext = if lang == "ts" { "ts" } else { "rs" }; // wasm también emite .rs
                 let out_logic = Path::new(&out_dir).join(format!("{}_out.{}", system_name, ext));
                 let out_tests = Path::new(&out_dir).join(format!("{}_out_tests.rs", system_name));
                 let out_mermaid = Path::new(&out_dir).join(format!("{}_out.mermaid", system_name));
@@ -184,7 +184,8 @@ fn main() {
                 fs::write(&out_viz, viz_md).expect("No se pudo escribir el archivo Viz");
                 fs::write(&out_html, html_report).expect("No se pudo escribir el archivo HTML");
 
-                println!("- ✅ Código Strand 1 (Lógica {}) generado en: {}", if lang == "ts" { "TS" } else { "Rust" }, out_logic.display());
+                let lang_label = match lang.as_str() { "ts" => "TS", "wasm" => "WASM/Rust", _ => "Rust" };
+                println!("- ✅ Código Strand 1 (Lógica {}) generado en: {}", lang_label, out_logic.display());
                 println!("- ✅ Código Strand 2 (Tests Algebraicos) generado en: {}", out_tests.display());
                 println!("- ✅ Código Strand 3 (Arquitectura) generado en: {}", out_mermaid.display());
                 println!("- ✅ Informe Strand 4 (Auditoría) generado en: {}", out_audit.display());

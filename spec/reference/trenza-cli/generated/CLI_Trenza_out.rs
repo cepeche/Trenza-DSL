@@ -13,6 +13,7 @@ pub enum Contexto {
     MostrarAyuda,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct ArgumentosUsuario {
     pub comando: String,
@@ -21,12 +22,14 @@ pub struct ArgumentosUsuario {
     pub lang: String,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct AST {
-    pub pares: Lista,
+    pub pares: Vec<String>,
     pub valido: bool,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct ErrorCompilacion {
     pub linea: i32,

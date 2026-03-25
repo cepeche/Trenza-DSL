@@ -24,115 +24,130 @@ pub enum Contexto {
     SesionActiva,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct TipoTarea {
-    pub tipoId: Id,
+    pub tipoId: String,
     pub nombre: String,
     pub icono: String,
-    pub usos7d: Entero,
-    pub actividades_permitidas: Lista<Id>,
+    pub usos7d: i32,
+    pub actividades_permitidas: Vec<String>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct Tarea {
-    pub tareaId: Id,
-    pub tipoId: Id,
-    pub actividadId: Id,
+    pub tareaId: String,
+    pub tipoId: String,
+    pub actividadId: String,
     pub nombre: String,
     pub icono: String,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct Actividad {
-    pub id: Id,
+    pub id: String,
     pub nombre: String,
-    pub color: Color,
+    pub color: String,
     pub permanente: bool,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct Sesion {
-    pub sesionId: Id,
-    pub tareaId: Id,
-    pub inicio: Timestamp,
-    pub notas: Texto?,
+    pub sesionId: String,
+    pub tareaId: String,
+    pub inicio: u64,
+    pub notas: Option<String>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct CampoTexto {
-    pub id: Id,
+    pub id: String,
     pub valor: String,
     pub valido: bool,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct CampoNumerico {
-    pub id: Id,
-    pub valor: Entero,
-    pub minimo: Entero,
+    pub id: String,
+    pub valor: i32,
+    pub minimo: i32,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct Boton {
-    pub id: Id,
+    pub id: String,
     pub etiqueta: String,
     pub habilitado: bool,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct Checkbox {
-    pub id: Id,
+    pub id: String,
     pub etiqueta: String,
     pub marcado: bool,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct SelectorColor {
-    pub id: Id,
-    pub opciones: Lista<Color>,
-    pub seleccionado: Color,
+    pub id: String,
+    pub opciones: Vec<String>,
+    pub seleccionado: String,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct SelectorIcono {
-    pub id: Id,
-    pub iconos: Lista<Texto>,
+    pub id: String,
+    pub iconos: Vec<String>,
     pub seleccionado: String,
     pub filtro: String,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct Pestana {
-    pub id: Id,
+    pub id: String,
     pub etiqueta: String,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct ItemMenu {
-    pub id: Id,
+    pub id: String,
     pub etiqueta: String,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct DiaHistorial {
-    pub timestamp: Timestamp,
-    pub total: Entero,
-    pub por_actividad: Lista<ResumenActividad>,
+    pub timestamp: u64,
+    pub total: i32,
+    pub por_actividad: Vec<ResumenActividad>,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct ResumenActividad {
-    pub actividadId: Id,
+    pub actividadId: String,
     pub actividadNombre: String,
-    pub actividadColor: Color,
-    pub tiempo: Entero,
+    pub actividadColor: String,
+    pub tiempo: i32,
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Clone, Default)]
 pub struct OpcionActividad {
-    pub id: Id,
+    pub id: String,
     pub nombre: String,
-    pub color: Color,
+    pub color: String,
     pub permanente: bool,
     pub conservar: bool,
     pub marcado: bool,
@@ -483,55 +498,55 @@ impl<'a> System<'a> {
                     "abrirHistorial" => self.state = Contexto::ModalHistorial,
                     "abrirAcercaDe" => self.state = Contexto::ModalAcercaDe,
                     "abrirReset" => self.state = Contexto::ModalReset,
-                    "cerrar" => self.state = Contexto::[close_overlay],
+                    "cerrar" => self.state = Contexto::ModoNormal,
                     _ => {},
                 }
             },
             Contexto::ModalAcercaDe => {
                 match event {
-                    "cerrar" => self.state = Contexto::[close_overlay],
+                    "cerrar" => self.state = Contexto::ModoNormal,
                     _ => {},
                 }
             },
             Contexto::ModalComentario => {
                 match event {
-                    "confirmarInicio" => self.state = Contexto::[close_overlay],
-                    "cancelar" => self.state = Contexto::[close_overlay],
+                    "confirmarInicio" => self.state = Contexto::ModoNormal,
+                    "cancelar" => self.state = Contexto::ModoNormal,
                     _ => {},
                 }
             },
             Contexto::ModalCrearActividad => {
                 match event {
-                    "guardarNuevaActividad" => self.state = Contexto::[close_overlay],
-                    "cancelar" => self.state = Contexto::[close_overlay],
+                    "guardarNuevaActividad" => self.state = Contexto::ModoNormal,
+                    "cancelar" => self.state = Contexto::ModoNormal,
                     _ => {},
                 }
             },
             Contexto::ModalCrearTarea => {
                 match event {
-                    "guardarNuevaTarea" => self.state = Contexto::[close_overlay],
-                    "cancelar" => self.state = Contexto::[close_overlay],
+                    "guardarNuevaTarea" => self.state = Contexto::ModoNormal,
+                    "cancelar" => self.state = Contexto::ModoNormal,
                     _ => {},
                 }
             },
             Contexto::ModalEditarActividad => {
                 match event {
-                    "guardarEdicionActividad" => self.state = Contexto::[close_overlay],
-                    "cancelar" => self.state = Contexto::[close_overlay],
+                    "guardarEdicionActividad" => self.state = Contexto::ModoNormal,
+                    "cancelar" => self.state = Contexto::ModoNormal,
                     _ => {},
                 }
             },
             Contexto::ModalEditarTarea => {
                 match event {
-                    "guardarEdicion" => self.state = Contexto::[close_overlay],
-                    "cancelar" => self.state = Contexto::[close_overlay],
+                    "guardarEdicion" => self.state = Contexto::ModoNormal,
+                    "cancelar" => self.state = Contexto::ModoNormal,
                     _ => {},
                 }
             },
             Contexto::ModalHistorial => {
                 match event {
                     "iniciar" => self.state = Contexto::Historial7Dias,
-                    "cerrar" => self.state = Contexto::[close_overlay],
+                    "cerrar" => self.state = Contexto::ModoNormal,
                     _ => {},
                 }
             },
@@ -552,7 +567,7 @@ impl<'a> System<'a> {
             Contexto::ModalReset => {
                 match event {
                     "iniciar" => self.state = Contexto::ResetFase1,
-                    "cerrar" => self.state = Contexto::[close_overlay],
+                    "cerrar" => self.state = Contexto::ModoNormal,
                     _ => {},
                 }
             },
@@ -572,7 +587,7 @@ impl<'a> System<'a> {
             },
             Contexto::ResetFase3 => {
                 match event {
-                    "ejecutarReset" => self.state = Contexto::[close_overlay],
+                    "ejecutarReset" => self.state = Contexto::ModoNormal,
                     "retrocederAFase2" => self.state = Contexto::ResetFase2,
                     _ => {},
                 }
@@ -580,7 +595,7 @@ impl<'a> System<'a> {
             Contexto::ModalSeleccionActividad => {
                 match event {
                     "elegirActividad" => self.state = Contexto::ModalComentario,
-                    "cancelar" => self.state = Contexto::[close_overlay],
+                    "cancelar" => self.state = Contexto::ModoNormal,
                     _ => {},
                 }
             },
@@ -607,7 +622,7 @@ impl<'a> System<'a> {
             },
             Contexto::SesionActiva => {
                 match event {
-                    "sesionFinalizada" => self.state = Contexto::[deactivate],
+                    "sesionFinalizada" => { self.concurrent_states.remove(&Contexto::SesionActiva); },
                     _ => {},
                 }
             },

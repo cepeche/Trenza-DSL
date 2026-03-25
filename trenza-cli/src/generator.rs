@@ -1,6 +1,30 @@
 use crate::ast::*;
 use std::collections::{BTreeMap, HashSet};
 
+fn rust_type(s: &str) -> String {
+    if s.ends_with('?') {
+        let inner = rust_type(&s[..s.len() - 1]);
+        return format!("Option<{}>", inner);
+    }
+    if s.starts_with("Lista<") && s.ends_with('>') {
+        let inner = &s[6..s.len() - 1];
+        return format!("Vec<{}>", rust_type(inner));
+    }
+    if s == "Lista" {
+        return "Vec<String>".to_string();
+    }
+    match s {
+        "Texto"     => "String".to_string(),
+        "Numero"    => "i32".to_string(),
+        "Booleano"  => "bool".to_string(),
+        "Id"        => "String".to_string(),
+        "Entero"    => "i32".to_string(),
+        "Color"     => "String".to_string(),
+        "Timestamp" => "u64".to_string(),
+        other       => other.to_string(),
+    }
+}
+
 fn ts_type(s: &str) -> String {
     // Handle optional suffix (e.g. "Texto?")
     if s.ends_with('?') {
@@ -246,12 +270,14 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
     // 1. Context Enum
     let mut contexts = Vec::new();
     let mut concurrent_contexts = Vec::new();
-    
+    let mut initial_state = "Unknown".to_string();
+
     for def in &program.definitions {
         if let Definition::Context(c) = def {
             contexts.push(c.name.clone());
         }
         if let Definition::System(sys) = def {
+            initial_state = sys.initial.clone();
             for sec in &sys.sections {
                 if let SystemSection::Concurrent(ctxs) = sec {
                     concurrent_contexts = ctxs.clone();
@@ -259,7 +285,7 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
             }
         }
     }
-    
+
     output.push_str("#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]\n");
     output.push_str("pub enum Contexto {\n");
     for ctx in &contexts {
@@ -270,15 +296,9 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
     // 2. Data Structures (Strand 1)
     for def in &program.definitions {
         if let Definition::Data(d) = def {
-            output.push_str(&format!("#[derive(Debug, Clone, Default)]\npub struct {} {{\n", d.name));
+            output.push_str(&format!("#[allow(non_snake_case)]\n#[derive(Debug, Clone, Default)]\npub struct {} {{\n", d.name));
             for field in &d.fields {
-                let ty = match field.datatype.as_str() {
-                    "Texto" => "String",
-                    "Numero" => "i32",
-                    "Booleano" => "bool",
-                    _ => &field.datatype,
-                };
-                output.push_str(&format!("    pub {}: {},\n", field.name, ty));
+                output.push_str(&format!("    pub {}: {},\n", field.name, rust_type(&field.datatype)));
             }
             output.push_str("}\n\n");
         }
@@ -428,10 +448,23 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
             output.push_str(&format!("            Contexto::{} => {{\n", ctx.name));
             output.push_str("                match event {\n");
             for trans in &ctx.transitions {
-                if trans.target == "[stay]" {
-                    output.push_str(&format!("                    \"{}\" => {{}},\n", trans.event));
-                } else {
-                    output.push_str(&format!("                    \"{}\" => self.state = Contexto::{},\n", trans.event, trans.target));
+                match trans.target.as_str() {
+                    "[stay]" => {
+                        output.push_str(&format!("                    \"{}\" => {{}},\n", trans.event));
+                    },
+                    "[close_overlay]" => {
+                        output.push_str(&format!("                    \"{}\" => self.state = Contexto::{},\n", trans.event, initial_state));
+                    },
+                    "[deactivate]" => {
+                        if use_threads {
+                            output.push_str(&format!("                    \"{}\" => {{ let _ = self.concurrent_txs.get(&Contexto::{}).map(|tx| tx.send(\"TERMINATE\".to_string())); }},\n", trans.event, ctx.name));
+                        } else {
+                            output.push_str(&format!("                    \"{}\" => {{ self.concurrent_states.remove(&Contexto::{}); }},\n", trans.event, ctx.name));
+                        }
+                    },
+                    target => {
+                        output.push_str(&format!("                    \"{}\" => self.state = Contexto::{},\n", trans.event, target));
+                    }
                 }
             }
             output.push_str("                    _ => {},\n");
@@ -781,6 +814,167 @@ fn generate_fills_tests(program: &Program, meta: &SystemMetadata, out: &mut Stri
     }
 }
 
+
+pub fn generate_rust_wasm(program: &Program) -> String {
+    let mut output = String::new();
+
+    output.push_str("// Auto-generated by Trenza DSL Compiler (Strand 1 - WASM)\n");
+    output.push_str("// Compila con: wasm-pack build (requiere wasm-bindgen en Cargo.toml)\n");
+    output.push_str("// Los efectos NO se invocan desde Rust; JS observa cambios de estado\n");
+    output.push_str("// via el valor de retorno de dispatch().\n\n");
+    output.push_str("#![allow(non_snake_case, dead_code)]\n");
+    output.push_str("use wasm_bindgen::prelude::*;\n\n");
+
+    let mut contexts: Vec<String> = Vec::new();
+    let mut initial_state = "Unknown".to_string();
+    let mut concurrent_contexts: Vec<String> = Vec::new();
+
+    for def in &program.definitions {
+        if let Definition::Context(c) = def {
+            contexts.push(c.name.clone());
+        }
+        if let Definition::System(sys) = def {
+            initial_state = sys.initial.clone();
+            for sec in &sys.sections {
+                if let SystemSection::Concurrent(ctxs) = sec {
+                    concurrent_contexts = ctxs.clone();
+                }
+            }
+        }
+    }
+
+    // 1. Context enum (private — JS only sees strings via name())
+    output.push_str("#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]\n");
+    output.push_str("enum Contexto {\n");
+    for ctx in &contexts {
+        output.push_str(&format!("    {},\n", ctx));
+    }
+    output.push_str("}\n\n");
+
+    output.push_str("impl Contexto {\n");
+    output.push_str("    fn name(&self) -> &'static str {\n");
+    output.push_str("        match self {\n");
+    for ctx in &contexts {
+        output.push_str(&format!("            Contexto::{c} => \"{c}\",\n", c = ctx));
+    }
+    output.push_str("        }\n    }\n}\n\n");
+
+    // 2. Data structs (properly typed, not exported to JS)
+    for def in &program.definitions {
+        if let Definition::Data(d) = def {
+            output.push_str(&format!("#[allow(non_snake_case)]\nstruct {} {{\n", d.name));
+            for field in &d.fields {
+                output.push_str(&format!("    {}: {},\n", field.name, rust_type(&field.datatype)));
+            }
+            output.push_str("}\n\n");
+        }
+    }
+
+    // 3. Internal System (pure state machine, no Effects, no lifetime)
+    let has_concurrent = !concurrent_contexts.is_empty();
+    output.push_str("struct System {\n");
+    output.push_str("    state: Contexto,\n");
+    if has_concurrent {
+        output.push_str("    concurrent_states: std::collections::HashSet<Contexto>,\n");
+    }
+    output.push_str("}\n\n");
+
+    output.push_str("impl System {\n");
+    output.push_str("    fn new() -> Self {\n");
+    if has_concurrent {
+        output.push_str("        let mut concurrent_states = std::collections::HashSet::new();\n");
+        for cctx in &concurrent_contexts {
+            output.push_str(&format!("        concurrent_states.insert(Contexto::{});\n", cctx));
+        }
+        output.push_str(&format!("        Self {{ state: Contexto::{}, concurrent_states }}\n", initial_state));
+    } else {
+        output.push_str(&format!("        Self {{ state: Contexto::{} }}\n", initial_state));
+    }
+    output.push_str("    }\n\n");
+
+    output.push_str("    fn handle_event(&mut self, event: &str) {\n");
+    output.push_str("        match self.state {\n");
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            if concurrent_contexts.contains(&ctx.name) { continue; }
+            output.push_str(&format!("            Contexto::{} => match event {{\n", ctx.name));
+            for trans in &ctx.transitions {
+                match trans.target.as_str() {
+                    "[stay]" => {
+                        output.push_str(&format!("                \"{}\" => {{}},\n", trans.event));
+                    },
+                    "[close_overlay]" => {
+                        output.push_str(&format!("                \"{}\" => self.state = Contexto::{},\n", trans.event, initial_state));
+                    },
+                    "[deactivate]" => {
+                        if has_concurrent {
+                            output.push_str(&format!("                \"{}\" => {{ self.concurrent_states.remove(&Contexto::{}); }},\n", trans.event, ctx.name));
+                        } else {
+                            output.push_str(&format!("                \"{}\" => {{}}, // [deactivate] no-op\n", trans.event));
+                        }
+                    },
+                    target => {
+                        output.push_str(&format!("                \"{}\" => self.state = Contexto::{},\n", trans.event, target));
+                    }
+                }
+            }
+            output.push_str("                _ => {},\n");
+            output.push_str("            },\n");
+        }
+    }
+    // Concurrent contexts as exhaustiveness arms (state should never be these)
+    for cctx in &concurrent_contexts {
+        output.push_str(&format!("            Contexto::{} => {{}},\n", cctx));
+    }
+    output.push_str("        }\n");
+    output.push_str("    }\n");
+    output.push_str("}\n\n");
+
+    // 4. WasmSystem: the public WASM-exported API
+    output.push_str("/// Sistema de estados Trenza exportado a WebAssembly.\n");
+    output.push_str("/// ```js\n");
+    output.push_str("/// const sys = new WasmSystem();\n");
+    output.push_str("/// const newState = sys.dispatch('NOMBRE_EVENTO'); // → 'ModoNormal'\n");
+    output.push_str("/// ```\n");
+    output.push_str("#[wasm_bindgen]\n");
+    output.push_str("pub struct WasmSystem {\n");
+    output.push_str("    inner: System,\n");
+    output.push_str("}\n\n");
+
+    output.push_str("#[wasm_bindgen]\n");
+    output.push_str("impl WasmSystem {\n");
+    output.push_str("    /// Crea el sistema en el estado inicial definido en la spec.\n");
+    output.push_str("    #[wasm_bindgen(constructor)]\n");
+    output.push_str("    pub fn new() -> WasmSystem {\n");
+    output.push_str("        WasmSystem { inner: System::new() }\n");
+    output.push_str("    }\n\n");
+
+    output.push_str("    /// Despacha un evento. Retorna el nombre del nuevo estado secuencial.\n");
+    output.push_str("    pub fn dispatch(&mut self, event: &str) -> String {\n");
+    output.push_str("        self.inner.handle_event(event);\n");
+    output.push_str("        self.inner.state.name().to_string()\n");
+    output.push_str("    }\n\n");
+
+    output.push_str("    /// Estado secuencial actual como string.\n");
+    output.push_str("    pub fn current_state(&self) -> String {\n");
+    output.push_str("        self.inner.state.name().to_string()\n");
+    output.push_str("    }\n\n");
+
+    if has_concurrent {
+        output.push_str("    /// Nombres de contextos concurrentes activos, separados por comas.\n");
+        output.push_str("    /// En JS: sys.concurrent_state_names().split(',').filter(Boolean)\n");
+        output.push_str("    pub fn concurrent_state_names(&self) -> String {\n");
+        output.push_str("        let mut names: Vec<&str> = self.inner.concurrent_states\n");
+        output.push_str("            .iter().map(|c| c.name()).collect();\n");
+        output.push_str("        names.sort();\n");
+        output.push_str("        names.join(\",\")\n");
+        output.push_str("    }\n");
+    }
+
+    output.push_str("}\n");
+
+    output
+}
 
 pub fn generate_mermaid_topology(program: &Program) -> String {
     let mut output = String::new();

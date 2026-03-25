@@ -1,0 +1,47 @@
+stateDiagram-v2
+
+    MenuConfiguracion --> ModalCrearActividad : abrirCrearActividad
+    MenuConfiguracion --> ModalHistorial : abrirHistorial
+    MenuConfiguracion --> ModalAcercaDe : abrirAcercaDe
+    MenuConfiguracion --> ModalReset : abrirReset
+    MenuConfiguracion --> close_overlay : cerrar
+    ModalAcercaDe --> close_overlay : cerrar
+    ModalComentario --> close_overlay : confirmarInicio
+    ModalComentario --> close_overlay : cancelar
+    ModalCrearActividad --> close_overlay : guardarNuevaActividad
+    ModalCrearActividad --> close_overlay : cancelar
+    ModalCrearTarea --> close_overlay : guardarNuevaTarea
+    ModalCrearTarea --> close_overlay : cancelar
+    ModalEditarActividad --> close_overlay : guardarEdicionActividad
+    ModalEditarActividad --> close_overlay : cancelar
+    ModalEditarTarea --> close_overlay : guardarEdicion
+    ModalEditarTarea --> close_overlay : cancelar
+    ModalHistorial --> Historial7Dias : iniciar
+    ModalHistorial --> close_overlay : cerrar
+    Historial7Dias --> Historial30Dias : cambiarA30Dias
+    Historial7Dias --> ModalHistorial : cerrar
+    Historial30Dias --> Historial7Dias : cambiarA7Dias
+    Historial30Dias --> ModalHistorial : cerrar
+    ModalReset --> ResetFase1 : iniciar
+    ModalReset --> close_overlay : cerrar
+    ResetFase1 --> ResetFase2 : avanzarAFase2
+    ResetFase1 --> ModalReset : cerrar
+    ResetFase2 --> ResetFase3 : avanzarAFase3
+    ResetFase2 --> ResetFase1 : retrocederAFase1
+    ResetFase3 --> close_overlay : ejecutarReset
+    ResetFase3 --> ResetFase2 : retrocederAFase2
+    ModalSeleccionActividad --> ModalComentario : elegirActividad
+    ModalSeleccionActividad --> close_overlay : cancelar
+    ModoEdicion --> ModoNormal : desactivarEdicion
+    ModoEdicion --> ModalEditarTarea : abrirEditarTarea
+    ModoEdicion --> ModalEditarActividad : abrirEditarActividad
+    ModoEdicion --> ModalCrearTarea : abrirCrearTarea
+    ModoEdicion --> MenuConfiguracion : abrirMenuConfiguracion
+    ModoNormal --> ModoEdicion : activarEdicion
+    ModoNormal --> ModalCrearTarea : abrirCrearTarea
+    ModoNormal --> MenuConfiguracion : abrirMenuConfiguracion
+    ModoNormal --> SesionActiva : iniciarTarea
+    ModoNormal --> ModalComentario : seleccionarTipoTarea
+    ModoNormal --> ModalSeleccionActividad : elegirActividad
+    SesionActiva --> deactivate : sesionFinalizada
+    [*] --> ModoNormal

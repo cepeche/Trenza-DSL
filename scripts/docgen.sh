@@ -28,6 +28,7 @@ fi
 
 CRONOMETRO_SRC="spec/reference/cronometro-psp/trenza"
 CRONOMETRO_OUT="spec/reference/cronometro-psp/generated"
+CRONOMETRO_WASM_OUT="spec/reference/cronometro-psp/generated/wasm"
 
 CLI_SRC="spec/reference/trenza-cli.trz"
 CLI_OUT="spec/reference/trenza-cli/generated"
@@ -71,6 +72,12 @@ echo "=== [2/5] Generando CronometroPSP (TypeScript) ==="
 run_step "CronometroPSP -> TS" \
     ./$CLI_BIN generate --lang=ts --out-dir="$CRONOMETRO_OUT" "$CRONOMETRO_SRC"
 
+echo "=== [2/5] Generando CronometroPSP (WASM/Rust) ==="
+mkdir -p "$CRONOMETRO_WASM_OUT"
+run_step "CronometroPSP -> WASM" \
+    ./$CLI_BIN generate --lang=wasm --out-dir="$CRONOMETRO_WASM_OUT" "$CRONOMETRO_SRC"
+# Nota: la compilación completa a .wasm requiere wasm-pack (ver scripts/build-wasm.sh)
+
 # --- 3. Generar artefactos CLI_Trenza ----------------------------------------
 
 echo "=== [3/5] Generando CLI_Trenza (Rust) ==="
@@ -103,7 +110,7 @@ else
         fi
 
         echo "  tsc --noEmit --strict $ts_file"
-        if npx tsc --noEmit --strict --target ES2020 --moduleResolution node "$ts_file" ; then
+        if npx tsc --noEmit --strict --target ES2020 --moduleResolution bundler "$ts_file" ; then
             step_ok "tsc $ts_file"
         else
             step_fail "tsc $ts_file"
