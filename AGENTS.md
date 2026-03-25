@@ -14,7 +14,7 @@ En caso de contradicciones, el agente debe seguir este orden:
 ## 1. Fase 0: Inicialización (Sincronización)
 
 Al iniciar una sesión, el agente **DEBE**:
-1. **Sincronización Crítica**: Leer las entradas en `history/chronicle/` publicadas desde su último cierre de sesión (identificado por su código de autor en el nombre del fichero, ver sección 3) y los documentos de nivel 2 y 3 de la jerarquía.
+1. **Sincronización Crítica**: Leer los documentos de nivel 2 y 3 de la jerarquía. A continuación, leer las entradas en `history/chronicle/` publicadas desde su último cierre de sesión (identificado por su código de autor en el nombre del fichero, ver sección 3).
 2. **Comprobar locks activos**: Verificar si existe un fichero `LOCK.md` en `history/chronicle/` y asegurar que no hay conflictos con el área de trabajo planeada (ver sección 5).
 3. **Contexto On-Demand**: Cargar archivos técnicos (`src/`, `spec/`, `docs/`) solo según lo requiera la tarea específica.
 
@@ -71,11 +71,13 @@ fichero de lock en `history/chronicle/LOCK.md` para evitar colisiones.
    Opciones: (a) trabajar en un área distinta, (b) coordinarse vía **briefing
    de interrupción** en la crónica, o (c) escalar al humano.
 3. **Eliminar lock al cerrar**: Al completar la Fase 2 (cierre de sesión),
-   el agente elimina su fila de `LOCK.md`. Si era la última fila, identifica
+   el agente elimina su fila de `LOCK.md`. Si era la última fila, elimina
    el fichero entero.
 4. **Locks huérfanos**: Un lock sin actividad de commit durante más de 24h
-   se considera huérfano. Cualquier agente puede eliminarlo, pero debe
-   registrar la eliminación en la crónica y notificar al humano.
+   se considera huérfano. Cualquier agente que detecte un lock huérfano debe
+   notificar al humano y abstenerse de realizar modificaciones en el proyecto
+   hasta recibir la orden de eliminación. Tras ejecutar la orden recibida,
+   registrar la eliminación en la crónica.
 5. **Granularidad y Jerarquía**: Reservar el área mínima necesaria. `trenza-cli/src/generator.rs`
    es mejor que `trenza-cli/`. Tareas globales deben bloquear el nodo raíz (`/`)
    o el directorio común afectado. Bloquear directorios implica bloquear todos
