@@ -1,5 +1,6 @@
 import init, { InterpreterWasm } from './wasm/trenza_core.js';
-import { TrenzaSystem, Contexto } from './CronometroPSP_out';
+import { TrenzaSystem } from './CronometroPSP_out';
+import cronometroDsl from './cronometro_full.trz?raw';
 
 const log = (msg: string) => {
   const logEl = document.getElementById('log');
@@ -30,8 +31,9 @@ async function run() {
     // El resto de los 183 efectos pueden quedar como no-ops para este demo
   } as any;
 
-  // 2. Instanciar Sistema
-  const interpreter = new InterpreterWasm();
+  // 2. Instanciar Sistema (Pasando el DSL consolidado)
+  log("Cargando especificación Cronómetro-PSP...");
+  const interpreter = new InterpreterWasm(cronometroDsl);
   const system = new TrenzaSystem(interpreter, effects);
 
   log("Sistema Trenza Ready.");
