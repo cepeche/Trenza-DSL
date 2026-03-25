@@ -1,0 +1,1538 @@
+﻿-- data.trz â€” Capa de datos del CronometroPSP
+
+-- Solo estructura. Cero comportamiento.
+
+-- Convertido de data.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+
+
+-- Dominio principal
+
+
+
+data TipoTarea:
+
+    tipoId: Id
+
+    nombre: Texto
+
+    icono: Texto
+
+    mutable usos7d: Entero
+
+    mutable actividades_permitidas: Lista<Id>
+
+
+
+data Tarea:
+
+    tareaId: Id           -- compuesto: "{tipoId}_{actividadId}"
+
+    tipoId: Id
+
+    actividadId: Id
+
+    nombre: Texto
+
+    icono: Texto
+
+
+
+data Actividad:
+
+    id: Id
+
+    nombre: Texto
+
+    color: Color
+
+    permanente: Booleano
+
+
+
+data Sesion:
+
+    sesionId: Id
+
+    tareaId: Id
+
+    inicio: Timestamp
+
+    notas: Texto?          -- opcional: puede no haber comentario
+
+
+
+-- Datos de UI (elementos interactivos como roles)
+
+
+
+data CampoTexto:
+
+    id: Id
+
+    valor: Texto
+
+    valido: Booleano
+
+
+
+data CampoNumerico:
+
+    id: Id
+
+    valor: Entero
+
+    minimo: Entero
+
+
+
+data Boton:
+
+    id: Id
+
+    etiqueta: Texto
+
+    mutable habilitado: Booleano
+
+
+
+data Checkbox:
+
+    id: Id
+
+    etiqueta: Texto
+
+    mutable marcado: Booleano
+
+
+
+data SelectorColor:
+
+    id: Id
+
+    opciones: Lista<Color>
+
+    mutable seleccionado: Color
+
+
+
+data SelectorIcono:
+
+    id: Id
+
+    iconos: Lista<Texto>
+
+    mutable seleccionado: Texto
+
+    mutable filtro: Texto
+
+
+
+data Pestana:
+
+    id: Id
+
+    etiqueta: Texto
+
+
+
+data ItemMenu:
+
+    id: Id
+
+    etiqueta: Texto
+
+
+
+-- Datos del historial
+
+
+
+data DiaHistorial:
+
+    timestamp: Timestamp
+
+    total: Entero           -- segundos totales
+
+    por_actividad: Lista<ResumenActividad>
+
+
+
+data ResumenActividad:
+
+    actividadId: Id
+
+    actividadNombre: Texto
+
+    actividadColor: Color
+
+    tiempo: Entero          -- segundos
+
+
+
+-- Datos del proceso de reset (3 fases)
+
+
+
+data OpcionActividad:
+
+    id: Id
+
+    nombre: Texto
+
+    color: Color
+
+    permanente: Booleano
+
+    conservar: Booleano     -- checkbox en fase 2
+
+    mutable marcado: Booleano  -- estado UI del checkbox (transient)
+-- system.trz â€” DeclaraciÃ³n del sistema CronometroPSP
+
+-- Convertido de system.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+
+
+-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+-- NOTA DE DISEÃ‘O: Este archivo revela tres tipos de contexto
+
+-- que el DSL actual no distingue sintÃ¡cticamente:
+
+--
+
+--   (1) Contextos BASE: mutuamente excluyentes. En cada momento
+
+--       exactamente uno estÃ¡ activo. Son el "modo" del sistema.
+
+--
+
+--   (2) Contextos CONCURRENTES: coexisten con el contexto base.
+
+--       AÃ±aden comportamiento sin reemplazarlo.
+
+--       Ejemplo: SesionActiva aÃ±ade el timer y la lÃ³gica de
+
+--       sustituciÃ³n, sin importar si estamos en ModoNormal o
+
+--       ModoEdicion.
+
+--
+
+--   (3) Contextos OVERLAY (modal): se apilan sobre el contexto
+
+--       base. Bloquean la interacciÃ³n con Ã©l. Cuando terminan,
+
+--       el sistema vuelve al contexto base que habÃ­a debajo.
+
+--       Ejemplo: ModalComentario se abre desde ModoNormal, pero
+
+--       ModoNormal sigue "ahÃ­" esperando.
+
+--
+
+-- El diseÃ±o actual solo prevÃ© la composiciÃ³n con prioridad entre
+
+-- contextos iguales. PROPUESTA: los tres tipos necesitan
+
+-- sintaxis explÃ­cita (ver ANALISIS_GAPS.md, GAP-2, GAP-3).
+
+-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+
+
+system CronometroPSP:
+
+    initial: ModoNormal
+
+
+
+    -- (1) Contextos base â€” mutuamente excluyentes (exactamente uno activo)
+
+    contexts:
+
+        ModoEdicion
+
+        ModoNormal          -- base por defecto
+
+
+
+    -- (2) Contextos concurrentes â€” coexisten ortogonalmente con el base
+
+    concurrent:
+
+        SesionActiva        -- activo cuando hay sesiÃ³n en curso
+
+
+
+    -- (3) Contextos overlay â€” apilables, suspenden la interacciÃ³n con el base
+
+    overlays:
+
+        MenuConfiguracion
+
+        ModalComentario
+
+        ModalSeleccionActividad
+
+        ModalCrearTarea
+
+        ModalEditarTarea
+
+        ModalEditarActividad
+
+        ModalCrearActividad
+
+        ModalHistorial
+
+        ModalReset
+
+        ModalAcercaDe
+-- contexts/MenuConfiguracion.trz
+
+-- Overlay: menÃº desplegable del botÃ³n de configuraciÃ³n.
+
+-- Se cierra al hacer tap fuera de Ã©l.
+
+-- Accesible desde ModoNormal y ModoEdicion.
+
+-- Convertido de MenuConfiguracion.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+
+
+context MenuConfiguracion:
+    role *: ignored
+
+
+
+
+    role item_nueva_actividad: ItemMenu
+
+        on tap -> abrirCrearActividad
+
+
+
+    role item_historial: ItemMenu
+
+        on tap -> abrirHistorial
+
+
+
+    role item_acerca_de: ItemMenu
+
+        on tap -> abrirAcercaDe
+
+
+
+    role item_reset: ItemMenu
+
+        on tap -> abrirReset
+
+
+
+    role overlay: Boton                  -- tap fuera del menÃº lo cierra
+
+        on tap -> cerrar
+
+
+
+    transitions:
+
+        on abrirCrearActividad -> ModalCrearActividad
+
+        on abrirHistorial      -> ModalHistorial
+
+        on abrirAcercaDe       -> ModalAcercaDe
+
+        on abrirReset          -> ModalReset
+
+        on cerrar              -> [close_overlay]
+
+
+
+    -- PROPUESTA GAP-2 (detalle): cuando un Ã­tem del menÃº abre otro overlay,
+
+    -- Â¿el menÃº se cierra primero o el nuevo overlay se apila sobre Ã©l?
+
+    -- En app.js: el menÃº se cierra y el modal se abre (no se apilan).
+
+    -- El modelo de pila necesita soporte para "cerrar y abrir" en una transiciÃ³n.
+-- contexts/ModalAcercaDe.trz
+
+-- Overlay: informaciÃ³n sobre la aplicaciÃ³n y estado de conexiÃ³n.
+
+-- Es el contexto mÃ¡s simple: solo lectura, un botÃ³n de cierre.
+
+-- Convertido de ModalAcercaDe.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+
+
+context ModalAcercaDe:
+    role *: ignored
+
+
+
+
+    role boton_cerrar: Boton
+
+        on tap -> cerrar
+
+
+
+    transitions:
+
+        on cerrar -> [close_overlay]
+
+
+
+    effects:
+
+        -- PROPUESTA GAP-7: efectos de ciclo de vida
+
+        [on_entry] -> verificar_conexion()
+
+        [on_entry] -> cargar_tiempo_acumulado()
+-- contexts/ModalComentario.trz
+
+-- Overlay: se muestra antes de iniciar una sesiÃ³n.
+
+-- El usuario puede aÃ±adir comentario, indicar minutos retroactivos,
+
+-- y (si hay SesionActiva) optar por sustituir la sesiÃ³n en curso.
+
+-- Convertido de ModalComentario.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+--
+
+-- PROPUESTA GAP-1: este contexto necesita recibir el tipoTareaId
+
+-- (y opcionalmente tareaId) del contexto que lo abre.
+
+-- En app.js esto se resuelve con AppState.tareaIdPendiente â€”
+
+-- exactamente el estado implÃ­cito que Trenza quiere eliminar.
+
+--
+
+-- Sintaxis propuesta para parÃ¡metros de entrada:
+
+--   context ModalComentario:
+
+
+--       input: tipoTareaId: Id, tareaId: Id?
+context ModalComentario:
+    role *: ignored
+
+
+
+
+    -- PROPUESTA GAP-1: declarar parÃ¡metros de entrada del overlay
+
+    -- input:
+
+    --     tipoTareaId: Id
+
+    --     tareaId: Id?      -- opcional: si ya se eligiÃ³ actividad
+
+
+
+    role campo_comentario: CampoTexto
+
+        on cambio -> actualizarComentario(self.valor)
+
+
+
+    role campo_retroactivo: CampoNumerico
+
+        on cambio -> actualizarRetroactivo(self.valor)
+
+
+
+    -- Este botÃ³n siempre existe
+
+    role boton_confirmar: Boton
+
+        on tap -> confirmarInicio
+
+
+
+    role boton_cancelar: Boton
+
+        on tap -> cancelar
+
+
+
+    -- GAP-4: Punto de extensiÃ³n para opciones dinÃ¡micas de sesiÃ³n
+
+    slot sesion_opts
+
+
+
+    -- PROPUESTA GAP-5: transiciÃ³n condicional basada en validaciÃ³n.
+
+    -- confirmarInicio solo debe proceder si el estado del modal es vÃ¡lido
+
+    -- (en este caso siempre es vÃ¡lido; no hay campo obligatorio vacÃ­o).
+
+    -- Pero en ModalCrearTarea y ModalEditarTarea SÃ hay validaciÃ³n.
+
+
+
+    transitions:
+
+        on confirmarInicio -> [close_overlay]   -- PROPUESTA GAP-2: cerrar overlay
+
+                                                  -- y volver al contexto base
+
+        on cancelar        -> [close_overlay]
+
+
+
+    effects:
+
+        confirmarInicio -> iniciar_sesion(tipoTareaId, comentario, retroactivo, sustituir)
+
+        -- Nota: 'sustituir' viene del checkbox_sustituir de SesionActiva,
+
+        -- que puede no estar presente si no hay sesiÃ³n activa.
+
+        -- Default: sustituir = false
+-- contexts/ModalCrearActividad.trz
+
+-- Overlay: creaciÃ³n de nueva Actividad.
+
+-- Accesible desde MenuConfiguracion.
+
+-- Convertido de ModalCrearActividad.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+
+
+context ModalCrearActividad:
+    role *: ignored
+
+
+
+
+    role campo_nombre: CampoTexto
+
+        on cambio -> actualizarNombreNuevaActividad(self.valor)
+
+
+
+    role selector_color: SelectorColor
+
+        on seleccion -> seleccionarColorNuevo(self.seleccionado)
+
+
+
+    role checkbox_permanente: Checkbox
+
+        on cambio -> marcarPermanenteNueva(self.marcado)
+
+
+
+    role boton_guardar: Boton
+
+        on tap -> guardarNuevaActividad
+
+
+
+    role boton_cancelar: Boton
+
+        on tap -> cancelar
+
+
+
+    -- PROPUESTA GAP-5: guardarNuevaActividad condicional
+
+    -- (campo_nombre no vacÃ­o)
+
+
+
+    transitions:
+
+        on guardarNuevaActividad -> [close_overlay]
+
+        on cancelar              -> [close_overlay]
+
+
+
+    effects:
+
+        guardarNuevaActividad -> crear_actividad(nombre, color, permanente)
+-- contexts/ModalCrearTarea.trz
+
+-- Overlay: creaciÃ³n de nuevo TipoTarea.
+
+-- Accesible desde ModoNormal y ModoEdicion (botÃ³n +).
+
+-- Convertido de ModalCrearTarea.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+
+
+context ModalCrearTarea:
+    role *: ignored
+
+
+
+
+    role campo_nombre: CampoTexto
+
+        on cambio -> actualizarNuevoNombre(self.valor)
+
+
+
+    role campo_busqueda_icono: CampoTexto
+
+        on cambio -> filtrarIconosCrear(self.valor)
+
+
+
+    role selector_icono: SelectorIcono
+
+        on seleccion -> seleccionarIconoNuevo(self.seleccionado)
+
+
+
+    -- PROPUESTA GAP-6: checkboxes de actividades son dinÃ¡micos.
+
+    -- Uno por actividad existente en el sistema.
+
+    -- role checkbox_actividad[]: Actividad
+
+    --     on cambio -> toggleActividadPermitida(self.id, self.marcado)
+
+    role checkbox_actividad: OpcionActividad
+
+        on cambio -> toggleActividadPermitida(self.id, self.marcado)
+
+
+
+    role boton_guardar: Boton
+
+        on tap -> guardarNuevaTarea
+
+
+
+    role boton_cancelar: Boton
+
+        on tap -> cancelar
+
+
+
+    -- PROPUESTA GAP-5: guardarNuevaTarea condicional
+
+    -- (campo_nombre no vacÃ­o Y al menos una actividad seleccionada)
+
+
+
+    transitions:
+
+        on guardarNuevaTarea -> [close_overlay]
+
+        on cancelar          -> [close_overlay]
+
+
+
+    effects:
+
+        guardarNuevaTarea -> crear_tipo_tarea(nombre, icono, actividades_seleccionadas)
+-- contexts/ModalEditarActividad.trz
+
+-- Overlay: ediciÃ³n de nombre, color y flag permanente de una Actividad.
+
+-- Se abre desde ModoEdicion (tap en pestaÃ±a de actividad).
+
+-- Convertido de ModalEditarActividad.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+--
+
+-- PROPUESTA GAP-1: necesita recibir el actividadId para cargar datos actuales.
+
+
+
+context ModalEditarActividad:
+    role *: ignored
+
+
+
+
+    -- PROPUESTA GAP-1:
+
+    -- input:
+
+    --     actividadId: Id
+
+
+
+    role campo_nombre: CampoTexto
+
+        on cambio -> actualizarNombreActividad(self.valor)
+
+
+
+    role selector_color: SelectorColor
+
+        on seleccion -> seleccionarColor(self.seleccionado)
+
+
+
+    role checkbox_permanente: Checkbox
+
+        on cambio -> marcarPermanente(self.marcado)
+
+
+
+    role boton_guardar: Boton
+
+        on tap -> guardarEdicionActividad
+
+
+
+    role boton_cancelar: Boton
+
+        on tap -> cancelar
+
+
+
+    -- PROPUESTA GAP-5: guardarEdicionActividad condicional
+
+    -- (campo_nombre no vacÃ­o)
+
+
+
+    transitions:
+
+        on guardarEdicionActividad -> [close_overlay]
+
+        on cancelar                -> [close_overlay]
+
+
+
+    effects:
+
+        guardarEdicionActividad -> actualizar_actividad(actividadId, nombre, color, permanente)
+-- contexts/ModalEditarTarea.trz
+
+-- Overlay: ediciÃ³n de nombre e icono de un TipoTarea existente.
+
+-- Se abre desde ModoEdicion (tap en tarjeta).
+
+-- Convertido de ModalEditarTarea.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+--
+
+-- PROPUESTA GAP-1: necesita recibir el tipoTareaId para
+
+-- cargar los datos actuales del tipo de tarea.
+
+
+
+context ModalEditarTarea:
+    role *: ignored
+
+
+
+
+    -- PROPUESTA GAP-1:
+
+    -- input:
+
+    --     tipoTareaId: Id
+
+
+
+    role campo_nombre: CampoTexto
+
+        on cambio -> actualizarNombre(self.valor)
+
+
+
+    role campo_busqueda_icono: CampoTexto
+
+        on cambio -> filtrarIconos(self.valor)
+
+
+
+    role selector_icono: SelectorIcono
+
+        on seleccion -> seleccionarIcono(self.seleccionado)
+
+
+
+    role boton_guardar: Boton
+
+        on tap -> guardarEdicion
+
+
+
+    role boton_cancelar: Boton
+
+        on tap -> cancelar
+
+
+
+    -- PROPUESTA GAP-5: transiciÃ³n condicional.
+
+    -- guardarEdicion solo debe proceder si campo_nombre.valor no estÃ¡ vacÃ­o.
+
+    -- Sintaxis propuesta:
+
+    --   on guardarEdicion si campo_nombre.valido -> [close_overlay]
+
+    --   on guardarEdicion si not campo_nombre.valido -> mostrarErrorNombre
+
+
+
+    transitions:
+
+        on guardarEdicion -> [close_overlay]    -- vuelve a ModoEdicion
+
+        on cancelar       -> [close_overlay]
+
+
+
+    effects:
+
+        guardarEdicion -> editar_tipo_tarea(tipoTareaId, nombre, icono)
+-- contexts/ModalHistorial.trz
+
+-- Overlay: visualizaciÃ³n del historial de sesiones.
+
+-- Tiene dos sub-estados: vista de 7 dÃ­as y vista de 30 dÃ­as.
+
+-- Convertido de ModalHistorial.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+--
+
+-- CONFORMIDAD H1â€“H5 (12 marzo 2026):
+
+-- - H1: Historial7Dias y Historial30Dias heredan boton_cerrar del padre.
+
+-- - H2: boton_7dias y boton_30dias son roles locales de cada sub-contexto.
+
+-- - H3: completitud aplica por nivel â€” los roles locales de un hermano
+
+--        no obligan al otro (aunque aquÃ­ ambos declaran los mismos roles).
+
+-- - H4: ningÃºn sub-contexto sobrescribe handlers heredados.
+
+-- - H5: ningÃºn sub-contexto aÃ±ade eventos nuevos a roles heredados.
+
+
+
+context ModalHistorial:
+    role *: ignored
+
+
+
+
+    role boton_cerrar: Boton
+
+        on tap -> cerrar
+
+
+
+    transitions:
+        on iniciar -> Historial7Dias
+        on cerrar -> [close_overlay]
+
+
+
+    -- Sub-contexto: vista de 7 dÃ­as (activo por defecto)
+context Historial7Dias:
+    role *: ignored
+
+
+
+
+        role boton_7dias: Boton
+
+            on tap -> ignored              -- ya estamos en 7 dÃ­as, no hace nada
+
+
+
+        role boton_30dias: Boton
+
+            on tap -> cambiarA30Dias
+
+
+
+        transitions:
+
+            on cambiarA30Dias -> Historial30Dias
+
+            on cerrar         -> ModalHistorial  -- sube al padre, que cierra el overlay
+
+
+
+        effects:
+
+            -- PROPUESTA GAP-7: al entrar en este sub-contexto, cargar datos
+
+            [on_entry] -> cargar_historial(dias: 7)
+
+
+
+    -- Sub-contexto: vista de 30 dÃ­as
+context Historial30Dias:
+    role *: ignored
+
+
+
+
+        role boton_7dias: Boton
+
+            on tap -> cambiarA7Dias
+
+
+
+        role boton_30dias: Boton
+
+            on tap -> ignored              -- ya estamos en 30 dÃ­as
+
+
+
+        transitions:
+
+            on cambiarA7Dias -> Historial7Dias
+
+            on cerrar        -> ModalHistorial
+
+
+
+        effects:
+
+            -- PROPUESTA GAP-7: al entrar en este sub-contexto, cargar datos
+
+            [on_entry] -> cargar_historial(dias: 30)
+-- contexts/ModalReset.trz
+
+-- Overlay: puesta a cero de datos. Proceso de 3 fases lineales.
+
+-- Convertido de ModalReset.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+--
+
+-- CONFORMIDAD H1â€“H5 (12 marzo 2026):
+
+-- - H1: las 3 fases heredan boton_cancelar del padre (con on tap -> cerrar).
+
+-- - H2: cada fase declara roles locales propios (boton_continuar, campo_confirmacion, etc.)
+
+-- - H3: completitud por niveles â€” los roles locales de una fase no obligan a otra.
+
+-- - H4: ResetFase1 RE-DECLARA boton_cancelar (misma acciÃ³n, pero es sobrescritura
+
+--        explÃ­cita conforme a la regla). El verificador emitirÃ­a una nota.
+
+-- - H5: ninguna fase aÃ±ade eventos nuevos a roles heredados del padre.
+
+
+
+context ModalReset:
+    role *: ignored
+
+
+
+
+    role boton_cancelar: Boton
+
+        on tap -> cerrar
+
+
+
+    transitions:
+        on iniciar -> ResetFase1
+        on cerrar -> [close_overlay]
+
+
+
+    -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+    -- Fase 1: aviso sobre lo que va a ocurrir
+
+    -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+context ResetFase1:
+    role *: ignored
+
+
+
+
+        -- H4: sobrescribe boton_cancelar del padre (misma acciÃ³n)
+
+        role boton_cancelar: Boton
+
+            on tap -> cerrar
+
+
+
+        role boton_continuar: Boton
+
+            on tap -> avanzarAFase2
+
+
+
+        role boton_exportar_csv: Boton
+
+            on tap -> exportarCSV              -- descarga previa opcional
+
+
+
+        transitions:
+
+            on avanzarAFase2 -> ResetFase2
+
+            on cerrar        -> ModalReset
+
+
+
+        effects:
+
+            exportarCSV -> descargar_csv()
+
+
+
+    -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+    -- Fase 2: elegir actividades a conservar
+
+    -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+context ResetFase2:
+    role *: ignored
+
+
+
+
+        -- PROPUESTA GAP-6: rol dinÃ¡mico (uno por actividad existente)
+
+        -- role checkbox_actividad[]: OpcionActividad
+
+        --     on cambio -> toggleConservar(self.id, self.marcado)
+
+        role checkbox_actividad: OpcionActividad
+
+            on cambio -> toggleConservar(self.id, self.marcado)
+
+
+
+        role boton_continuar: Boton
+
+            on tap -> avanzarAFase3
+
+
+
+        role boton_atras: Boton
+
+            on tap -> retrocederAFase1
+
+
+
+        transitions:
+
+            on avanzarAFase3   -> ResetFase3
+
+            on retrocederAFase1 -> ResetFase1
+
+
+
+    -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+    -- Fase 3: confirmaciÃ³n escribiendo "BORRAR"
+
+    -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+context ResetFase3:
+    role *: ignored
+
+
+
+
+        role campo_confirmacion: CampoTexto
+
+            on cambio -> actualizarConfirmacion(self.valor)
+
+
+
+        role boton_ejecutar: Boton
+
+            on tap -> ejecutarReset
+
+
+
+        role boton_atras: Boton
+
+            on tap -> retrocederAFase2
+
+
+
+        -- PROPUESTA GAP-5: ejecutarReset condicional.
+
+        -- Solo procede si campo_confirmacion.valor == "BORRAR".
+
+
+
+        transitions:
+
+            on ejecutarReset   -> [close_overlay]
+
+            on retrocederAFase2 -> ResetFase2
+
+
+
+        effects:
+
+            ejecutarReset -> reset_datos(actividades_conservar)
+-- contexts/ModalSeleccionActividad.trz
+
+-- Overlay: aparece cuando un TipoTarea tiene mÃ¡s de una actividad
+
+-- permitida. El usuario elige a quÃ© actividad imputar la sesiÃ³n.
+
+-- Convertido de ModalSeleccionActividad.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+--
+
+-- PROPUESTA GAP-1: necesita recibir el tipoTareaId del contexto padre.
+
+-- Los botones de actividad se generan dinÃ¡micamente a partir de
+
+-- tipoTarea.actividades_permitidas.
+
+--
+
+-- PROPUESTA GAP-6: roles dinÃ¡micos.
+
+-- El nÃºmero de botones de actividad no es fijo â€” depende de los datos.
+
+-- El DSL actual asume roles fijos declarados en el contexto.
+
+-- Â¿CÃ³mo expresar "un rol por cada elemento de una lista"?
+
+
+
+context ModalSeleccionActividad:
+    role *: ignored
+
+
+
+
+    -- PROPUESTA GAP-1:
+
+    -- input:
+
+    --     tipoTareaId: Id
+
+
+
+    -- PROPUESTA GAP-6: rol dinÃ¡mico (uno por actividad permitida)
+
+    -- role boton_actividad[]: Actividad
+
+    --     on tap -> elegirActividad(self.id)
+
+    --
+
+    -- AproximaciÃ³n con rol genÃ©rico (no expresa la multiplicidad):
+
+    role boton_actividad: Actividad
+
+        on tap -> elegirActividad(self.id)
+
+
+
+    role boton_cancelar: Boton
+
+        on tap -> cancelar
+
+
+
+    transitions:
+
+        on elegirActividad -> ModalComentario    -- pasa a comentario con actividad elegida
+
+        on cancelar        -> [close_overlay]
+
+
+
+    -- PROPUESTA GAP-1: elegirActividad necesita encadenar parÃ¡metros:
+
+    --   tipoTareaId (viene del input de este contexto)
+
+    --   actividadId (viene del tap en boton_actividad)
+
+    -- Ambos deben llegar a ModalComentario.
+-- contexts/ModoEdicion.trz
+
+-- Modo ediciÃ³n: tap en tarjeta abre modal de ediciÃ³n.
+
+-- Esta es la razÃ³n original de Trenza: los 5 condicionales
+
+-- dispersos en app.js desaparecen aquÃ­.
+
+-- Convertido de ModoEdicion.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+
+
+context ModoEdicion:
+    role *: ignored
+
+
+
+
+    role tarjeta_tipo: TipoTarea
+
+        on tap -> abrirEditarTarea(self.tipoId)
+
+
+
+    role tarjeta_tarea: Tarea
+
+        on tap -> abrirEditarTarea(self.tipoId)    -- edita el tipo, no la combinaciÃ³n
+
+
+
+    role pestana_actividad: Actividad
+
+        on tap -> abrirEditarActividad(self.id)
+
+
+
+    role pestana_frecuentes: Pestana
+
+        on tap -> ignored                          -- explÃ­cito: Frecuentes no es editable
+
+
+
+    role boton_edicion: Boton
+
+        on tap -> desactivarEdicion
+
+
+
+    role boton_nuevo: Boton
+
+        on tap -> abrirCrearTarea                  -- sigue disponible en modo ediciÃ³n
+
+
+
+    role boton_configuracion: Boton
+
+        on tap -> abrirMenuConfiguracion
+
+
+
+    transitions:
+
+        on desactivarEdicion      -> ModoNormal
+
+        on abrirEditarTarea       -> ModalEditarTarea
+
+        on abrirEditarActividad   -> ModalEditarActividad
+
+        on abrirCrearTarea        -> ModalCrearTarea
+
+        on abrirMenuConfiguracion -> MenuConfiguracion
+
+
+
+    -- NOTA: abrirEditarTarea y abrirEditarActividad necesitan
+
+    -- pasar el ID del elemento a editar al modal destino.
+
+    -- Ver GAP-1 en ANALISIS_GAPS.md.
+
+
+
+    effects:
+
+        -- No hay efectos directos en ModoEdicion.
+
+        -- Los efectos viven en los modales de ediciÃ³n.
+-- contexts/ModoNormal.trz
+
+-- El modo base: el usuario consulta y activa sesiones.
+
+-- No hay ediciÃƒÂ³n de tareas ni actividades.
+
+-- Convertido de ModoNormal.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+
+
+context ModoNormal:
+    role *: ignored
+
+
+
+
+    role tarjeta_tipo: TipoTarea
+
+        on tap -> seleccionarTipoTarea(self.tipoId)
+
+
+
+    role tarjeta_tarea: Tarea
+
+        on tap -> iniciarTarea(self.tareaId)
+
+
+
+    role pestana_actividad: Actividad
+
+        on tap -> cambiarPestana(self.id)
+
+
+
+    role pestana_frecuentes: Pestana
+
+        on tap -> cambiarPestana('frecuentes')
+
+
+
+    role boton_edicion: Boton
+
+        on tap -> activarEdicion
+
+
+
+    role boton_nuevo: Boton
+
+        on tap -> abrirCrearTarea
+
+
+
+    role boton_configuracion: Boton
+
+        on tap -> abrirMenuConfiguracion
+
+
+
+    transitions:
+
+        on activarEdicion        -> ModoEdicion
+
+        on abrirCrearTarea       -> ModalCrearTarea
+
+        on abrirMenuConfiguracion -> MenuConfiguracion
+
+
+
+        -- seleccionarTipoTarea puede ramificar:
+
+        --   si el tipo tiene exactamente 1 actividad Ã¢â€ â€™ ModalComentario
+
+        --   si tiene >1 actividades              Ã¢â€ â€™ ModalSeleccionActividad
+
+        --
+
+        -- PROPUESTA GAP-5: transiciones condicionales.
+
+        -- La condiciÃƒÂ³n depende de datos (self.actividades_permitidas.length).
+
+        -- El DSL actual no tiene sintaxis para esto.
+
+        -- Sintaxis propuesta:
+
+        --   on seleccionarTipoTarea si actividades_unicas  -> ModalComentario
+
+        --   on seleccionarTipoTarea si multiples_actividades -> ModalSeleccionActividad
+
+        on iniciarTarea          -> SesionActiva
+
+        on seleccionarTipoTarea  -> ModalComentario         -- con EXACTAMENTE 1 actividad
+
+        on elegirActividad       -> ModalSeleccionActividad  -- con >1 actividades
+
+
+
+    effects:
+
+        cambiarPestana  -> actualizarGridVisible()
+
+        iniciarTarea    -> iniciar_sesion(tarea_id, notas, minutos_retroactivos, sustituir)
+-- contexts/SesionActiva.trz
+
+-- Contexto CONCURRENTE: coexiste con ModoNormal o ModoEdicion.
+
+-- Se activa cuando hay una sesiÃ³n en curso; se desactiva cuando termina.
+
+-- Convertido de SesionActiva.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+--
+
+-- En DCI: SesionActiva es un Context que asigna comportamiento
+
+-- adicional a los roles cuando hay sesiÃ³n activa. No reemplaza
+
+-- al contexto base â€” lo enriquece.
+
+
+
+context SesionActiva:
+    role *: ignored
+
+
+
+
+    -- El timer en el header: muestra tiempo transcurrido
+
+    role display_timer: Boton          -- rol de solo lectura (Boton es aproximaciÃ³n)
+
+        on tap -> ignored              -- el timer no responde a tap
+
+
+
+    -- GAP-4: InyecciÃ³n de roles en overlays mediante slots explÃ­citos
+
+    fills ModalComentario.sesion_opts:
+
+        role checkbox_sustituir: Checkbox
+
+            on cambio -> marcarSustituir(self.marcado)
+
+
+
+    transitions:
+
+        on sesionFinalizada -> [deactivate]    -- GAP-3: syntax for deactivating
+
+                                               -- a concurrent context
+
+
+
+    effects:
+
+
+        -- El timer se actualiza cada 60s vÃ­a efecto externo
+
+        actualizarTimer -> calcular_tiempo_transcurrido(sesion_activa.inicio)
+-- external/cronometro_api.trz
+
+-- DeclaraciÃ³n de funciones externas (cÃ³digo convencional que el
+
+-- compilador Trenza NO genera, pero cuya firma sÃ­ conoce).
+
+-- El compilador genera un trait Rust que el backend debe implementar.
+
+-- Convertido de cronometro_api.trz (6 marzo 2026) a .trz (12 marzo 2026)
+
+
+
+external cronometro_api:
+
+
+
+    -- Sesiones
+
+    iniciar_sesion(
+
+        tarea_id: Id,
+
+        notas: Texto?,
+
+        minutos_retroactivos: Entero,
+
+        sustituir: Booleano
+
+    ) -> Sesion
+
+
+
+    obtener_sesion_activa() -> Sesion?
+
+
+
+    finalizar_sesion(sesion_id: Id) -> Sesion
+
+
+
+    -- Tipos de tarea
+
+    crear_tipo_tarea(
+
+        nombre: Texto,
+
+        icono: Texto,
+
+        actividades_permitidas: Lista<Id>
+
+    ) -> TipoTarea
+
+
+
+    editar_tipo_tarea(
+
+        tipo_id: Id,
+
+        nombre: Texto,
+
+        icono: Texto
+
+    ) -> TipoTarea
+
+
+
+    -- Actividades
+
+    crear_actividad(
+
+        nombre: Texto,
+
+        color: Color,
+
+        permanente: Booleano
+
+    ) -> Actividad
+
+
+
+    actualizar_actividad(
+
+        id: Id,
+
+        nombre: Texto,
+
+        color: Color,
+
+        permanente: Booleano
+
+    ) -> Actividad
+
+
+
+    -- Historial
+
+    cargar_historial(dias: Entero) -> Lista<DiaHistorial>
+
+
+
+    -- DiagnÃ³stico
+
+    verificar_conexion() -> EstadoConexion
+
+    cargar_tiempo_acumulado() -> Lista<ResumenActividad>
+
+
+
+    -- Reset
+
+    reset_datos(actividades_conservar: Lista<Id>) -> Resultado
+
+    descargar_csv() -> Resultado
+
+
+
+    -- Utilidades UI
+
+    calcular_tiempo_transcurrido(inicio: Timestamp) -> Entero
+
+    actualizar_grid_visible() -> Resultado
+
+
+
+    -- PROPUESTA GAP-8: tipos de retorno de error.
+
+    -- Las funciones externas pueden fallar (red, servidor caÃ­do, etc.).
+
+    -- El DSL actual no tiene sintaxis para declarar tipos de error
+
+    -- ni para modelar el flujo de error.
