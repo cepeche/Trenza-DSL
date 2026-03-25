@@ -87,8 +87,8 @@ async function run() {
   });
 
   document.getElementById('btn-parar')?.addEventListener('click', () => {
-    log("Evento: 'cerrar' disparado");
-    system.dispatch('cerrar');
+    log("Evento: 'terminarSesion' disparado");
+    system.dispatch('terminarSesion');
     updateUI(system.current_state);
   });
 

@@ -54,13 +54,13 @@ impl InterpreterWasm {
         }
     }
 
-    pub fn dispatch(&mut self, event: &str, payload: &str) -> JsValue {
+    pub fn dispatch(&mut self, event: &str, payload: &str) -> String {
         let res = self.inner.dispatch(event, payload);
-        serde_wasm_bindgen::to_value(&res).unwrap()
+        serde_json::to_string(&res).unwrap_or_else(|_| "{}".to_string())
     }
 
-    pub fn get_state(&self) -> JsValue {
-        serde_wasm_bindgen::to_value(&self.inner.state).unwrap()
+    pub fn get_state(&self) -> String {
+        self.inner.state.current_state.clone()
     }
 }
 
