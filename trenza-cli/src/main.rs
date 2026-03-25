@@ -1,12 +1,4 @@
-pub mod ast;
-pub mod parser;
-pub mod generator;
-pub mod validator;
-
-extern crate pest;
-#[macro_use]
-extern crate pest_derive;
-
+use trenza_core::{ast, parser, generator, validator};
 use pest::Parser;
 use std::fs;
 use std::env;
@@ -28,9 +20,6 @@ fn get_all_trz_files(dir: &Path) -> Vec<PathBuf> {
     files
 }
 
-#[derive(Parser)]
-#[grammar = "trenza.pest"]
-pub struct TrenzaParser;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

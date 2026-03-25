@@ -117,9 +117,9 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
     }
 
     output.push_str("export interface Effects {\n");
-    for (func, args) in &unique_functions {
+    for (func, _args) in &unique_functions {
         let func_safe = func.replace(".", "_");
-        let arg_list = args.iter().enumerate().map(|(i, a)| {
+        let arg_list = _args.iter().enumerate().map(|(i, _)| {
             // Type inference for effect args is not yet implemented.
             // All args use `any` until the generator can resolve field types.
             let ty = "any";
@@ -368,7 +368,7 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
     for (func, args) in &unique_functions {
         let func_safe = func.replace(".", "_");
         let arg_list = args.iter().enumerate().map(|(i, _)| format!("arg{}: &str", i)).collect::<Vec<_>>().join(", ");
-        let format_args = args.iter().enumerate().map(|(i, _)| format!("{{}}")).collect::<Vec<_>>().join(", ");
+        let format_args = args.iter().enumerate().map(|_| format!("{{}}")).collect::<Vec<_>>().join(", ");
         let format_values = args.iter().enumerate().map(|(i, _)| format!("arg{}", i)).collect::<Vec<_>>().join(", ");
         
         output.push_str(&format!("    fn {}(&self, {}) {{\n", func_safe, arg_list));

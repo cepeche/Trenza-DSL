@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "trenza-core",
+    "trenza-cli",
+]
+
+resolver = "2"

@@ -60,9 +60,9 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
                             role_spans.insert(format!("{}.{}", ctx.name, role.name), role.name_span.clone());
                         }
                     },
-                    Definition::Data(d) => {},
-                    Definition::External(e) => {},
-                    Definition::System(s) => {},
+                    Definition::Data(_) => {},
+                    Definition::External(_) => {},
+                    Definition::System(_) => {},
                 }
             }
 
