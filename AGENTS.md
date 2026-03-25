@@ -31,6 +31,13 @@ Al iniciar una sesión, el agente **DEBE**:
   - No editar manualmente el código generado (Strand 1). Arreglar el generador.
   - El código DEBE compilar y los tests (`cargo test`) DEBEN pasar antes de realizar un push.
   - No renombrar ni borrar archivos creados por otros agentes sin consenso previo en la crónica.
+- **Disciplina Git**:
+  - **PROHIBIDO** usar `git add .`, `git add -A` o `git commit -a`. Añadir siempre archivos por ruta específica.
+  - Un archivo en estado `untracked` que el agente no haya creado en su sesión actual se considera **ajeno**: no debe añadirse al índice bajo ninguna circunstancia.
+  - Antes de cada commit, ejecutar `git status` y revisar la lista de archivos staged. Si aparecen `node_modules/`, artefactos de compilación (`*_out.*`, `*.html` generado) o archivos no relacionados con la tarea, retirarlos del staging antes de continuar.
+- **Limpieza al cierre** ("quien ensucia, limpia"):
+  - Al finalizar la sesión, el agente DEBE eliminar del disco (no solo del tracking) cualquier artefacto temporal que haya generado durante su trabajo: ficheros de prueba, output de compilación suelto, directorios de build innecesarios.
+  - Los únicos artefactos que deben permanecer son: (a) código fuente committeado, (b) entradas de crónica, y (c) dependencias locales necesarias para ejecución (e.g. `node_modules/`, que debe estar en `.gitignore`).
 
 ## 3. Fase 2: Cierre de Sesión (Consolidación)
 
@@ -84,3 +91,6 @@ fichero de lock en `history/chronicle/LOCK.md` para evitar colisiones.
    sus descendientes.
 6. **Lock no implica propiedad**: El lock es un semáforo, no una cesión de
    propiedad. El humano puede revocar cualquier lock en cualquier momento.
+7. **Mantenimiento global**: Operaciones que afecten a la raíz del repositorio
+   (limpieza de `.gitignore`, reestructuración de directorios, etc.) requieren
+   lock sobre `/` y **aprobación explícita del humano** antes de ejecutarse.
