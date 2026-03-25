@@ -18,8 +18,7 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Rust build artifacts
-trenza-cli/target/
+target/
 *.pdb
 
 # Claude Code (configuración local)
