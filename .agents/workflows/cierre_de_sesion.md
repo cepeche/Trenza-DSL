@@ -6,7 +6,7 @@ Esta es la rutina que los agentes (como Antigravity y Claude) deben seguir al ce
 
 ### Pasos Obligatorios (Contrato)
 
-1. **Crónica de Sesión**: Crear una nueva entrada en `history/chronicle/YYYY-MM-DD/NN_<nombre>.md` detallando:
+1. **Crónica de Sesión**: Crear una nueva entrada en `history/chronicle/YYYY-MM-DD/NN_XX_descripcion.md` (donde `XX` es tu código de autor: `GE` para Gemini, `CL` para Claude) detallando:
    - Resumen de cambios y decisiones técnicas.
    - Estado de los artefactos (`task.md`, etc.).
    - **Briefing para el siguiente agente**: Objetivo, contexto mínimo y criterios de aceptación.
