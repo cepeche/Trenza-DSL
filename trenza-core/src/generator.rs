@@ -931,11 +931,6 @@ fn generate_fills_tests(program: &Program, meta: &SystemMetadata, out: &mut Stri
         }
     }
 }
-
-
-    output
-}
-
 pub fn generate_mermaid_topology(program: &Program) -> String {
     let mut output = String::new();
     output.push_str("stateDiagram-v2\n\n");

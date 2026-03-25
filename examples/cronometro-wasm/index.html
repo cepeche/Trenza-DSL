@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trenza DSL: Cronómetro WASM</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: #0f172a;
+        color: #f8fafc;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+      }
+      .container {
+        max-width: 600px;
+        width: 90%;
+        background: #1e293b;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        border: 1px solid #334155;
+      }
+      .display {
+        font-size: 4rem;
+        font-family: 'JetBrains Mono', monospace;
+        text-align: center;
+        margin: 1rem 0;
+        color: #38bdf8;
+      }
+      .state-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: #0ea5e9;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      button {
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        border: none;
+        background: #334155;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      button:hover:not(:disabled) {
+        background: #475569;
+      }
+      button:active:not(:disabled) {
+        transform: scale(0.95);
+      }
+      button.primary {
+        background: #0284c7;
+      }
+      button.primary:hover {
+        background: #0369a1;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .log {
+        margin-top: 2rem;
+        padding: 1rem;
+        background: #0f172a;
+        border-radius: 0.5rem;
+        font-size: 0.75rem;
+        max-height: 150px;
+        overflow-y: auto;
+        border: 1px solid #334155;
+      }
+      .log-entry {
+        margin-bottom: 0.25rem;
+        border-left: 2px solid #38bdf8;
+        padding-left: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="state" class="state-badge">Cargando...</div>
+      <div id="display" class="display">00:00:00</div>
+      
+      <div class="controls">
+        <button id="btn-iniciar" class="primary">Iniciar Tarea</button>
+        <button id="btn-parar">Parar</button>
+        <button id="btn-config">Configuración</button>
+        <button id="btn-reset">Reset</button>
+      </div>
+
+      <div id="log" class="log">
+        <div class="log-entry">Trenza Runtime Initializing...</div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
