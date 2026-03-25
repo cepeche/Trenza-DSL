@@ -1,4 +1,4 @@
-﻿-- data.trz â€” Capa de datos del CronometroPSP
+-- data.trz â€” Capa de datos del CronometroPSP
 
 -- Solo estructura. Cero comportamiento.
 
@@ -187,6 +187,7 @@ data OpcionActividad:
     conservar: Booleano     -- checkbox en fase 2
 
     mutable marcado: Booleano  -- estado UI del checkbox (transient)
+
 -- system.trz â€” DeclaraciÃ³n del sistema CronometroPSP
 
 -- Convertido de system.trz (6 marzo 2026) a .trz (12 marzo 2026)
@@ -288,6 +289,7 @@ system CronometroPSP:
         ModalReset
 
         ModalAcercaDe
+
 -- contexts/MenuConfiguracion.trz
 
 -- Overlay: menÃº desplegable del botÃ³n de configuraciÃ³n.
@@ -357,6 +359,7 @@ context MenuConfiguracion:
     -- En app.js: el menÃº se cierra y el modal se abre (no se apilan).
 
     -- El modelo de pila necesita soporte para "cerrar y abrir" en una transiciÃ³n.
+
 -- contexts/ModalAcercaDe.trz
 
 -- Overlay: informaciÃ³n sobre la aplicaciÃ³n y estado de conexiÃ³n.
@@ -392,6 +395,7 @@ context ModalAcercaDe:
         [on_entry] -> verificar_conexion()
 
         [on_entry] -> cargar_tiempo_acumulado()
+
 -- contexts/ModalComentario.trz
 
 -- Overlay: se muestra antes de iniciar una sesiÃ³n.
@@ -497,6 +501,7 @@ context ModalComentario:
         -- que puede no estar presente si no hay sesiÃ³n activa.
 
         -- Default: sustituir = false
+
 -- contexts/ModalCrearActividad.trz
 
 -- Overlay: creaciÃ³n de nueva Actividad.
@@ -560,6 +565,7 @@ context ModalCrearActividad:
     effects:
 
         guardarNuevaActividad -> crear_actividad(nombre, color, permanente)
+
 -- contexts/ModalCrearTarea.trz
 
 -- Overlay: creaciÃ³n de nuevo TipoTarea.
@@ -637,6 +643,7 @@ context ModalCrearTarea:
     effects:
 
         guardarNuevaTarea -> crear_tipo_tarea(nombre, icono, actividades_seleccionadas)
+
 -- contexts/ModalEditarActividad.trz
 
 -- Overlay: ediciÃ³n de nombre, color y flag permanente de una Actividad.
@@ -712,6 +719,7 @@ context ModalEditarActividad:
     effects:
 
         guardarEdicionActividad -> actualizar_actividad(actividadId, nombre, color, permanente)
+
 -- contexts/ModalEditarTarea.trz
 
 -- Overlay: ediciÃ³n de nombre e icono de un TipoTarea existente.
@@ -795,6 +803,7 @@ context ModalEditarTarea:
     effects:
 
         guardarEdicion -> editar_tipo_tarea(tipoTareaId, nombre, icono)
+
 -- contexts/ModalHistorial.trz
 
 -- Overlay: visualizaciÃ³n del historial de sesiones.
@@ -906,6 +915,7 @@ context Historial30Dias:
             -- PROPUESTA GAP-7: al entrar en este sub-contexto, cargar datos
 
             [on_entry] -> cargar_historial(dias: 30)
+
 -- contexts/ModalReset.trz
 
 -- Overlay: puesta a cero de datos. Proceso de 3 fases lineales.
@@ -1082,6 +1092,7 @@ context ResetFase3:
         effects:
 
             ejecutarReset -> reset_datos(actividades_conservar)
+
 -- contexts/ModalSeleccionActividad.trz
 
 -- Overlay: aparece cuando un TipoTarea tiene mÃ¡s de una actividad
@@ -1161,6 +1172,7 @@ context ModalSeleccionActividad:
     --   actividadId (viene del tap en boton_actividad)
 
     -- Ambos deben llegar a ModalComentario.
+
 -- contexts/ModoEdicion.trz
 
 -- Modo ediciÃ³n: tap en tarjeta abre modal de ediciÃ³n.
@@ -1248,6 +1260,7 @@ context ModoEdicion:
         -- No hay efectos directos en ModoEdicion.
 
         -- Los efectos viven en los modales de ediciÃ³n.
+
 -- contexts/ModoNormal.trz
 
 -- El modo base: el usuario consulta y activa sesiones.
@@ -1349,6 +1362,7 @@ context ModoNormal:
         cambiarPestana  -> actualizarGridVisible()
 
         iniciarTarea    -> iniciar_sesion(tarea_id, notas, minutos_retroactivos, sustituir)
+
 -- contexts/SesionActiva.trz
 
 -- Contexto CONCURRENTE: coexiste con ModoNormal o ModoEdicion.
@@ -1405,6 +1419,7 @@ context SesionActiva:
         -- El timer se actualiza cada 60s vÃ­a efecto externo
 
         actualizarTimer -> calcular_tiempo_transcurrido(sesion_activa.inicio)
+
 -- external/cronometro_api.trz
 
 -- DeclaraciÃ³n de funciones externas (cÃ³digo convencional que el
