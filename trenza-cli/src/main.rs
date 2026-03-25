@@ -1,5 +1,4 @@
 use trenza_core::{ast, parser, generator, validator};
-use pest::Parser;
 use std::fs;
 use std::env;
 
@@ -116,9 +115,9 @@ fn main() {
             }
             if is_generate {
                 let logic_code = match lang.as_str() {
-                    "ts"   => generator::generate_typescript(&program_ast, &profile, &concurrency),
-                    "wasm" => generator::generate_rust_wasm(&program_ast),
-                    _      => generator::generate_rust(&program_ast, &profile, &concurrency),
+                    "ts"        => generator::generate_typescript(&program_ast, &profile, &concurrency),
+                    "ts-bridge" => generator::generate_typescript_wasm(&program_ast),
+                    _           => generator::generate_rust(&program_ast, &profile, &concurrency),
                 };
                 let test_code = generator::generate_tests(&program_ast);
                 let topology_mermaid = generator::generate_mermaid_topology(&program_ast);
@@ -133,17 +132,16 @@ fn main() {
                     }
                 }
 
-                let ext = if lang == "ts" { "ts" } else { "rs" }; // wasm también emite .rs
+                let ext = match lang.as_str() {
+                    "ts" | "ts-bridge" => "ts",
+                    _ => "rs",
+                };
                 let out_logic = Path::new(&out_dir).join(format!("{}_out.{}", system_name, ext));
                 let out_tests = Path::new(&out_dir).join(format!("{}_out_tests.rs", system_name));
                 let out_mermaid = Path::new(&out_dir).join(format!("{}_out.mermaid", system_name));
                 let out_audit = Path::new(&out_dir).join(format!("{}_out_audit.md", system_name));
                 let out_viz = Path::new(&out_dir).join(format!("{}_viz.md", system_name));
                 let out_html = Path::new(&out_dir).join(format!("{}_summary.html", system_name));
-
-                // ... (rest of the code remains the same as for Markdown/HTML building)
-                // Wait, I need to make sure I don't break the Markdown/HTML variables.
-                // I'll just change the fs::write calls.
 
                 // Build decomposed Markdown
                 let mut viz_md = format!("# System Visualization: {}\n\n", system_name);
@@ -173,7 +171,7 @@ fn main() {
                 fs::write(&out_viz, viz_md).expect("No se pudo escribir el archivo Viz");
                 fs::write(&out_html, html_report).expect("No se pudo escribir el archivo HTML");
 
-                let lang_label = match lang.as_str() { "ts" => "TS", "wasm" => "WASM/Rust", _ => "Rust" };
+                let lang_label = match lang.as_str() { "ts" => "TS", "ts-bridge" => "TS Bridge", _ => "Rust" };
                 println!("- ✅ Código Strand 1 (Lógica {}) generado en: {}", lang_label, out_logic.display());
                 println!("- ✅ Código Strand 2 (Tests Algebraicos) generado en: {}", out_tests.display());
                 println!("- ✅ Código Strand 3 (Arquitectura) generado en: {}", out_mermaid.display());
