@@ -24,8 +24,15 @@ target/
 # Claude Code (configuración local)
 .claude/settings.local.json
 
+# Node (global — no vuelvas a committear node_modules, Flash)
+node_modules/
+
 # VS Code Extension
-editors/vscode/node_modules/
 editors/vscode/out/
 editors/vscode/dist/
 *.vsix
+
+# Artefactos de compilación sueltos (generados por trenza-cli)
+project_out*
+project_viz*
+project_summary*
