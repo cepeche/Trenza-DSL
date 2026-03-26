@@ -36,3 +36,6 @@ editors/vscode/dist/
 project_out*
 project_viz*
 project_summary*
+
+# Coordination server runtime data
+trenza-coord/locks.db

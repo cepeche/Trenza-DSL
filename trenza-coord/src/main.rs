@@ -2,7 +2,7 @@ use std::io::{self, BufRead};
 use rusqlite::{params, Connection, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use anyhow::{Context, Result as AnyResult};
+use anyhow::Result as AnyResult;
 use chrono::Utc;
 
 #[derive(Deserialize)]
@@ -85,8 +85,7 @@ impl Server {
     }
 }
 
-#[tokio::main]
-async fn main() -> AnyResult<()> {
+fn main() -> AnyResult<()> {
     let server = Server::new()?;
     let stdin = io::stdin();
     
