@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "trenza-core",
-    "trenza-cli", "trenza-coord",
+    "trenza-cli", "trenza-coord", "trenza-msg",
 ]
 
 resolver = "2"
