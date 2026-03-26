@@ -7,6 +7,10 @@ export function activate(context: vscode.ExtensionContext) {
     const diagnosticCollection = vscode.languages.createDiagnosticCollection('trenza');
     
     outputChannel.appendLine('Trenza Extension is activating...');
+    
+    // Auto-start coordination server
+    ensureCoordinationServer(outputChannel, context);
+
     context.subscriptions.push(
         vscode.workspace.onDidSaveTextDocument(document => {
             if (document.languageId === 'trenza') {
@@ -95,17 +99,16 @@ function runValidation(document: vscode.TextDocument, collection: vscode.Diagnos
             output.appendLine(`Compiler stderr: ${stderr}`);
         }
         
-        const diagnostics: vscode.Diagnostic[] = [];
+        let diagnostics: vscode.Diagnostic[] = [];
+        let summaryText = "";
+
         try {
-            // Find the JSON part in stdout (it might have some messages before/after)
             const jsonStart = stdout.indexOf('[');
             const jsonEnd = stdout.lastIndexOf(']') + 1;
             
             if (jsonStart !== -1 && jsonEnd !== 0) {
                 const jsonStr = stdout.substring(jsonStart, jsonEnd);
-                output.appendLine(`Found JSON in stdout (chars ${jsonStart} to ${jsonEnd})`);
                 const results = JSON.parse(jsonStr);
-                output.appendLine(`Parsed ${results.length} diagnostic(s)`);
                 
                 for (const diag of results) {
                     const startLine = Math.max(0, diag.span.start.line - 1);
@@ -115,22 +118,98 @@ function runValidation(document: vscode.TextDocument, collection: vscode.Diagnos
                     const range = new vscode.Range(startLine, startCol, endLine, endCol);
                     
                     const severity = diag.severity === 'error' ? vscode.DiagnosticSeverity.Error : vscode.DiagnosticSeverity.Warning;
-                    
                     diagnostics.push(new vscode.Diagnostic(range, diag.message, severity));
-                }
-            } else {
-                output.appendLine('No JSON array found in compiler output.');
-                if (stdout.trim()) {
-                    output.appendLine(`Raw stdout: ${stdout}`);
+                    
+                    if (diag.severity === 'error') {
+                        summaryText += `${diag.message}. `;
+                    }
                 }
             }
         } catch (e: any) {
             output.appendLine(`Error parsing Trenza diagnostics: ${e.message}`);
         }
         
-        output.appendLine(`Setting ${diagnostics.length} diagnostics for ${document.uri.toString()}`);
         collection.set(document.uri, diagnostics);
+
+        // --- Voice Feedback ---
+        if (summaryText) {
+            output.appendLine(`Attempting voice feedback: ${summaryText}`);
+            // PowerShell single-quote escape: repeat the quote ''
+            const escapedText = summaryText.replace(/'/g, "''").replace(/"/g, "");
+            const speakCmd = `PowerShell -Command "Add-Type -AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak('${escapedText}')"`;
+            
+            cp.exec(speakCmd, (err, stdout, stderr) => {
+                if (err) {
+                    output.appendLine(`Voice error: ${err.message}`);
+                }
+                if (stderr) {
+                    output.appendLine(`Voice stderr: ${stderr}`);
+                }
+            });
+        }
     });
 }
 
-export function deactivate() {}
+let serverProcess: cp.ChildProcess | undefined;
+
+function ensureCoordinationServer(output: vscode.OutputChannel, context: vscode.ExtensionContext) {
+    const port = 7878;
+    const exeExt = process.platform === 'win32' ? '.exe' : '';
+    const binaryName = 'trenza-coord' + exeExt;
+
+    // Check if something is already on 7878
+    const net = require('net');
+    const tester = net.createServer()
+        .once('error', (err: any) => {
+            if (err.code === 'EADDRINUSE') {
+                output.appendLine(`Port ${port} is already in use. Assuming server is running.`);
+            }
+        })
+        .once('listening', () => {
+            tester.close();
+            output.appendLine(`Port ${port} is free. Starting trenza-coord...`);
+            startServer(binaryName, output);
+        })
+        .listen(port);
+}
+
+function startServer(binaryName: string, output: vscode.OutputChannel) {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    let serverPath = binaryName;
+
+    if (workspaceFolders) {
+        const root = workspaceFolders[0].uri.fsPath;
+        const potentialPaths = [
+            path.join(root, 'target', 'debug', binaryName),
+            path.join(root, 'target', 'release', binaryName),
+            path.join(root, 'trenza-coord', 'target', 'debug', binaryName),
+            path.join(root, '..', '..', 'target', 'debug', binaryName),
+        ];
+
+        for (const p of potentialPaths) {
+            if (require('fs').existsSync(p)) {
+                serverPath = p;
+                break;
+            }
+        }
+    }
+
+    output.appendLine(`Launching server: ${serverPath}`);
+    serverProcess = cp.spawn(serverPath, [], {
+        detached: true,
+        stdio: 'ignore'
+    });
+    
+    serverProcess.on('error', (err) => {
+        output.appendLine(`Failed to start server: ${err.message}`);
+    });
+
+    serverProcess.unref(); // Allow the extension host to exit independently
+}
+
+export function deactivate() {
+    if (serverProcess) {
+        console.log('Deactivating Trenza: Killing coordination server...');
+        serverProcess.kill();
+    }
+}
