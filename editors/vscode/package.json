@@ -28,6 +28,12 @@
                 "configuration": "./language-configuration.json"
             }
         ],
+        "commands": [
+            {
+                "command": "trenza.validate",
+                "title": "Trenza: Validar especificación"
+            }
+        ],
         "configuration": {
             "type": "object",
             "title": "Trenza Configuration",

@@ -17,6 +17,12 @@ export function activate(context: vscode.ExtensionContext) {
             if (document.languageId === 'trenza') {
                 runValidation(document, diagnosticCollection, outputChannel);
             }
+        }),
+        vscode.commands.registerCommand('trenza.validate', () => {
+            const activeEditor = vscode.window.activeTextEditor;
+            if (activeEditor && activeEditor.document.languageId === 'trenza') {
+                runValidation(activeEditor.document, diagnosticCollection, outputChannel);
+            }
         })
     );
     
@@ -44,16 +50,21 @@ function runValidation(document: vscode.TextDocument, collection: vscode.Diagnos
         if (workspaceFolders) {
             output.appendLine(`Workspace folder found: ${workspaceFolders[0].uri.fsPath}`);
             // Case 1: Root is Trenza-DSL
+            searchPaths.push(path.join(workspaceFolders[0].uri.fsPath, 'target', 'debug', binaryName));
+            searchPaths.push(path.join(workspaceFolders[0].uri.fsPath, 'target', 'release', binaryName));
+            searchPaths.push(path.join(workspaceFolders[0].uri.fsPath, 'trenza-cli', 'target', 'debug', binaryName));
             searchPaths.push(path.join(workspaceFolders[0].uri.fsPath, 'trenza-cli', 'target', 'release', binaryName));
             // Case 2: Root is editors/vscode
-            searchPaths.push(path.join(workspaceFolders[0].uri.fsPath, '..', '..', 'trenza-cli', 'target', 'release', binaryName));
+            searchPaths.push(path.join(workspaceFolders[0].uri.fsPath, '..', '..', 'target', 'debug', binaryName));
+            searchPaths.push(path.join(workspaceFolders[0].uri.fsPath, '..', '..', 'target', 'release', binaryName));
         } else {
             output.appendLine('No workspace folder open. Trying to find compiler based on document path.');
-            // Fallback: search up from the document path
             let currentDir = path.dirname(document.uri.fsPath);
             while (currentDir !== path.parse(currentDir).root) {
-                const potentialPath = path.join(currentDir, 'trenza-cli', 'target', 'release', binaryName);
-                searchPaths.push(potentialPath);
+                searchPaths.push(path.join(currentDir, 'target', 'debug', binaryName));
+                searchPaths.push(path.join(currentDir, 'target', 'release', binaryName));
+                searchPaths.push(path.join(currentDir, 'trenza-cli', 'target', 'debug', binaryName));
+                searchPaths.push(path.join(currentDir, 'trenza-cli', 'target', 'release', binaryName));
                 currentDir = path.dirname(currentDir);
             }
         }

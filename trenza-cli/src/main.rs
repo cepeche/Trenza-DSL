@@ -94,7 +94,24 @@ fn main() {
                 all_definitions.extend(ast.definitions);
             },
             Err(e) => {
-                eprintln!("❌ Error de sintaxis en '{}':\n{}", file.display(), e);
+                if format == "json" {
+                    let (line, col) = match e.line_col {
+                        pest::error::LineColLocation::Pos((l, c)) => (l, c),
+                        pest::error::LineColLocation::Span((l, c), (_, _)) => (l, c),
+                    };
+                    let diag = ast::Diagnostic {
+                        span: ast::Span {
+                            start: ast::Pos { line, col },
+                            end: ast::Pos { line, col: col + 1 }, // Fallback end
+                        },
+                        message: format!("Error de sintaxis: {}", e.variant.message()),
+                        severity: "error".to_string(),
+                        code: "syntax".to_string(),
+                    };
+                    println!("{}", serde_json::to_string_pretty(&vec![diag]).unwrap());
+                } else {
+                    eprintln!("❌ Error de sintaxis en '{}':\n{}", file.display(), e);
+                }
                 std::process::exit(1);
             }
         }

@@ -2,13 +2,7 @@ use crate::ast::*;
 use std::collections::{HashMap, HashSet};
 use serde::Serialize;
 
-#[derive(Debug, Serialize)]
-pub struct Diagnostic {
-    pub span: Span,
-    pub message: String,
-    pub severity: String,
-    pub code: String,
-}
+
 
 pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
     let mut errors = Vec::new();

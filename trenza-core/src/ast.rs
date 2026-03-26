@@ -10,6 +10,14 @@ pub struct Span {
     pub end: Pos,
 }
 
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct Diagnostic {
+    pub span: Span,
+    pub message: String,
+    pub severity: String,
+    pub code: String,
+}
+
 #[derive(Debug, Clone)]
 pub struct Program {
     pub definitions: Vec<Definition>,
