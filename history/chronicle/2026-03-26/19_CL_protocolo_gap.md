@@ -93,7 +93,18 @@ Example: `17_CO_dispatch_como_frontend_mapse.md` would be more accurate than `17
 
 ## Actions required
 
-1. **Human decision**: Accept, reject, or modify proposed amendments A–D.
+The proposed amendments A–D below are open for discussion by the full team (human +
+all active agents). No amendment should be applied unilaterally.
+
+0. **URGENTE — Verificar confidencialidad de Cowork/Dispatch.** Antes de cualquier
+   otra acción, el humano debe comprobar y activar las restricciones de privacidad de
+   Anthropic Cowork en https://claude.ai/settings/data-privacy-controls (desactivar uso
+   de conversaciones para entrenamiento). Se intentó verificar automáticamente vía
+   Claude in Chrome pero la sesión del navegador no está autenticada en claude.ai.
+   Este es un requisito bloqueante: si las conversaciones de Cowork se usan para
+   entrenamiento, la propiedad intelectual del proyecto (decisiones arquitectónicas,
+   contenido del paper ONWARD!) queda expuesta.
+1. **Team discussion**: Review and reach consensus on proposed amendments A–D.
 2. **If accepted**: Update `AGENTS.md` and create `history/decisions/ADR-021-protocol-multi-interface.md`.
 3. **Retroactive**: Decide whether to rename `17_CL_` → `17_CO_` (requires explicit authorization).
 
