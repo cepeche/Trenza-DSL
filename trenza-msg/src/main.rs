@@ -88,7 +88,42 @@ fn main() -> Result<()> {
         std::process::exit(1);
     }
 
-    let mut client = Client::connect("127.0.0.1:7878")?;
+    let addr = "127.0.0.1:7878";
+    let client_res = Client::connect(addr);
+    
+    let mut client = match client_res {
+        Ok(c) => c,
+        Err(_) => {
+            eprintln!("Coordination server not found. Attempting auto-start...");
+            // Try to find trenza-coord in typical locations
+            let exe_name = if cfg!(windows) { "trenza-coord.exe" } else { "trenza-coord" };
+            let potential_paths = [
+                format!("./target/debug/{}", exe_name),
+                format!("../target/debug/{}", exe_name),
+                format!("./trenza-coord/target/debug/{}", exe_name),
+            ];
+            
+            let mut started = false;
+            for path in potential_paths {
+                if std::path::Path::new(&path).exists() {
+                    eprintln!("Launching {}...", path);
+                    std::process::Command::new(&path)
+                        .spawn()
+                        .context("Failed to spawn server")?;
+                    std::thread::sleep(std::time::Duration::from_secs(2));
+                    started = true;
+                    break;
+                }
+            }
+            
+            if !started {
+                anyhow::bail!("Could not find trenza-coord binary. Please run 'cargo build' first.");
+            }
+            
+            Client::connect(addr).context("Failed to connect after auto-start")?
+        }
+    };
+
     let cmd = &args[1];
 
     match cmd.as_str() {
