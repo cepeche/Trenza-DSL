@@ -1,14 +1,15 @@
 use anyhow::Result as AnyResult;
 use chrono::Utc;
 use rusqlite::{params, Connection, Result};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::json;
 use std::io::{self, BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
+#[allow(dead_code)]
 struct JsonRpcRequest {
     jsonrpc: String,
     method: String,

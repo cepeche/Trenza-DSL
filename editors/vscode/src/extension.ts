@@ -8,7 +8,7 @@ export function activate(context: vscode.ExtensionContext) {
     
     outputChannel.appendLine('Trenza Extension is activating...');
     
-    // Auto-start coordination server
+    // Auto-start coordination server (optional redundancy)
     ensureCoordinationServer(outputChannel, context);
 
     context.subscriptions.push(
