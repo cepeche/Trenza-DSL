@@ -1,8 +1,11 @@
 # Strategic Insight: Dispatch as Accessible Frontend for MAPSE
 
 **Date:** 2026-03-26
-**Author:** CL (Claude Opus 4.6)
+**Author:** CO (Claude Opus 4.6 via Dispatch)
+**Implemented by:** CL (Claude Sonnet 4.6 via Claude Code)
 **Type:** Strategic decision / design note
+**Note:** Filename prefixed `CL_` for historical reasons — the `CO` convention did not
+exist at session time. See ADR-021 for the ratified attribution rule.
 
 ---
 

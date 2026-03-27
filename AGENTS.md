@@ -18,6 +18,13 @@ Al iniciar una sesión, el agente **DEBE**:
 2. **Comprobar locks activos**: Verificar si existe un fichero `LOCK.md` en `history/chronicle/` y asegurar que no hay conflictos con el área de trabajo planeada (ver sección 5).
 3. **Contexto On-Demand**: Cargar archivos técnicos (`src/`, `spec/`, `docs/`) solo según lo requiera la tarea específica.
 
+> **Patrón ocasional — coordinador sin acceso a ficheros (CO):** Si el agente opera como
+> coordinador vía Dispatch/Cowork y no puede leer ficheros directamente, delega la
+> inicialización al agente implementador (CL). El implementador **debe** surfacer:
+> (1) la última entrada de crónica, (2) locks activos, (3) briefings pendientes dirigidos
+> al coordinador, y (4) rama git activa y estado del repositorio (`git log --oneline -5`).
+> Este es un patrón de uso ocasional (sesiones móviles/voz), no un rol permanente del equipo.
+
 ## 2. Fase 1: Colaboración e Integridad
 
 - **Documentar el "Por Qué"**: Documentar razonamientos en el código o en la crónica.
@@ -44,8 +51,19 @@ Al iniciar una sesión, el agente **DEBE**:
 Independientemente de la existencia de scripts de automatización, el contrato de cierre exige:
 1. **Entrada en Crónica**: Crear `history/chronicle/YYYY-MM-DD/NN_XX_descripcion.md` donde:
    - `NN`: Número de secuencia del día.
-   - `XX`: Código de autor (GE: Gemini, CL: Claude).
+   - `XX`: Código de autor:
+     - `CL` — Claude (cualquier modelo) vía Claude Code CLI (acceso a ficheros, git, shell)
+     - `CO` — Claude Opus vía Dispatch/Cowork (coordinador conversacional, sin acceso a ficheros)
+     - `GE` — Gemini (cualquier interfaz)
+   - El prefijo `XX` refleja el **autor intelectual** de la entrada, no necesariamente quien
+     escribe el fichero. Si Opus (CO) origina una decisión y Sonnet (CL) la ejecuta, el
+     fichero se prefija con `CO`. Cuando ambos contribuyen, el header lo aclara (ver abajo).
    - Contenido: Resumen de cambios, decisiones, estado de artefactos y briefings.
+   - **Header en sesiones de rol mixto** (coordinador CO + implementador CL):
+     ```markdown
+     **Author:** CO (Claude Opus 4.6 via Dispatch)
+     **Implemented by:** CL (Claude Sonnet 4.6 via Claude Code)
+     ```
 2. **Commit y Push**: Realizar un commit unificado con los cambios y la crónica.
 
 ## 4. Resolución de Conflictos
