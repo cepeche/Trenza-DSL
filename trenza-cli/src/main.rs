@@ -136,7 +136,12 @@ fn main() {
                     "ts-bridge" => generator::generate_typescript_wasm(&program_ast),
                     _           => generator::generate_rust(&program_ast, &profile, &concurrency),
                 };
-                let test_code = generator::generate_tests(&program_ast);
+                let is_ts = matches!(lang.as_str(), "ts" | "ts-bridge");
+                let test_code = if is_ts {
+                    generator::generate_tests_ts(&program_ast)
+                } else {
+                    generator::generate_tests(&program_ast)
+                };
                 let topology_mermaid = generator::generate_mermaid_topology(&program_ast);
                 let detailed_mermaid = generator::generate_mermaid_details(&program_ast);
                 let audit_doc = generator::generate_audit(&program_ast);
@@ -149,12 +154,10 @@ fn main() {
                     }
                 }
 
-                let ext = match lang.as_str() {
-                    "ts" | "ts-bridge" => "ts",
-                    _ => "rs",
-                };
+                let ext = if is_ts { "ts" } else { "rs" };
                 let out_logic = Path::new(&out_dir).join(format!("{}_out.{}", system_name, ext));
-                let out_tests = Path::new(&out_dir).join(format!("{}_out_tests.rs", system_name));
+                let test_ext = if is_ts { "test.ts" } else { "tests.rs" };
+                let out_tests = Path::new(&out_dir).join(format!("{}_out.{}", system_name, test_ext));
                 let out_mermaid = Path::new(&out_dir).join(format!("{}_out.mermaid", system_name));
                 let out_audit = Path::new(&out_dir).join(format!("{}_out_audit.md", system_name));
                 let out_viz = Path::new(&out_dir).join(format!("{}_viz.md", system_name));

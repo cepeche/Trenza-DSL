@@ -829,6 +829,248 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
     output
 }
 
+pub fn generate_tests_ts(program: &Program) -> String {
+    let mut out = String::new();
+    let meta = extract_system_metadata(program);
+
+    // Collect overlay set
+    let mut overlay_set: HashSet<String> = HashSet::new();
+    for def in &program.definitions {
+        if let Definition::System(sys) = def {
+            for sec in &sys.sections {
+                if let SystemSection::Overlays(ctxs) = sec {
+                    overlay_set.extend(ctxs.iter().cloned());
+                }
+            }
+        }
+    }
+
+    // Collect all unique effect function signatures
+    let mut effect_fns: BTreeMap<String, usize> = BTreeMap::new(); // fn_name -> arg count
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for role in &ctx.roles {
+                for action in &role.actions {
+                    if let ActionTarget::Call(call) = &action.target {
+                        effect_fns.insert(call.function.replace(".", "_"), call.args.len());
+                    }
+                }
+            }
+            for effect in &ctx.effects {
+                effect_fns.insert(effect.call.function.replace(".", "_"), effect.call.args.len());
+            }
+            for fills in &ctx.fills {
+                for role in &fills.roles {
+                    for action in &role.actions {
+                        if let ActionTarget::Call(call) = &action.target {
+                            effect_fns.insert(call.function.replace(".", "_"), call.args.len());
+                        }
+                    }
+                }
+            }
+        }
+        if let Definition::External(ext) = def {
+            for action in &ext.actions {
+                effect_fns.insert(action.name.replace(".", "_"), action.params.len());
+            }
+        }
+    }
+
+    // Collect all context names for import
+    let mut all_handler_names: Vec<String> = Vec::new();
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for role in &ctx.roles {
+                for action in &role.actions {
+                    let name = format!("handle_{}_{}", role.name, action.event.replace(".", "_"));
+                    if !all_handler_names.contains(&name) {
+                        all_handler_names.push(name);
+                    }
+                }
+            }
+            for fills in &ctx.fills {
+                for role in &fills.roles {
+                    for action in &role.actions {
+                        let name = format!("handle_{}_{}", role.name, action.event.replace(".", "_"));
+                        if !all_handler_names.contains(&name) {
+                            all_handler_names.push(name);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Determine system name for import path
+    let mut system_name = "project".to_string();
+    for def in &program.definitions {
+        if let Definition::System(sys) = def { system_name = sys.name.clone(); break; }
+    }
+
+    // ── Header ────────────────────────────────────────────────────────────────
+    out.push_str("// Auto-generated algebraic tests by Trenza DSL Compiler (Strand 2 - TS)\n");
+    out.push_str("// DO NOT EDIT — regenerate from .trz source\n");
+    out.push_str("// Run with: npx vitest\n\n");
+    out.push_str("import { describe, it, expect, vi } from 'vitest';\n");
+    out.push_str(&format!("import {{ Contexto, System }} from './{system_name}_out';\n"));
+    out.push_str(&format!("import type {{ Effects }} from './{system_name}_out';\n"));
+    if !all_handler_names.is_empty() {
+        let imports = all_handler_names.join(", ");
+        out.push_str(&format!("import {{ {imports} }} from './{system_name}_out';\n"));
+    }
+    out.push_str("\n");
+
+    // ── noOpEffects ────────────────────────────────────────────────────────────
+    out.push_str("const noOpEffects: Effects = {\n");
+    for (func, _) in &effect_fns {
+        out.push_str(&format!("    {func}: () => {{}},\n"));
+    }
+    out.push_str("};\n\n");
+
+    // ── mockEffects ────────────────────────────────────────────────────────────
+    out.push_str("function mockEffects(): Effects {\n");
+    out.push_str("    return {\n");
+    for (func, _) in &effect_fns {
+        out.push_str(&format!("        {func}: vi.fn(),\n"));
+    }
+    out.push_str("    } as unknown as Effects;\n");
+    out.push_str("}\n\n");
+
+    // ── Phase 1: Transition Tests ──────────────────────────────────────────────
+    out.push_str("describe('Transitions', () => {\n");
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            if meta.concurrent_contexts.contains(&ctx.name) { continue; }
+            for trans in &ctx.transitions {
+                let target_assertion = match trans.target.as_str() {
+                    "[stay]" => format!("expect(sys.state).toBe(Contexto.{});", ctx.name),
+                    "[close_overlay]" => format!("expect(sys.state).toBe(Contexto.{});", meta.initial),
+                    "[deactivate]" => format!("expect(sys.concurrent_states.has(Contexto.{})).toBe(false);", ctx.name),
+                    t => format!("expect(sys.state).toBe(Contexto.{t});"),
+                };
+                out.push_str(&format!(
+                    "    it('{} on {} → {}', () => {{\n",
+                    ctx.name, trans.event, trans.target
+                ));
+                out.push_str(&format!(
+                    "        const sys = new System(Contexto.{}, noOpEffects);\n",
+                    ctx.name
+                ));
+                out.push_str(&format!("        sys.handleEvent('{}');\n", trans.event));
+                out.push_str(&format!("        {target_assertion}\n"));
+                out.push_str("    });\n\n");
+            }
+        }
+    }
+    out.push_str("});\n\n");
+
+    // ── Phase 2: Overlay Stack Tests ───────────────────────────────────────────
+    // For each context that has transitions TO overlays AND the overlay has [close_overlay]
+    out.push_str("describe('Overlay Stack', () => {\n");
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            if meta.concurrent_contexts.contains(&ctx.name) { continue; }
+            for trans in &ctx.transitions {
+                if !overlay_set.contains(&trans.target) { continue; }
+                // Find a [close_overlay] transition in the target overlay context
+                let close_event = program.definitions.iter().find_map(|d| {
+                    if let Definition::Context(oc) = d {
+                        if oc.name == trans.target {
+                            return oc.transitions.iter()
+                                .find(|t| t.target == "[close_overlay]")
+                                .map(|t| t.event.clone());
+                        }
+                    }
+                    None
+                });
+                if let Some(close_ev) = close_event {
+                    out.push_str(&format!(
+                        "    it('opens {} from {} and returns on {}', () => {{\n",
+                        trans.target, ctx.name, close_ev
+                    ));
+                    out.push_str(&format!(
+                        "        const sys = new System(Contexto.{}, noOpEffects);\n",
+                        ctx.name
+                    ));
+                    out.push_str(&format!("        sys.handleEvent('{}'); // open overlay\n", trans.event));
+                    out.push_str(&format!("        expect(sys.state).toBe(Contexto.{});\n", trans.target));
+                    out.push_str(&format!("        sys.handleEvent('{}'); // close overlay\n", close_ev));
+                    out.push_str(&format!("        expect(sys.state).toBe(Contexto.{}); // restored\n", ctx.name));
+                    out.push_str("    });\n\n");
+                }
+            }
+        }
+    }
+    out.push_str("});\n\n");
+
+    // ── Phase 3: Handler Tests ─────────────────────────────────────────────────
+    out.push_str("describe('Handlers', () => {\n");
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for role in &ctx.roles {
+                let role_type = ts_type(&role.datatype);
+                for action in &role.actions {
+                    let safe_event = action.event.replace(".", "_");
+                    let handler = format!("handle_{}_{}", role.name, safe_event);
+                    match &action.target {
+                        ActionTarget::Forbidden => {
+                            out.push_str(&format!(
+                                "    it('{} {} {} throws Forbidden', () => {{\n",
+                                ctx.name, role.name, safe_event
+                            ));
+                            out.push_str("        const effects = mockEffects();\n");
+                            out.push_str(&format!(
+                                "        expect(() => {handler}(Contexto.{}, {{}} as {role_type}, effects)).toThrow('Forbidden');\n",
+                                ctx.name
+                            ));
+                            out.push_str("    });\n\n");
+                        },
+                        ActionTarget::Ignored => {
+                            out.push_str(&format!(
+                                "    it('{} {} {} returns null (ignored)', () => {{\n",
+                                ctx.name, role.name, safe_event
+                            ));
+                            out.push_str("        const effects = mockEffects();\n");
+                            out.push_str(&format!(
+                                "        const event = {handler}(Contexto.{}, {{}} as {role_type}, effects);\n",
+                                ctx.name
+                            ));
+                            out.push_str("        expect(event).toBeNull();\n");
+                            out.push_str("    });\n\n");
+                        },
+                        ActionTarget::Call(call) => {
+                            let func_safe = call.function.replace(".", "_");
+                            out.push_str(&format!(
+                                "    it('{} {} {} invokes {func_safe} and returns event', () => {{\n",
+                                ctx.name, role.name, safe_event
+                            ));
+                            out.push_str("        const effects = mockEffects();\n");
+                            out.push_str(&format!(
+                                "        const event = {handler}(Contexto.{}, {{}} as {role_type}, effects);\n",
+                                ctx.name
+                            ));
+                            out.push_str(&format!("        expect(event).toBe('{func_safe}');\n"));
+                            out.push_str(&format!("        expect((effects as any).{func_safe}).toHaveBeenCalled();\n"));
+                            out.push_str("    });\n\n");
+                        }
+                    }
+                }
+            }
+        }
+    }
+    out.push_str("});\n\n");
+
+    // ── Phase 4: Exhaustiveness ────────────────────────────────────────────────
+    let ctx_count = program.definitions.iter().filter(|d| matches!(d, Definition::Context(_))).count();
+    out.push_str("describe('Exhaustiveness', () => {\n");
+    out.push_str("    it('Contexto enum has all contexts', () => {\n");
+    out.push_str(&format!("        expect(Object.keys(Contexto).length).toBe({ctx_count});\n"));
+    out.push_str("    });\n");
+    out.push_str("});\n");
+
+    out
+}
+
 pub fn generate_tests(program: &Program) -> String {
     let mut output = String::new();
     let metadata = extract_system_metadata(program);
