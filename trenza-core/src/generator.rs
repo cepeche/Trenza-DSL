@@ -401,10 +401,10 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
 
     output.push_str("    public deactivateConcurrent(ctx: Contexto): void {\n");
     output.push_str("        this.concurrent_states.delete(ctx);\n");
-    output.push_str("    }\n");
-    output.push_str("}\n\n");
+    output.push_str("    }\n\n");
 
-    // 5. Role/Event Handlers
+    // 5. Role/Event Handlers — computed before closing the class so dispatch_* methods
+    //    can be added as System members.
     let mut grouped_actions: BTreeMap<(String, String), Vec<(String, RoleAction)>> = BTreeMap::new();
     for def in &program.definitions {
         if let Definition::Context(ctx) = def {
@@ -425,54 +425,79 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
         }
     }
 
-    let is_pre = _profile == "pre";
-
-    for ((role_name, event_name), handlers) in grouped_actions {
-        let mut role_type = "string".to_string();
-        'find_role: for def in &program.definitions {
-            if let Definition::Context(ctx) = def {
-                for role in &ctx.roles {
-                    if role.name == role_name { role_type = ts_type(&role.datatype); break 'find_role; }
-                }
-                for fills in &ctx.fills {
-                    for role in &fills.roles {
-                        if role.name == role_name { role_type = ts_type(&role.datatype); break 'find_role; }
-                    }
+    // Precompute role → ts_type map
+    let mut role_types: BTreeMap<String, String> = BTreeMap::new();
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for role in &ctx.roles {
+                role_types.entry(role.name.clone()).or_insert_with(|| ts_type(&role.datatype));
+            }
+            for fills in &ctx.fills {
+                for role in &fills.roles {
+                    role_types.entry(role.name.clone()).or_insert_with(|| ts_type(&role.datatype));
                 }
             }
         }
+    }
 
-        output.push_str(&format!("export function handle_{}_{}(ctx: Contexto, {}: {}, effects: Effects): void {{\n", role_name, event_name.replace(".", "_"), role_name, role_type));
+    // dispatch_* methods — combine effect call + state transition in one call
+    for ((role_name, event_name), _) in &grouped_actions {
+        let role_type = role_types.get(role_name).map(|s| s.as_str()).unwrap_or("any");
+        let safe_event = event_name.replace(".", "_");
+        output.push_str(&format!(
+            "    public dispatch_{role_name}_{safe_event}({role_name}: {role_type}): void {{\n"
+        ));
+        output.push_str(&format!(
+            "        const event = handle_{role_name}_{safe_event}(this.state, {role_name}, this.effects);\n"
+        ));
+        output.push_str("        if (event !== null) this.handleEvent(event);\n");
+        output.push_str("    }\n\n");
+    }
+
+    output.push_str("}\n\n");
+
+    let is_pre = _profile == "pre";
+
+    // Standalone handlers — return the dispatched event name (or null for ignored actions)
+    for ((role_name, event_name), handlers) in &grouped_actions {
+        let role_type = role_types.get(role_name).map(|s| s.as_str()).unwrap_or("any");
+        let safe_event = event_name.replace(".", "_");
+
+        output.push_str(&format!(
+            "export function handle_{role_name}_{safe_event}(ctx: Contexto, {role_name}: {role_type}, effects: Effects): string | null {{\n"
+        ));
         output.push_str("    switch (ctx) {\n");
         for (ctx_name, action) in handlers {
             output.push_str(&format!("        case Contexto.{}:\n", ctx_name));
             if is_pre {
-                output.push_str(&format!("            console.log(`[telemetry] context=${{ctx}}, role={}, event={}`);\n", role_name, event_name));
+                output.push_str(&format!("            console.log(`[telemetry] context=${{ctx}}, role={role_name}, event={event_name}`);\n"));
             }
             match &action.target {
                 ActionTarget::Call(call) => {
                     let mut args = Vec::new();
                     for arg in &call.args {
                         if arg == "self" {
-                            args.push(format!("{}", role_name));
+                            args.push(role_name.clone());
                         } else if arg.starts_with("self.") {
-                            args.push(format!("{}.{}", role_name, arg.replace("self.", "")));
+                            args.push(format!("{}.{}", role_name, &arg[5..]));
                         } else {
                             args.push(format!("\"{}\"", arg));
                         }
                     }
-                    output.push_str(&format!("            effects.{}({});\n", call.function.replace(".", "_"), args.join(", ")));
+                    let func_safe = call.function.replace(".", "_");
+                    output.push_str(&format!("            effects.{func_safe}({});\n", args.join(", ")));
+                    output.push_str(&format!("            return \"{func_safe}\";\n"));
                 },
                 ActionTarget::Ignored => {
-                    output.push_str("            // ignored\n");
+                    output.push_str("            return null; // ignored\n");
                 },
                 ActionTarget::Forbidden => {
                     output.push_str(&format!("            throw new Error(`Forbidden action called in context ${{ctx}}`);\n"));
                 }
             }
-            output.push_str("            break;\n");
         }
         output.push_str("    }\n");
+        output.push_str("    return null;\n");
         output.push_str("}\n\n");
     }
 

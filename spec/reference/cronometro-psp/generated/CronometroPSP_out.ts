@@ -430,431 +430,632 @@ export class System {
     public deactivateConcurrent(ctx: Contexto): void {
         this.concurrent_states.delete(ctx);
     }
+
+    public dispatch_boton_30dias_tap(boton_30dias: Boton): void {
+        const event = handle_boton_30dias_tap(this.state, boton_30dias, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_boton_7dias_tap(boton_7dias: Boton): void {
+        const event = handle_boton_7dias_tap(this.state, boton_7dias, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_boton_actividad_tap(boton_actividad: Actividad): void {
+        const event = handle_boton_actividad_tap(this.state, boton_actividad, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_boton_atras_tap(boton_atras: Boton): void {
+        const event = handle_boton_atras_tap(this.state, boton_atras, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_boton_cancelar_tap(boton_cancelar: Boton): void {
+        const event = handle_boton_cancelar_tap(this.state, boton_cancelar, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_boton_cerrar_tap(boton_cerrar: Boton): void {
+        const event = handle_boton_cerrar_tap(this.state, boton_cerrar, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_boton_configuracion_tap(boton_configuracion: Boton): void {
+        const event = handle_boton_configuracion_tap(this.state, boton_configuracion, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_boton_confirmar_tap(boton_confirmar: Boton): void {
+        const event = handle_boton_confirmar_tap(this.state, boton_confirmar, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_boton_continuar_tap(boton_continuar: Boton): void {
+        const event = handle_boton_continuar_tap(this.state, boton_continuar, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_boton_edicion_tap(boton_edicion: Boton): void {
+        const event = handle_boton_edicion_tap(this.state, boton_edicion, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_boton_ejecutar_tap(boton_ejecutar: Boton): void {
+        const event = handle_boton_ejecutar_tap(this.state, boton_ejecutar, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_boton_exportar_csv_tap(boton_exportar_csv: Boton): void {
+        const event = handle_boton_exportar_csv_tap(this.state, boton_exportar_csv, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_boton_guardar_tap(boton_guardar: Boton): void {
+        const event = handle_boton_guardar_tap(this.state, boton_guardar, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_boton_nuevo_tap(boton_nuevo: Boton): void {
+        const event = handle_boton_nuevo_tap(this.state, boton_nuevo, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_campo_busqueda_icono_cambio(campo_busqueda_icono: CampoTexto): void {
+        const event = handle_campo_busqueda_icono_cambio(this.state, campo_busqueda_icono, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_campo_comentario_cambio(campo_comentario: CampoTexto): void {
+        const event = handle_campo_comentario_cambio(this.state, campo_comentario, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_campo_confirmacion_cambio(campo_confirmacion: CampoTexto): void {
+        const event = handle_campo_confirmacion_cambio(this.state, campo_confirmacion, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_campo_nombre_cambio(campo_nombre: CampoTexto): void {
+        const event = handle_campo_nombre_cambio(this.state, campo_nombre, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_campo_retroactivo_cambio(campo_retroactivo: CampoNumerico): void {
+        const event = handle_campo_retroactivo_cambio(this.state, campo_retroactivo, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_checkbox_actividad_cambio(checkbox_actividad: OpcionActividad): void {
+        const event = handle_checkbox_actividad_cambio(this.state, checkbox_actividad, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_checkbox_permanente_cambio(checkbox_permanente: Checkbox): void {
+        const event = handle_checkbox_permanente_cambio(this.state, checkbox_permanente, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_checkbox_sustituir_cambio(checkbox_sustituir: Checkbox): void {
+        const event = handle_checkbox_sustituir_cambio(this.state, checkbox_sustituir, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_display_timer_tap(display_timer: Boton): void {
+        const event = handle_display_timer_tap(this.state, display_timer, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_item_acerca_de_tap(item_acerca_de: ItemMenu): void {
+        const event = handle_item_acerca_de_tap(this.state, item_acerca_de, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_item_historial_tap(item_historial: ItemMenu): void {
+        const event = handle_item_historial_tap(this.state, item_historial, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_item_nueva_actividad_tap(item_nueva_actividad: ItemMenu): void {
+        const event = handle_item_nueva_actividad_tap(this.state, item_nueva_actividad, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_item_reset_tap(item_reset: ItemMenu): void {
+        const event = handle_item_reset_tap(this.state, item_reset, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_overlay_tap(overlay: Boton): void {
+        const event = handle_overlay_tap(this.state, overlay, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_pestana_actividad_tap(pestana_actividad: Actividad): void {
+        const event = handle_pestana_actividad_tap(this.state, pestana_actividad, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_pestana_frecuentes_tap(pestana_frecuentes: Pestana): void {
+        const event = handle_pestana_frecuentes_tap(this.state, pestana_frecuentes, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_selector_color_seleccion(selector_color: SelectorColor): void {
+        const event = handle_selector_color_seleccion(this.state, selector_color, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_selector_icono_seleccion(selector_icono: SelectorIcono): void {
+        const event = handle_selector_icono_seleccion(this.state, selector_icono, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_tarjeta_tarea_tap(tarjeta_tarea: Tarea): void {
+        const event = handle_tarjeta_tarea_tap(this.state, tarjeta_tarea, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_tarjeta_tipo_tap(tarjeta_tipo: TipoTarea): void {
+        const event = handle_tarjeta_tipo_tap(this.state, tarjeta_tipo, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
 }
 
-export function handle_boton_30dias_tap(ctx: Contexto, boton_30dias: Boton, effects: Effects): void {
+export function handle_boton_30dias_tap(ctx: Contexto, boton_30dias: Boton, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.Historial7Dias:
             console.log(`[telemetry] context=${ctx}, role=boton_30dias, event=tap`);
             effects.cambiarA30Dias();
-            break;
+            return "cambiarA30Dias";
         case Contexto.Historial30Dias:
             console.log(`[telemetry] context=${ctx}, role=boton_30dias, event=tap`);
-            // ignored
-            break;
+            return null; // ignored
     }
+    return null;
 }
 
-export function handle_boton_7dias_tap(ctx: Contexto, boton_7dias: Boton, effects: Effects): void {
+export function handle_boton_7dias_tap(ctx: Contexto, boton_7dias: Boton, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.Historial7Dias:
             console.log(`[telemetry] context=${ctx}, role=boton_7dias, event=tap`);
-            // ignored
-            break;
+            return null; // ignored
         case Contexto.Historial30Dias:
             console.log(`[telemetry] context=${ctx}, role=boton_7dias, event=tap`);
             effects.cambiarA7Dias();
-            break;
+            return "cambiarA7Dias";
     }
+    return null;
 }
 
-export function handle_boton_actividad_tap(ctx: Contexto, boton_actividad: Actividad, effects: Effects): void {
+export function handle_boton_actividad_tap(ctx: Contexto, boton_actividad: Actividad, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModalSeleccionActividad:
             console.log(`[telemetry] context=${ctx}, role=boton_actividad, event=tap`);
             effects.elegirActividad(boton_actividad.id);
-            break;
+            return "elegirActividad";
     }
+    return null;
 }
 
-export function handle_boton_atras_tap(ctx: Contexto, boton_atras: Boton, effects: Effects): void {
+export function handle_boton_atras_tap(ctx: Contexto, boton_atras: Boton, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ResetFase2:
             console.log(`[telemetry] context=${ctx}, role=boton_atras, event=tap`);
             effects.retrocederAFase1();
-            break;
+            return "retrocederAFase1";
         case Contexto.ResetFase3:
             console.log(`[telemetry] context=${ctx}, role=boton_atras, event=tap`);
             effects.retrocederAFase2();
-            break;
+            return "retrocederAFase2";
     }
+    return null;
 }
 
-export function handle_boton_cancelar_tap(ctx: Contexto, boton_cancelar: Boton, effects: Effects): void {
+export function handle_boton_cancelar_tap(ctx: Contexto, boton_cancelar: Boton, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModalComentario:
             console.log(`[telemetry] context=${ctx}, role=boton_cancelar, event=tap`);
             effects.cancelar();
-            break;
+            return "cancelar";
         case Contexto.ModalCrearActividad:
             console.log(`[telemetry] context=${ctx}, role=boton_cancelar, event=tap`);
             effects.cancelar();
-            break;
+            return "cancelar";
         case Contexto.ModalCrearTarea:
             console.log(`[telemetry] context=${ctx}, role=boton_cancelar, event=tap`);
             effects.cancelar();
-            break;
+            return "cancelar";
         case Contexto.ModalEditarActividad:
             console.log(`[telemetry] context=${ctx}, role=boton_cancelar, event=tap`);
             effects.cancelar();
-            break;
+            return "cancelar";
         case Contexto.ModalEditarTarea:
             console.log(`[telemetry] context=${ctx}, role=boton_cancelar, event=tap`);
             effects.cancelar();
-            break;
+            return "cancelar";
         case Contexto.ModalReset:
             console.log(`[telemetry] context=${ctx}, role=boton_cancelar, event=tap`);
             effects.cerrar();
-            break;
+            return "cerrar";
         case Contexto.ResetFase1:
             console.log(`[telemetry] context=${ctx}, role=boton_cancelar, event=tap`);
             effects.cerrar();
-            break;
+            return "cerrar";
         case Contexto.ModalSeleccionActividad:
             console.log(`[telemetry] context=${ctx}, role=boton_cancelar, event=tap`);
             effects.cancelar();
-            break;
+            return "cancelar";
     }
+    return null;
 }
 
-export function handle_boton_cerrar_tap(ctx: Contexto, boton_cerrar: Boton, effects: Effects): void {
+export function handle_boton_cerrar_tap(ctx: Contexto, boton_cerrar: Boton, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModalAcercaDe:
             console.log(`[telemetry] context=${ctx}, role=boton_cerrar, event=tap`);
             effects.cerrar();
-            break;
+            return "cerrar";
         case Contexto.ModalHistorial:
             console.log(`[telemetry] context=${ctx}, role=boton_cerrar, event=tap`);
             effects.cerrar();
-            break;
+            return "cerrar";
     }
+    return null;
 }
 
-export function handle_boton_configuracion_tap(ctx: Contexto, boton_configuracion: Boton, effects: Effects): void {
+export function handle_boton_configuracion_tap(ctx: Contexto, boton_configuracion: Boton, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModoEdicion:
             console.log(`[telemetry] context=${ctx}, role=boton_configuracion, event=tap`);
             effects.abrirMenuConfiguracion();
-            break;
+            return "abrirMenuConfiguracion";
         case Contexto.ModoNormal:
             console.log(`[telemetry] context=${ctx}, role=boton_configuracion, event=tap`);
             effects.abrirMenuConfiguracion();
-            break;
+            return "abrirMenuConfiguracion";
     }
+    return null;
 }
 
-export function handle_boton_confirmar_tap(ctx: Contexto, boton_confirmar: Boton, effects: Effects): void {
+export function handle_boton_confirmar_tap(ctx: Contexto, boton_confirmar: Boton, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModalComentario:
             console.log(`[telemetry] context=${ctx}, role=boton_confirmar, event=tap`);
             effects.confirmarInicio();
-            break;
+            return "confirmarInicio";
     }
+    return null;
 }
 
-export function handle_boton_continuar_tap(ctx: Contexto, boton_continuar: Boton, effects: Effects): void {
+export function handle_boton_continuar_tap(ctx: Contexto, boton_continuar: Boton, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ResetFase1:
             console.log(`[telemetry] context=${ctx}, role=boton_continuar, event=tap`);
             effects.avanzarAFase2();
-            break;
+            return "avanzarAFase2";
         case Contexto.ResetFase2:
             console.log(`[telemetry] context=${ctx}, role=boton_continuar, event=tap`);
             effects.avanzarAFase3();
-            break;
+            return "avanzarAFase3";
     }
+    return null;
 }
 
-export function handle_boton_edicion_tap(ctx: Contexto, boton_edicion: Boton, effects: Effects): void {
+export function handle_boton_edicion_tap(ctx: Contexto, boton_edicion: Boton, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModoEdicion:
             console.log(`[telemetry] context=${ctx}, role=boton_edicion, event=tap`);
             effects.desactivarEdicion();
-            break;
+            return "desactivarEdicion";
         case Contexto.ModoNormal:
             console.log(`[telemetry] context=${ctx}, role=boton_edicion, event=tap`);
             effects.activarEdicion();
-            break;
+            return "activarEdicion";
     }
+    return null;
 }
 
-export function handle_boton_ejecutar_tap(ctx: Contexto, boton_ejecutar: Boton, effects: Effects): void {
+export function handle_boton_ejecutar_tap(ctx: Contexto, boton_ejecutar: Boton, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ResetFase3:
             console.log(`[telemetry] context=${ctx}, role=boton_ejecutar, event=tap`);
             effects.ejecutarReset();
-            break;
+            return "ejecutarReset";
     }
+    return null;
 }
 
-export function handle_boton_exportar_csv_tap(ctx: Contexto, boton_exportar_csv: Boton, effects: Effects): void {
+export function handle_boton_exportar_csv_tap(ctx: Contexto, boton_exportar_csv: Boton, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ResetFase1:
             console.log(`[telemetry] context=${ctx}, role=boton_exportar_csv, event=tap`);
             effects.exportarCSV();
-            break;
+            return "exportarCSV";
     }
+    return null;
 }
 
-export function handle_boton_guardar_tap(ctx: Contexto, boton_guardar: Boton, effects: Effects): void {
+export function handle_boton_guardar_tap(ctx: Contexto, boton_guardar: Boton, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModalCrearActividad:
             console.log(`[telemetry] context=${ctx}, role=boton_guardar, event=tap`);
             effects.guardarNuevaActividad();
-            break;
+            return "guardarNuevaActividad";
         case Contexto.ModalCrearTarea:
             console.log(`[telemetry] context=${ctx}, role=boton_guardar, event=tap`);
             effects.guardarNuevaTarea();
-            break;
+            return "guardarNuevaTarea";
         case Contexto.ModalEditarActividad:
             console.log(`[telemetry] context=${ctx}, role=boton_guardar, event=tap`);
             effects.guardarEdicionActividad();
-            break;
+            return "guardarEdicionActividad";
         case Contexto.ModalEditarTarea:
             console.log(`[telemetry] context=${ctx}, role=boton_guardar, event=tap`);
             effects.guardarEdicion();
-            break;
+            return "guardarEdicion";
     }
+    return null;
 }
 
-export function handle_boton_nuevo_tap(ctx: Contexto, boton_nuevo: Boton, effects: Effects): void {
+export function handle_boton_nuevo_tap(ctx: Contexto, boton_nuevo: Boton, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModoEdicion:
             console.log(`[telemetry] context=${ctx}, role=boton_nuevo, event=tap`);
             effects.abrirCrearTarea();
-            break;
+            return "abrirCrearTarea";
         case Contexto.ModoNormal:
             console.log(`[telemetry] context=${ctx}, role=boton_nuevo, event=tap`);
             effects.abrirCrearTarea();
-            break;
+            return "abrirCrearTarea";
     }
+    return null;
 }
 
-export function handle_campo_busqueda_icono_cambio(ctx: Contexto, campo_busqueda_icono: CampoTexto, effects: Effects): void {
+export function handle_campo_busqueda_icono_cambio(ctx: Contexto, campo_busqueda_icono: CampoTexto, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModalCrearTarea:
             console.log(`[telemetry] context=${ctx}, role=campo_busqueda_icono, event=cambio`);
             effects.filtrarIconosCrear(campo_busqueda_icono.valor);
-            break;
+            return "filtrarIconosCrear";
         case Contexto.ModalEditarTarea:
             console.log(`[telemetry] context=${ctx}, role=campo_busqueda_icono, event=cambio`);
             effects.filtrarIconos(campo_busqueda_icono.valor);
-            break;
+            return "filtrarIconos";
     }
+    return null;
 }
 
-export function handle_campo_comentario_cambio(ctx: Contexto, campo_comentario: CampoTexto, effects: Effects): void {
+export function handle_campo_comentario_cambio(ctx: Contexto, campo_comentario: CampoTexto, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModalComentario:
             console.log(`[telemetry] context=${ctx}, role=campo_comentario, event=cambio`);
             effects.actualizarComentario(campo_comentario.valor);
-            break;
+            return "actualizarComentario";
     }
+    return null;
 }
 
-export function handle_campo_confirmacion_cambio(ctx: Contexto, campo_confirmacion: CampoTexto, effects: Effects): void {
+export function handle_campo_confirmacion_cambio(ctx: Contexto, campo_confirmacion: CampoTexto, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ResetFase3:
             console.log(`[telemetry] context=${ctx}, role=campo_confirmacion, event=cambio`);
             effects.actualizarConfirmacion(campo_confirmacion.valor);
-            break;
+            return "actualizarConfirmacion";
     }
+    return null;
 }
 
-export function handle_campo_nombre_cambio(ctx: Contexto, campo_nombre: CampoTexto, effects: Effects): void {
+export function handle_campo_nombre_cambio(ctx: Contexto, campo_nombre: CampoTexto, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModalCrearActividad:
             console.log(`[telemetry] context=${ctx}, role=campo_nombre, event=cambio`);
             effects.actualizarNombreNuevaActividad(campo_nombre.valor);
-            break;
+            return "actualizarNombreNuevaActividad";
         case Contexto.ModalCrearTarea:
             console.log(`[telemetry] context=${ctx}, role=campo_nombre, event=cambio`);
             effects.actualizarNuevoNombre(campo_nombre.valor);
-            break;
+            return "actualizarNuevoNombre";
         case Contexto.ModalEditarActividad:
             console.log(`[telemetry] context=${ctx}, role=campo_nombre, event=cambio`);
             effects.actualizarNombreActividad(campo_nombre.valor);
-            break;
+            return "actualizarNombreActividad";
         case Contexto.ModalEditarTarea:
             console.log(`[telemetry] context=${ctx}, role=campo_nombre, event=cambio`);
             effects.actualizarNombre(campo_nombre.valor);
-            break;
+            return "actualizarNombre";
     }
+    return null;
 }
 
-export function handle_campo_retroactivo_cambio(ctx: Contexto, campo_retroactivo: CampoNumerico, effects: Effects): void {
+export function handle_campo_retroactivo_cambio(ctx: Contexto, campo_retroactivo: CampoNumerico, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModalComentario:
             console.log(`[telemetry] context=${ctx}, role=campo_retroactivo, event=cambio`);
             effects.actualizarRetroactivo(campo_retroactivo.valor);
-            break;
+            return "actualizarRetroactivo";
     }
+    return null;
 }
 
-export function handle_checkbox_actividad_cambio(ctx: Contexto, checkbox_actividad: OpcionActividad, effects: Effects): void {
+export function handle_checkbox_actividad_cambio(ctx: Contexto, checkbox_actividad: OpcionActividad, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModalCrearTarea:
             console.log(`[telemetry] context=${ctx}, role=checkbox_actividad, event=cambio`);
             effects.toggleActividadPermitida(checkbox_actividad.id, checkbox_actividad.marcado);
-            break;
+            return "toggleActividadPermitida";
         case Contexto.ResetFase2:
             console.log(`[telemetry] context=${ctx}, role=checkbox_actividad, event=cambio`);
             effects.toggleConservar(checkbox_actividad.id, checkbox_actividad.marcado);
-            break;
+            return "toggleConservar";
     }
+    return null;
 }
 
-export function handle_checkbox_permanente_cambio(ctx: Contexto, checkbox_permanente: Checkbox, effects: Effects): void {
+export function handle_checkbox_permanente_cambio(ctx: Contexto, checkbox_permanente: Checkbox, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModalCrearActividad:
             console.log(`[telemetry] context=${ctx}, role=checkbox_permanente, event=cambio`);
             effects.marcarPermanenteNueva(checkbox_permanente.marcado);
-            break;
+            return "marcarPermanenteNueva";
         case Contexto.ModalEditarActividad:
             console.log(`[telemetry] context=${ctx}, role=checkbox_permanente, event=cambio`);
             effects.marcarPermanente(checkbox_permanente.marcado);
-            break;
+            return "marcarPermanente";
     }
+    return null;
 }
 
-export function handle_checkbox_sustituir_cambio(ctx: Contexto, checkbox_sustituir: Checkbox, effects: Effects): void {
+export function handle_checkbox_sustituir_cambio(ctx: Contexto, checkbox_sustituir: Checkbox, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModalComentario:
             console.log(`[telemetry] context=${ctx}, role=checkbox_sustituir, event=cambio`);
             effects.marcarSustituir(checkbox_sustituir.marcado);
-            break;
+            return "marcarSustituir";
     }
+    return null;
 }
 
-export function handle_display_timer_tap(ctx: Contexto, display_timer: Boton, effects: Effects): void {
+export function handle_display_timer_tap(ctx: Contexto, display_timer: Boton, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.SesionActiva:
             console.log(`[telemetry] context=${ctx}, role=display_timer, event=tap`);
-            // ignored
-            break;
+            return null; // ignored
     }
+    return null;
 }
 
-export function handle_item_acerca_de_tap(ctx: Contexto, item_acerca_de: ItemMenu, effects: Effects): void {
+export function handle_item_acerca_de_tap(ctx: Contexto, item_acerca_de: ItemMenu, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.MenuConfiguracion:
             console.log(`[telemetry] context=${ctx}, role=item_acerca_de, event=tap`);
             effects.abrirAcercaDe();
-            break;
+            return "abrirAcercaDe";
     }
+    return null;
 }
 
-export function handle_item_historial_tap(ctx: Contexto, item_historial: ItemMenu, effects: Effects): void {
+export function handle_item_historial_tap(ctx: Contexto, item_historial: ItemMenu, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.MenuConfiguracion:
             console.log(`[telemetry] context=${ctx}, role=item_historial, event=tap`);
             effects.abrirHistorial();
-            break;
+            return "abrirHistorial";
     }
+    return null;
 }
 
-export function handle_item_nueva_actividad_tap(ctx: Contexto, item_nueva_actividad: ItemMenu, effects: Effects): void {
+export function handle_item_nueva_actividad_tap(ctx: Contexto, item_nueva_actividad: ItemMenu, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.MenuConfiguracion:
             console.log(`[telemetry] context=${ctx}, role=item_nueva_actividad, event=tap`);
             effects.abrirCrearActividad();
-            break;
+            return "abrirCrearActividad";
     }
+    return null;
 }
 
-export function handle_item_reset_tap(ctx: Contexto, item_reset: ItemMenu, effects: Effects): void {
+export function handle_item_reset_tap(ctx: Contexto, item_reset: ItemMenu, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.MenuConfiguracion:
             console.log(`[telemetry] context=${ctx}, role=item_reset, event=tap`);
             effects.abrirReset();
-            break;
+            return "abrirReset";
     }
+    return null;
 }
 
-export function handle_overlay_tap(ctx: Contexto, overlay: Boton, effects: Effects): void {
+export function handle_overlay_tap(ctx: Contexto, overlay: Boton, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.MenuConfiguracion:
             console.log(`[telemetry] context=${ctx}, role=overlay, event=tap`);
             effects.cerrar();
-            break;
+            return "cerrar";
     }
+    return null;
 }
 
-export function handle_pestana_actividad_tap(ctx: Contexto, pestana_actividad: Actividad, effects: Effects): void {
+export function handle_pestana_actividad_tap(ctx: Contexto, pestana_actividad: Actividad, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModoEdicion:
             console.log(`[telemetry] context=${ctx}, role=pestana_actividad, event=tap`);
             effects.abrirEditarActividad(pestana_actividad.id);
-            break;
+            return "abrirEditarActividad";
         case Contexto.ModoNormal:
             console.log(`[telemetry] context=${ctx}, role=pestana_actividad, event=tap`);
             effects.cambiarPestana(pestana_actividad.id);
-            break;
+            return "cambiarPestana";
     }
+    return null;
 }
 
-export function handle_pestana_frecuentes_tap(ctx: Contexto, pestana_frecuentes: Pestana, effects: Effects): void {
+export function handle_pestana_frecuentes_tap(ctx: Contexto, pestana_frecuentes: Pestana, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModoEdicion:
             console.log(`[telemetry] context=${ctx}, role=pestana_frecuentes, event=tap`);
-            // ignored
-            break;
+            return null; // ignored
         case Contexto.ModoNormal:
             console.log(`[telemetry] context=${ctx}, role=pestana_frecuentes, event=tap`);
             effects.cambiarPestana("'frecuentes'");
-            break;
+            return "cambiarPestana";
     }
+    return null;
 }
 
-export function handle_selector_color_seleccion(ctx: Contexto, selector_color: SelectorColor, effects: Effects): void {
+export function handle_selector_color_seleccion(ctx: Contexto, selector_color: SelectorColor, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModalCrearActividad:
             console.log(`[telemetry] context=${ctx}, role=selector_color, event=seleccion`);
             effects.seleccionarColorNuevo(selector_color.seleccionado);
-            break;
+            return "seleccionarColorNuevo";
         case Contexto.ModalEditarActividad:
             console.log(`[telemetry] context=${ctx}, role=selector_color, event=seleccion`);
             effects.seleccionarColor(selector_color.seleccionado);
-            break;
+            return "seleccionarColor";
     }
+    return null;
 }
 
-export function handle_selector_icono_seleccion(ctx: Contexto, selector_icono: SelectorIcono, effects: Effects): void {
+export function handle_selector_icono_seleccion(ctx: Contexto, selector_icono: SelectorIcono, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModalCrearTarea:
             console.log(`[telemetry] context=${ctx}, role=selector_icono, event=seleccion`);
             effects.seleccionarIconoNuevo(selector_icono.seleccionado);
-            break;
+            return "seleccionarIconoNuevo";
         case Contexto.ModalEditarTarea:
             console.log(`[telemetry] context=${ctx}, role=selector_icono, event=seleccion`);
             effects.seleccionarIcono(selector_icono.seleccionado);
-            break;
+            return "seleccionarIcono";
     }
+    return null;
 }
 
-export function handle_tarjeta_tarea_tap(ctx: Contexto, tarjeta_tarea: Tarea, effects: Effects): void {
+export function handle_tarjeta_tarea_tap(ctx: Contexto, tarjeta_tarea: Tarea, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModoEdicion:
             console.log(`[telemetry] context=${ctx}, role=tarjeta_tarea, event=tap`);
             effects.abrirEditarTarea(tarjeta_tarea.tipoId);
-            break;
+            return "abrirEditarTarea";
         case Contexto.ModoNormal:
             console.log(`[telemetry] context=${ctx}, role=tarjeta_tarea, event=tap`);
             effects.iniciarTarea(tarjeta_tarea.tareaId);
-            break;
+            return "iniciarTarea";
     }
+    return null;
 }
 
-export function handle_tarjeta_tipo_tap(ctx: Contexto, tarjeta_tipo: TipoTarea, effects: Effects): void {
+export function handle_tarjeta_tipo_tap(ctx: Contexto, tarjeta_tipo: TipoTarea, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.ModoEdicion:
             console.log(`[telemetry] context=${ctx}, role=tarjeta_tipo, event=tap`);
             effects.abrirEditarTarea(tarjeta_tipo.tipoId);
-            break;
+            return "abrirEditarTarea";
         case Contexto.ModoNormal:
             console.log(`[telemetry] context=${ctx}, role=tarjeta_tipo, event=tap`);
             effects.seleccionarTipoTarea(tarjeta_tipo.tipoId);
-            break;
+            return "seleccionarTipoTarea";
     }
+    return null;
 }
 
