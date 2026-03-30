@@ -1,6 +1,38 @@
 use crate::ast::*;
 use std::collections::{BTreeMap, HashSet};
 
+/// Resolve a single call arg to (param_name, ts_type).
+/// - "self.field" → look up field type in the role's data type
+/// - plain ident  → look up in context input fields
+/// - string/number literals → string / number
+fn resolve_arg_type(
+    arg: &str,
+    role_datatype: &str,
+    ctx_inputs: &BTreeMap<String, String>,
+    data_fields: &BTreeMap<String, BTreeMap<String, String>>,
+) -> (String, String) {
+    if arg.starts_with("self.") {
+        let field = &arg[5..];
+        let ty = data_fields
+            .get(role_datatype)
+            .and_then(|fm| fm.get(field))
+            .cloned()
+            .unwrap_or_else(|| "any".to_string());
+        (field.to_string(), ty)
+    } else if arg.starts_with('\'') || arg.starts_with('"') {
+        ("value".to_string(), "string".to_string())
+    } else if arg.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false) {
+        ("value".to_string(), "number".to_string())
+    } else {
+        // plain ident — check context input fields
+        let ty = ctx_inputs
+            .get(arg)
+            .cloned()
+            .unwrap_or_else(|| "any".to_string());
+        (arg.to_string(), ty)
+    }
+}
+
 fn rust_type(s: &str) -> String {
     if s.ends_with('?') {
         let inner = rust_type(&s[..s.len() - 1]);
@@ -205,44 +237,97 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
         }
     }
 
-    // 3. Effects Interface
-    let mut unique_functions: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    // Build data field map: data_type_name → (field_name → ts_type)
+    let mut data_fields: BTreeMap<String, BTreeMap<String, String>> = BTreeMap::new();
+    for def in &program.definitions {
+        if let Definition::Data(d) = def {
+            let fields: BTreeMap<String, String> = d.fields.iter()
+                .map(|f| (f.name.clone(), ts_type(&f.datatype)))
+                .collect();
+            data_fields.insert(d.name.clone(), fields);
+        }
+    }
+
+    // Build authoritative external signatures: fn_name → [(param_name, ts_type)]
+    let mut external_sigs: BTreeMap<String, Vec<(String, String)>> = BTreeMap::new();
+    for def in &program.definitions {
+        if let Definition::External(ext) = def {
+            for action in &ext.actions {
+                let params: Vec<(String, String)> = action.params.iter()
+                    .map(|(name, ty)| {
+                        let is_opt = ty.ends_with('?');
+                        let base_ty = ts_type(ty);
+                        let full_ty = if is_opt { format!("{} | undefined", base_ty) } else { base_ty };
+                        (name.clone(), full_ty)
+                    })
+                    .collect();
+                external_sigs.insert(action.name.clone(), params);
+            }
+        }
+    }
+
+    // 3. Effects Interface — infer types from call sites, override with external sigs
+    // Value: Vec<(param_name, ts_type)>
+    let mut unique_functions: BTreeMap<String, Vec<(String, String)>> = BTreeMap::new();
+
+    let mut collect_call = |call: &ActionCall, role_datatype: &str, ctx_inputs: &BTreeMap<String, String>| {
+        unique_functions.entry(call.function.clone()).or_insert_with(|| {
+            call.args.iter()
+                .map(|arg| resolve_arg_type(arg, role_datatype, ctx_inputs, &data_fields))
+                .collect()
+        });
+    };
+
     for def in &program.definitions {
         if let Definition::Context(ctx) = def {
+            let ctx_inputs: BTreeMap<String, String> = ctx.inputs.iter()
+                .map(|f| (f.name.clone(), ts_type(&f.datatype)))
+                .collect();
             for role in &ctx.roles {
                 for action in &role.actions {
                     if let ActionTarget::Call(call) = &action.target {
-                        unique_functions.insert(call.function.clone(), call.args.clone());
+                        collect_call(call, &role.datatype, &ctx_inputs);
                     }
                 }
             }
             for effect in &ctx.effects {
-                unique_functions.insert(effect.call.function.clone(), effect.call.args.clone());
+                collect_call(&effect.call, "", &ctx_inputs);
             }
             for fills in &ctx.fills {
+                let fills_inputs: BTreeMap<String, String> = BTreeMap::new();
                 for role in &fills.roles {
                     for action in &role.actions {
                         if let ActionTarget::Call(call) = &action.target {
-                            unique_functions.insert(call.function.clone(), call.args.clone());
+                            collect_call(call, &role.datatype, &fills_inputs);
                         }
                     }
                 }
                 for effect in &fills.effects {
-                    unique_functions.insert(effect.call.function.clone(), effect.call.args.clone());
+                    collect_call(&effect.call, "", &fills_inputs);
                 }
             }
         }
     }
 
+    // Override inferred sigs with authoritative external definitions
+    for (name, params) in &external_sigs {
+        unique_functions.insert(name.clone(), params.clone());
+    }
+
     output.push_str("export interface Effects {\n");
-    for (func, _args) in &unique_functions {
+    for (func, params) in &unique_functions {
         let func_safe = func.replace(".", "_");
-        let arg_list = _args.iter().enumerate().map(|(i, _)| {
-            // Type inference for effect args is not yet implemented.
-            // All args use `any` until the generator can resolve field types.
-            let ty = "any";
-            format!("arg{}: {}", i, ty)
-        }).collect::<Vec<_>>().join(", ");
+        let arg_list = params.iter().enumerate()
+            .map(|(i, (name, ty))| {
+                let param_name = if name == "value" || name.is_empty() {
+                    format!("arg{}", i)
+                } else {
+                    name.clone()
+                };
+                format!("{}: {}", param_name, ty)
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
         output.push_str(&format!("    {}({}): void;\n", func_safe, arg_list));
     }
     output.push_str("}\n\n");
@@ -250,12 +335,15 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
     // 4. System Class
     let mut initial_state = "Unknown".to_string();
     let mut concurrent_contexts = Vec::new();
+    let mut overlay_set: HashSet<String> = HashSet::new();
     for def in &program.definitions {
         if let Definition::System(sys) = def {
             initial_state = sys.initial.clone();
             for sec in &sys.sections {
-                if let SystemSection::Concurrent(ctxs) = sec {
-                    concurrent_contexts = ctxs.clone();
+                match sec {
+                    SystemSection::Concurrent(ctxs) => concurrent_contexts = ctxs.clone(),
+                    SystemSection::Overlays(ctxs) => overlay_set.extend(ctxs.iter().cloned()),
+                    _ => {}
                 }
             }
         }
@@ -264,8 +352,9 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
     output.push_str("export class System {\n");
     output.push_str("    public state: Contexto;\n");
     output.push_str("    public concurrent_states: Set<Contexto> = new Set();\n");
+    output.push_str("    private stateStack: Contexto[] = [];\n");
     output.push_str("    private effects: Effects;\n\n");
-    
+
     output.push_str("    constructor(initial: Contexto, effects: Effects) {\n");
     output.push_str("        this.state = initial;\n");
     output.push_str("        this.effects = effects;\n");
@@ -279,13 +368,25 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
             output.push_str(&format!("            case Contexto.{}:\n", ctx.name));
             for trans in &ctx.transitions {
                 output.push_str(&format!("                if (event === \"{}\") {{\n", trans.event));
-                let target = match trans.target.as_str() {
-                    "[stay]" => "this.state",
-                    "[close_overlay]" => &format!("Contexto.{}", initial_state), // Simple approach for now
-                    _ => &format!("Contexto.{}", trans.target),
-                };
-                output.push_str(&format!("                    this.state = {};\n", target));
-                output.push_str("                    return;\n");
+                match trans.target.as_str() {
+                    "[stay]" => {
+                        output.push_str("                    return;\n");
+                    },
+                    "[close_overlay]" => {
+                        output.push_str(&format!(
+                            "                    this.state = this.stateStack.pop() ?? Contexto.{};\n",
+                            initial_state
+                        ));
+                        output.push_str("                    return;\n");
+                    },
+                    target => {
+                        if overlay_set.contains(target) {
+                            output.push_str("                    this.stateStack.push(this.state);\n");
+                        }
+                        output.push_str(&format!("                    this.state = Contexto.{};\n", target));
+                        output.push_str("                    return;\n");
+                    }
+                }
                 output.push_str("                }\n");
             }
             output.push_str("                break;\n");
