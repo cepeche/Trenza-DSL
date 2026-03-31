@@ -34,6 +34,7 @@ pub enum Definition {
 #[derive(Debug, Clone)]
 pub struct DataDef {
     pub span: Span,
+    pub decorators: Vec<Decorator>,
     pub name: String,
     pub name_span: Span,
     pub annotations: Vec<(String, String)>,
@@ -66,9 +67,11 @@ pub struct ExternalAction {
 #[derive(Debug, Clone)]
 pub struct SystemDef {
     pub span: Span,
+    pub decorators: Vec<Decorator>,
     pub name: String,
     pub name_span: Span,
     pub initial: String,
+    pub on_violation: Option<ActionCall>,
     pub sections: Vec<SystemSection>,
 }
 
@@ -83,6 +86,7 @@ pub enum SystemSection {
 #[derive(Debug, Clone)]
 pub struct ContextDef {
     pub span: Span,
+    pub decorators: Vec<Decorator>,
     pub name: String,
     pub name_span: Span,
     pub inputs: Vec<InputField>,

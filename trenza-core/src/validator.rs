@@ -43,25 +43,62 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
     let mut adjacency_list: HashMap<String, Vec<String>> = HashMap::new();
 
     // Pass 1: Build indexes & Check Determinism (Rule 2)
-            let mut context_spans: HashMap<String, Span> = HashMap::new();
-            let mut role_spans: HashMap<String, Span> = HashMap::new();
-            
-            for def in &program.definitions {
-                match def {
-                    Definition::Context(ctx) => {
-                        context_spans.insert(ctx.name.clone(), ctx.name_span.clone());
-                        for role in &ctx.roles {
-                            role_spans.insert(format!("{}.{}", ctx.name, role.name), role.name_span.clone());
+    let mut context_spans: HashMap<String, Span> = HashMap::new();
+    let mut role_spans: HashMap<String, Span> = HashMap::new();
+    let mut declared_effects: HashSet<String> = HashSet::new();
+    let mut system_on_violation: Option<(ActionCall, Span)> = None;
+    
+    for def in &program.definitions {
+        match def {
+            Definition::Context(ctx) => {
+                context_spans.insert(ctx.name.clone(), ctx.name_span.clone());
+                for role in &ctx.roles {
+                    role_spans.insert(format!("{}.{}", ctx.name, role.name), role.name_span.clone());
+                    for action in &role.actions {
+                        if let ActionTarget::Call(call) = &action.target {
+                            declared_effects.insert(call.function.clone());
                         }
-                    },
-                    Definition::Data(_) => {},
-                    Definition::External(_) => {},
-                    Definition::System(_) => {},
+                    }
                 }
-            }
+                for eff in &ctx.effects {
+                    declared_effects.insert(eff.call.function.clone());
+                }
+                for fills in &ctx.fills {
+                    for role in &fills.roles {
+                        for action in &role.actions {
+                            if let ActionTarget::Call(call) = &action.target {
+                                declared_effects.insert(call.function.clone());
+                            }
+                        }
+                    }
+                    for eff in &fills.effects {
+                        declared_effects.insert(eff.call.function.clone());
+                    }
+                }
+            },
+            Definition::System(sys) => {
+                if let Some(ov) = &sys.on_violation {
+                    system_on_violation = Some((ov.clone(), sys.span.clone()));
+                }
+            },
+            _ => {},
+        }
+    }
 
-            for def in &program.definitions {
-                if let Definition::Context(ctx) = def {
+    // Verify on_violation exists
+    if let Some((ov_call, ov_span)) = system_on_violation {
+        if !declared_effects.contains(&ov_call.function) {
+            errors.push(Diagnostic {
+                span: ov_span,
+                message: format!("La directiva on_violation hace referencia a un efecto desconocido: '{}'. Asegúrate de que esté definido en algún contexto.", ov_call.function),
+                severity: "error".to_string(),
+                code: "violation-handler".to_string(),
+            });
+        }
+    }
+
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
                     all_contexts.insert(ctx.name.clone());
                     if ctx.ignore_rest {
                         ignore_rest_contexts.insert(ctx.name.clone());

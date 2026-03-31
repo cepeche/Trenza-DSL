@@ -45,10 +45,12 @@ fn parse_data(pair: pest::iterators::Pair<Rule>) -> DataDef {
     let mut name_span = get_span(&pair); // Fallback
     let mut annotations = Vec::new();
     let mut fields = Vec::new();
+    let mut decorators = Vec::new();
 
     let span = get_span(&pair);
     for inner in pair.into_inner() {
         match inner.as_rule() {
+            Rule::decorator => decorators.push(parse_decorator(inner)),
             Rule::ident => {
                 name = inner.as_str().to_string();
                 name_span = get_span(&inner);
@@ -79,7 +81,7 @@ fn parse_data(pair: pest::iterators::Pair<Rule>) -> DataDef {
             _ => {}
         }
     }
-    DataDef { span, name, name_span, annotations, fields }
+    DataDef { span, decorators, name, name_span, annotations, fields }
 }
 
 fn parse_external(pair: pest::iterators::Pair<Rule>) -> ExternalDef {
@@ -134,10 +136,13 @@ fn parse_system(pair: pest::iterators::Pair<Rule>) -> SystemDef {
     let mut name_span = get_span(&pair); // Fallback
     let mut initial = String::new();
     let mut sections = Vec::new();
+    let mut decorators = Vec::new();
+    let mut on_violation = None;
 
     let span = get_span(&pair);
     for inner in pair.into_inner() {
         match inner.as_rule() {
+            Rule::decorator => decorators.push(parse_decorator(inner)),
             Rule::ident => {
                 let s = inner.as_str().to_string();
                 if name.is_empty() { 
@@ -145,6 +150,15 @@ fn parse_system(pair: pest::iterators::Pair<Rule>) -> SystemDef {
                     name_span = get_span(&inner);
                 } else { 
                     initial = s; 
+                }
+            },
+            Rule::on_violation_def => {
+                for ov_inner in inner.into_inner() {
+                    match ov_inner.as_rule() {
+                        Rule::action_call => on_violation = Some(parse_action_call(ov_inner)),
+                        Rule::decorator => { /* Ignore decorators on on_violation for now or add to AST */ }
+                        _ => {}
+                    }
                 }
             },
             Rule::system_sections => {
@@ -173,7 +187,7 @@ fn parse_system(pair: pest::iterators::Pair<Rule>) -> SystemDef {
             _ => {}
         }
     }
-    SystemDef { span, name, name_span, initial, sections }
+    SystemDef { span, decorators, name, name_span, initial, on_violation, sections }
 }
 
 fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
@@ -186,10 +200,12 @@ fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
     let mut slots = Vec::new();
     let mut fills = Vec::new();
     let mut ignore_rest = false;
+    let mut decorators = Vec::new();
 
     let span = get_span(&pair);
     for inner in pair.into_inner() {
         match inner.as_rule() {
+            Rule::decorator => decorators.push(parse_decorator(inner)),
             Rule::ident => {
                 name = inner.as_str().to_string();
                 name_span = get_span(&inner);
@@ -246,7 +262,7 @@ fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
             _ => {}
         }
     }
-    ContextDef { span, name, name_span, inputs, roles, transitions, effects, slots, fills, ignore_rest }
+    ContextDef { span, decorators, name, name_span, inputs, roles, transitions, effects, slots, fills, ignore_rest }
 }
 
 
