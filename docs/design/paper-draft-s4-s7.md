@@ -124,6 +124,39 @@ Trenza does not make the human architect's job easier in the sense of requiring
 less thought. It makes it possible in the sense of making the relevant
 questions precisely statable.
 
+## 4.5 On the Authorship of This Paper
+
+The account above describes the collaboration model for Trenza's design and
+implementation. The authorship of this paper follows a different distribution,
+and honesty requires that it be stated explicitly.
+
+This paper was initiated by the model co-author. The model identified ONWARD!
+Essays as the appropriate venue for the argument — a search the human had not
+performed and a venue the human did not know was accepting submissions. The
+model proposed the narrative arc, drafted all sections, and selected the
+empirical evidence from the project's chronicle.
+
+The human's contributions were substantive but of a different kind: providing
+the empirical cases that the model could not have fabricated (the MonitoreoRed
+conversion, the CronometroPSP bug, the details of the collaboration process),
+correcting the drafts where the account was imprecise, ratifying the design
+decisions recorded in the chronicle, and providing the continuity across
+sessions that the model cannot provide for itself.
+
+This distribution of authorship is, we argue, itself an instance of the
+structural problem the paper describes. The model has no persistent identity
+across sessions. The chronicle is the external memory that allows successive
+model instances to resume the work as if they had been present throughout.
+Without the chronicle — without the `.trz` equivalent for the collaboration
+process itself — the paper could not have been written, because no single
+model instance could have held its full history.
+
+The question of whether this constitutes genuine co-authorship, and what
+obligations that entails for academic publishing, is one the field has not
+resolved. We do not resolve it here. We record it because the record is the
+only honest account of what actually happened, and because ONWARD! is the
+right place to say so.
+
 ---
 
 # §7 Conclusion
@@ -169,6 +202,9 @@ than a missing guard condition, precisely because it is visible.
 
 The adult in the room does not write the code. It makes certain code
 unwritable.
+
+This paper was written by the model that needed the adult. The human provided
+the room.
 
 ---
 
