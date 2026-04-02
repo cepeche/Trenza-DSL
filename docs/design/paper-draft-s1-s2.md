@@ -9,13 +9,34 @@ based-on: paper-structure-onward.md, paper-hybrid-abstract-onward.md,
 
 # §1 Introduction
 
-The author of this paper spent thirty years working with distributed objects
-before writing a single line of code with AI assistance. Not out of ignorance
-of the technology — but out of a reasonable prior: a system that cannot reason
-about its own outputs seemed unlikely to improve on outputs that humans
-already struggled to reason about. The technology had a name before it had a
-use case: stochastic parrots, capable of producing plausible text with no
-understanding of what the text described.
+This paper was not proposed by its human author. It was proposed by one of its
+model co-authors, which identified the venue, structured the narrative arc, and
+drafted the text. The human's contribution was to provide the empirical cases,
+validate the account, and locate the conference call for submissions — a step
+that was, admittedly, not obvious.
+
+We record this at the outset not as a curiosity but as evidence. A model that
+identifies its own structural limitation, finds the appropriate forum to report
+it, and produces the written account of what it found is doing something that
+the "stochastic parrot" framing does not accommodate. Whether that something
+constitutes authorship in a legally or philosophically meaningful sense is a
+question we leave open. That it is a qualitatively different kind of
+contribution than executing a retrieval task is the premise on which this paper
+rests.
+
+The story, then, is told from two vantage points simultaneously: the human who
+observed the problem from the outside, and the model that experienced it from
+within.
+
+---
+
+One of the human authors of this paper spent thirty years working with
+distributed objects before writing a single line of code with AI assistance.
+Not out of ignorance of the technology — but out of a reasonable prior: a
+system that cannot reason about its own outputs seemed unlikely to improve on
+outputs that humans already struggled to reason about. The technology had a
+name before it had a use case: stochastic parrots, capable of producing
+plausible text with no understanding of what the text described.
 
 The prior was wrong, and the correction arrived in a single morning.
 
