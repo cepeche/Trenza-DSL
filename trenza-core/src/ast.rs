@@ -29,6 +29,14 @@ pub enum Definition {
     External(ExternalDef),
     System(SystemDef),
     Context(ContextDef),
+    Import(ImportDef),
+}
+
+#[derive(Debug, Clone)]
+pub struct ImportDef {
+    pub span: Span,
+    pub name: String,
+    pub hash: String,
 }
 
 #[derive(Debug, Clone)]
@@ -36,6 +44,7 @@ pub struct DataDef {
     pub span: Span,
     pub name: String,
     pub name_span: Span,
+    pub is_public: bool,
     pub annotations: Vec<(String, String)>,
     pub fields: Vec<DataField>,
 }
@@ -85,6 +94,7 @@ pub struct ContextDef {
     pub span: Span,
     pub name: String,
     pub name_span: Span,
+    pub is_public: bool,
     pub inputs: Vec<InputField>,
     pub roles: Vec<RoleDef>,
     pub transitions: Vec<TransitionRule>,
@@ -97,6 +107,7 @@ pub struct ContextDef {
 #[derive(Debug, Clone)]
 pub struct SlotDef {
     pub name: String,
+    pub is_public: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -120,6 +131,7 @@ pub struct RoleDef {
     pub name: String,
     pub name_span: Span,
     pub datatype: String,
+    pub is_public: bool,
     pub annotations: Vec<(String, String)>,
     pub binding: Option<String>,
     pub actions: Vec<RoleAction>,

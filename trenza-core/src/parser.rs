@@ -22,11 +22,22 @@ pub fn parse_file(content: &str) -> std::result::Result<Program, pest::error::Er
             for inner in program_pair.into_inner() {
                 match inner.as_rule() {
                     Rule::definition => {
-                        let def_inner = inner.into_inner().next().unwrap();
-                        match def_inner.as_rule() {
-                            Rule::data_def => definitions.push(Definition::Data(parse_data(def_inner))),
-                            Rule::system_def => definitions.push(Definition::System(parse_system(def_inner))),
-                            Rule::context_def => definitions.push(Definition::Context(parse_context(def_inner))),
+                        let mut def_inner = inner.into_inner();
+                        let mut is_public = false;
+                        let first = def_inner.next().unwrap();
+                        
+                        let actual_def = if first.as_rule() == Rule::pub_kw {
+                            is_public = true;
+                            def_inner.next().unwrap()
+                        } else {
+                            first
+                        };
+
+                        match actual_def.as_rule() {
+                            Rule::data_def => definitions.push(Definition::Data(parse_data(actual_def, is_public))),
+                            Rule::system_def => definitions.push(Definition::System(parse_system(actual_def))),
+                            Rule::context_def => definitions.push(Definition::Context(parse_context(actual_def, is_public))),
+                            Rule::import_def => definitions.push(Definition::Import(parse_import(actual_def))),
                             _ => {}
                         }
                     },
@@ -40,7 +51,7 @@ pub fn parse_file(content: &str) -> std::result::Result<Program, pest::error::Er
     Ok(Program { definitions })
 }
 
-fn parse_data(pair: pest::iterators::Pair<Rule>) -> DataDef {
+fn parse_data(pair: pest::iterators::Pair<Rule>, is_public: bool) -> DataDef {
     let mut name = String::new();
     let mut name_span = get_span(&pair); // Fallback
     let mut annotations = Vec::new();
@@ -79,7 +90,16 @@ fn parse_data(pair: pest::iterators::Pair<Rule>) -> DataDef {
             _ => {}
         }
     }
-    DataDef { span, name, name_span, annotations, fields }
+    DataDef { span, name, name_span, is_public, annotations, fields }
+}
+
+fn parse_import(pair: pest::iterators::Pair<Rule>) -> ImportDef {
+    let span = get_span(&pair);
+    let mut it = pair.into_inner();
+    let _ = it.next(); // skip use_kw
+    let name = it.next().unwrap().as_str().to_string();
+    let hash = it.next().unwrap().as_str().to_string();
+    ImportDef { span, name, hash }
 }
 
 fn parse_external(pair: pest::iterators::Pair<Rule>) -> ExternalDef {
@@ -176,7 +196,7 @@ fn parse_system(pair: pest::iterators::Pair<Rule>) -> SystemDef {
     SystemDef { span, name, name_span, initial, sections }
 }
 
-fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
+fn parse_context(pair: pest::iterators::Pair<Rule>, is_public: bool) -> ContextDef {
     let mut name = String::new();
     let mut name_span = get_span(&pair); // Fallback
     let mut inputs = Vec::new();
@@ -195,10 +215,17 @@ fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
                 name_span = get_span(&inner);
             },
             Rule::context_clause => {
-                let clause = inner.into_inner().next().unwrap();
-                match clause.as_rule() {
+                let mut c_iter = inner.into_inner();
+                let first = c_iter.next().unwrap();
+                let (is_pub, clause_pair) = if first.as_rule() == Rule::pub_kw {
+                    (true, c_iter.next().unwrap())
+                } else {
+                    (false, first)
+                };
+
+                match clause_pair.as_rule() {
                     Rule::input_def => {
-                        for field in clause.into_inner() {
+                        for field in clause_pair.into_inner() {
                             let mut f_iter = field.into_inner();
                             let first = f_iter.next().unwrap();
                             let (mutable, f_name, f_type) = if first.as_str() == "mutable" {
@@ -209,16 +236,16 @@ fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
                             inputs.push(InputField { mutable, name: f_name, datatype: f_type });
                         }
                     },
-                    Rule::role_def => roles.push(parse_role(clause)),
+                    Rule::role_def => roles.push(parse_role(clause_pair, is_pub)),
                     Rule::transitions_def => {
-                        for tr in clause.into_inner() {
+                        for tr in clause_pair.into_inner() {
                             if tr.as_rule() == Rule::transition_rule {
                                 transitions.push(parse_transition(tr));
                             }
                         }
                     },
                     Rule::effects_def => {
-                        for eff in clause.into_inner() {
+                        for eff in clause_pair.into_inner() {
                             let mut e_iter = eff.into_inner();
                             let trigger_pair = e_iter.next().unwrap();
                             let trigger = if trigger_pair.as_rule() == Rule::lifecycle_hook {
@@ -231,11 +258,12 @@ fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
                         }
                     },
                     Rule::slot_def => {
-                        let slot_name = clause.into_inner().next().unwrap().as_str().to_string();
-                        slots.push(SlotDef { name: slot_name });
+                        let mut s_iter = clause_pair.into_inner();
+                        let slot_name = s_iter.next().unwrap().as_str().to_string();
+                        slots.push(SlotDef { name: slot_name, is_public: is_pub });
                     },
                     Rule::fills_def => {
-                        fills.push(parse_fills(clause));
+                        fills.push(parse_fills(clause_pair));
                     },
                     Rule::role_wildcard => {
                         ignore_rest = true;
@@ -246,11 +274,11 @@ fn parse_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
             _ => {}
         }
     }
-    ContextDef { span, name, name_span, inputs, roles, transitions, effects, slots, fills, ignore_rest }
+    ContextDef { span, name, name_span, is_public, inputs, roles, transitions, effects, slots, fills, ignore_rest }
 }
 
 
-fn parse_role(pair: pest::iterators::Pair<Rule>) -> RoleDef {
+fn parse_role(pair: pest::iterators::Pair<Rule>, is_public: bool) -> RoleDef {
     let span = get_span(&pair);
     let mut it = pair.into_inner();
     let name_pair = it.next().unwrap();
@@ -279,7 +307,7 @@ fn parse_role(pair: pest::iterators::Pair<Rule>) -> RoleDef {
             _ => {}
         }
     }
-    RoleDef { span, name, name_span, datatype, annotations, binding, actions }
+    RoleDef { span, name, name_span, datatype, is_public, annotations, binding, actions }
 }
 
 fn parse_role_action(pair: pest::iterators::Pair<Rule>) -> RoleAction {
@@ -377,11 +405,18 @@ fn parse_fills(pair: pest::iterators::Pair<Rule>) -> FillsDef {
                 }
             },
             Rule::fills_clause => {
-                let clause = inner.into_inner().next().unwrap();
-                match clause.as_rule() {
-                    Rule::role_def => roles.push(parse_role(clause)),
+                let mut c_iter = inner.into_inner();
+                let first = c_iter.next().unwrap();
+                let (is_pub, clause_pair) = if first.as_rule() == Rule::pub_kw {
+                    (true, c_iter.next().unwrap())
+                } else {
+                    (false, first)
+                };
+
+                match clause_pair.as_rule() {
+                    Rule::role_def => roles.push(parse_role(clause_pair, is_pub)),
                     Rule::effects_def => {
-                        for eff in clause.into_inner() {
+                        for eff in clause_pair.into_inner() {
                             if eff.as_rule() != Rule::effect_rule { continue; }
                             let mut e_iter = eff.into_inner();
                             let trigger_pair = e_iter.next().unwrap();

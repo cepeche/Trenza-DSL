@@ -3,7 +3,11 @@ COMMENT = _{ "--" ~ (!"\n" ~ ANY)* }
 
 program = { SOI ~ (definition | external_def)* ~ EOI }
 
-definition = { data_def | system_def | context_def }
+definition = { pub_kw? ~ (data_def | context_def) | system_def | import_def }
+pub_kw = { "pub" }
+use_kw = { "use" }
+import_def = { use_kw ~ ident ~ "#" ~ hash_ident }
+hash_ident = @{ (ASCII_ALPHANUMERIC | "_")+ }
 
 data_def = { "data" ~ ident ~ data_annotation? ~ ":" ~ data_field* }
 data_annotation = { "[" ~ ident ~ ":" ~ ident ~ "]" }
@@ -28,7 +32,7 @@ section_ident = @{ !reserved_section ~ !definition_kw ~ ident }
 event_list = { ident ~ ("," ~ ident)* }
 
 context_def = { "context" ~ ident ~ ":" ~ context_clause* }
-context_clause = { input_def | role_def | role_wildcard | transitions_def | effects_def | slot_def | fills_def }
+context_clause = { input_def | pub_kw? ~ (role_def | slot_def) | role_wildcard | transitions_def | effects_def | fills_def }
 
 input_def = { "input:" ~ input_field* }
 input_field = { "mutable"? ~ ident ~ ":" ~ type_ident }
