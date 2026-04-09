@@ -237,7 +237,7 @@ impl ToTrz for ContextDef {
         if self.is_public { out.push_str("pub "); }
         out.push_str(&format!("context {}:\n", self.name));
         if !self.inputs.is_empty() {
-            out.push_str("  inputs:\n");
+            out.push_str("  input:\n");
             for input in &self.inputs {
                 out.push_str(&format!("    {}{}: {}\n", if input.mutable { "var " } else { "" }, input.name, input.datatype));
             }
