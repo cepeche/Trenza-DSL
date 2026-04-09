@@ -182,3 +182,149 @@ pub enum EffectTrigger {
     Lifecycle(String),
     Event(String),
 }
+
+// --- Serialización (ADR-021) ---
+
+pub trait ToTrz {
+    fn to_trz(&self) -> String;
+}
+
+impl ToTrz for Program {
+    fn to_trz(&self) -> String {
+        self.definitions.iter()
+            .map(|d| d.to_trz())
+            .collect::<Vec<_>>()
+            .join("\n\n")
+    }
+}
+
+impl ToTrz for Definition {
+    fn to_trz(&self) -> String {
+        match self {
+            Definition::Data(d) => d.to_trz(),
+            Definition::External(e) => e.to_trz(),
+            Definition::System(s) => s.to_trz(),
+            Definition::Context(c) => c.to_trz(),
+            Definition::Import(i) => i.to_trz(),
+        }
+    }
+}
+
+impl ToTrz for ImportDef {
+    fn to_trz(&self) -> String {
+        format!("use {}#{}", self.name, self.hash)
+    }
+}
+
+impl ToTrz for DataDef {
+    fn to_trz(&self) -> String {
+        let mut out = String::new();
+        for (k, v) in &self.annotations {
+            out.push_str(&format!("[{}: {}]\n", k, v));
+        }
+        if self.is_public { out.push_str("pub "); }
+        out.push_str(&format!("data {}:\n", self.name));
+        for field in &self.fields {
+            out.push_str(&format!("  {}{}: {}\n", if field.mutable { "var " } else { "" }, field.name, field.datatype));
+        }
+        out
+    }
+}
+
+impl ToTrz for ContextDef {
+    fn to_trz(&self) -> String {
+        let mut out = String::new();
+        if self.is_public { out.push_str("pub "); }
+        out.push_str(&format!("context {}:\n", self.name));
+        if !self.inputs.is_empty() {
+            out.push_str("  inputs:\n");
+            for input in &self.inputs {
+                out.push_str(&format!("    {}{}: {}\n", if input.mutable { "var " } else { "" }, input.name, input.datatype));
+            }
+        }
+        for role in &self.roles {
+            out.push_str(&role.to_trz());
+        }
+        if !self.transitions.is_empty() {
+            out.push_str("  transitions:\n");
+            for trans in &self.transitions {
+                out.push_str(&format!("    on {} -> {}\n", trans.event, trans.target));
+            }
+        }
+        if !self.effects.is_empty() {
+            out.push_str("  effects:\n");
+            for effect in &self.effects {
+                let trigger = match &effect.trigger {
+                    EffectTrigger::Lifecycle(s) => format!("[{}]", s),
+                    EffectTrigger::Event(s) => s.clone(),
+                };
+                out.push_str(&format!("    {} -> {}({})\n", trigger, effect.call.function, effect.call.args.join(", ")));
+            }
+        }
+        for slot in &self.slots {
+            out.push_str(&format!("  {}slot {}\n", if slot.is_public { "pub " } else { "" }, slot.name));
+        }
+        for fills in &self.fills {
+            out.push_str(&format!("  fills {}.{}:\n", fills.target_context, fills.target_slot));
+            for role in &fills.roles {
+                out.push_str(&role.to_trz_indented(2));
+            }
+        }
+        out
+    }
+}
+
+impl ToTrz for RoleDef {
+    fn to_trz(&self) -> String {
+        self.to_trz_indented(1)
+    }
+}
+
+impl RoleDef {
+    fn to_trz_indented(&self, indent_level: usize) -> String {
+        let indent = "  ".repeat(indent_level);
+        let mut out = String::new();
+        if self.is_public { out.push_str(&format!("{}pub ", indent)); } else { out.push_str(&indent); }
+        out.push_str(&format!("role {}: {}", self.name, self.datatype));
+        if let Some(b) = &self.binding {
+            out.push_str(&format!(" = {}", b));
+        }
+        out.push_str("\n");
+        for action in &self.actions {
+            out.push_str(&format!("{}  on {} -> ", indent, action.event));
+            match &action.target {
+                ActionTarget::Call(c) => out.push_str(&format!("{}({})\n", c.function, c.args.join(", "))),
+                ActionTarget::Ignored => out.push_str("ignore\n"),
+                ActionTarget::Forbidden => out.push_str("forbidden\n"),
+            }
+        }
+        out
+    }
+}
+
+impl ToTrz for ExternalDef {
+    fn to_trz(&self) -> String {
+        let mut out = format!("external {}:\n", self.name);
+        for action in &self.actions {
+            let params = action.params.iter().map(|(n, t)| format!("{}: {}", n, t)).collect::<Vec<_>>().join(", ");
+            out.push_str(&format!("  {}({}) -> {}\n", action.name, params, action.return_type));
+        }
+        out
+    }
+}
+
+impl ToTrz for SystemDef {
+    fn to_trz(&self) -> String {
+        let mut out = format!("system {}:\n", self.name);
+        out.push_str(&format!("  initial: {}\n", self.initial));
+        for section in &self.sections {
+            match section {
+                SystemSection::Contexts(c) => out.push_str(&format!("  contexts:\n    {}\n", c.join("\n    "))),
+                SystemSection::Concurrent(c) => out.push_str(&format!("  concurrent:\n    {}\n", c.join("\n    "))),
+                SystemSection::Overlays(c) => out.push_str(&format!("  overlays:\n    {}\n", c.join("\n    "))),
+                SystemSection::Events(c) => out.push_str(&format!("  events:\n    {}\n", c.join("\n    "))),
+            }
+        }
+        out
+    }
+}
