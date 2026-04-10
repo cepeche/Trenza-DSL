@@ -382,9 +382,88 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
         }
     }
 
+    // Pass 8: Rule 9 (Import Integrity - ADR-022)
+    let mut import_names = Vec::new();
+    let mut system_names = Vec::new();
+    for def in &program.definitions {
+        match def {
+            Definition::Import(i) => import_names.push((i.name.clone(), i.span.clone())),
+            Definition::System(s) => system_names.push(s.name.clone()),
+            _ => {}
+        }
+    }
+
+    for (imp_name, imp_span) in import_names {
+        // If there are systems in the program, one must match the import name.
+        // Option B: Allow 0 systems (data-only package), but if there is one, it must match.
+        if !system_names.is_empty() {
+            if !system_names.contains(&imp_name) {
+                errors.push(Diagnostic {
+                    span: imp_span,
+                    message: format!(
+                        "El componente importado '{}' no define el sistema esperado '{}' (encontrado: {})",
+                        imp_name, imp_name, system_names.join(", ")
+                    ),
+                    severity: "error".to_string(),
+                    code: "import-mismatch".to_string(),
+                });
+            }
+        }
+    }
+
     if errors.is_empty() {
         Ok(())
     } else {
         Err(errors)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::parser::parse_file;
+
+    #[test]
+    fn test_import_mismatch() {
+        let source = "
+use Reloj#abc
+system Cronometro:
+  initial: C1
+";
+        let program = parse_file(source).unwrap();
+        let result = verify(&program);
+        assert!(result.is_err());
+        let errs = result.unwrap_err();
+        assert!(errs.iter().any(|e| e.code == "import-mismatch"));
+    }
+
+    #[test]
+    fn test_import_match() {
+        let source = "
+use Reloj#abc
+system Reloj:
+  initial: C1
+";
+        let program = parse_file(source).unwrap();
+        let result = verify(&program);
+        // Might fail other rules, but not import-mismatch
+        if let Err(errs) = result {
+            assert!(!errs.iter().any(|e| e.code == "import-mismatch"));
+        }
+    }
+
+    #[test]
+    fn test_import_data_only_package() {
+        let source = "
+use MyTypes#abc
+data Foo:
+  x: Entero
+";
+        let program = parse_file(source).unwrap();
+        let result = verify(&program);
+        // Option B: No systems -> OK
+        if let Err(errs) = result {
+            assert!(!errs.iter().any(|e| e.code == "import-mismatch"));
+        }
     }
 }
