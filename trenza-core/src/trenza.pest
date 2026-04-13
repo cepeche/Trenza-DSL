@@ -3,7 +3,7 @@ COMMENT = _{ "--" ~ (!"\n" ~ ANY)* }
 
 program = { SOI ~ (definition | external_def)* ~ EOI }
 
-definition = { pub_kw? ~ (data_def | context_def) | system_def | import_def }
+definition = { pub_kw? ~ (data_def | context_def | enum_def) | system_def | import_def }
 pub_kw = { "pub" }
 use_kw = { "use" }
 import_def = { use_kw ~ ident ~ "#" ~ hash_ident }
@@ -12,6 +12,8 @@ hash_ident = @{ (ASCII_ALPHANUMERIC | "_")+ }
 data_def = { "data" ~ ident ~ data_annotation? ~ ":" ~ data_field* }
 data_annotation = { "[" ~ ident ~ ":" ~ ident ~ "]" }
 data_field = { "mutable"? ~ ident ~ ":" ~ type_ident }
+
+enum_def = { "type" ~ ident ~ ":" ~ ("|" ~ ident)+ }
 
 external_def = { "external" ~ ident ~ data_annotation? ~ ":" ~ external_action* }
 external_action = { ident ~ "(" ~ action_params? ~ ")" ~ "->" ~ type_ident }

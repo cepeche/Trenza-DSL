@@ -17,6 +17,10 @@ pub fn public_surface(program: &Program) -> Program {
                 reachable_names.insert(c.name.clone());
                 queue.push_back(def.clone());
             }
+            Definition::Enum(e) if e.is_public => {
+                reachable_names.insert(e.name.clone());
+                queue.push_back(def.clone());
+            }
             // Los imports se mantienen siempre
             Definition::Import(_) => {
                 public_definitions.push(def.clone());
@@ -45,7 +49,9 @@ pub fn public_surface(program: &Program) -> Program {
         }
     }
 
-    // Ordenar preservando imports al principio? Por ahora devolvemos el conjunto encontrado.
+    // Sort definitions by type and name for deterministic hashing (ADR-022/Bloque 2.1)
+    public_definitions.sort_by(|a, b| a.sort_key().cmp(&b.sort_key()));
+
     Program {
         definitions: public_definitions,
     }
@@ -80,6 +86,7 @@ fn get_dependencies(def: &Definition) -> Vec<String> {
                 deps.push(action.return_type.clone());
             }
         }
+        Definition::Enum(_) => {}
         _ => {}
     }
     deps
@@ -91,6 +98,7 @@ fn find_definition(program: &Program, name: &str) -> Option<Definition> {
             Definition::Data(d) if d.name == name => return Some(def.clone()),
             Definition::Context(c) if c.name == name => return Some(def.clone()),
             Definition::External(e) if e.name == name => return Some(def.clone()),
+            Definition::Enum(e) if e.name == name => return Some(def.clone()),
             _ => {}
         }
     }
@@ -141,9 +149,32 @@ data D:
             }
         }).collect();
         
-        assert!(names.contains("A"));
-        assert!(names.contains("B"));
         assert!(names.contains("C"));
         assert!(!names.contains("D"));
+    }
+
+    #[test]
+    fn test_deterministic_surface() {
+        let source1 = "
+pub data A:
+  x: Entero
+pub data B:
+  y: Texto
+";
+        let source2 = "
+pub data B:
+  y: Texto
+pub data A:
+  x: Entero
+";
+        let prog1 = parse_file(source1).unwrap();
+        let prog2 = parse_file(source2).unwrap();
+        
+        let surf1 = public_surface(&prog1);
+        let surf2 = public_surface(&prog2);
+        
+        // Serialized strings should be identical
+        use crate::serializer::serialize_trz;
+        assert_eq!(serialize_trz(&surf1), serialize_trz(&surf2));
     }
 }

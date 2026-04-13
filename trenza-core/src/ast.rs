@@ -24,12 +24,46 @@ pub struct Program {
 }
 
 #[derive(Debug, Clone)]
+pub struct EnumDef {
+    pub span: Span,
+    pub name: String,
+    pub name_span: Span,
+    pub is_public: bool,
+    pub variants: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
 pub enum Definition {
     Data(DataDef),
     External(ExternalDef),
     System(SystemDef),
     Context(ContextDef),
     Import(ImportDef),
+    Enum(EnumDef),
+}
+
+impl Definition {
+    pub fn name(&self) -> &str {
+        match self {
+            Definition::Data(d) => &d.name,
+            Definition::External(e) => &e.name,
+            Definition::System(s) => &s.name,
+            Definition::Context(c) => &c.name,
+            Definition::Import(i) => &i.name,
+            Definition::Enum(e) => &e.name,
+        }
+    }
+
+    pub fn sort_key(&self) -> (u8, &str) {
+        match self {
+            Definition::Import(_) => (0, self.name()),
+            Definition::System(_) => (1, self.name()),
+            Definition::Data(_) => (2, self.name()),
+            Definition::Enum(_) => (3, self.name()),
+            Definition::Context(_) => (4, self.name()),
+            Definition::External(_) => (5, self.name()),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -206,6 +240,7 @@ impl ToTrz for Definition {
             Definition::System(s) => s.to_trz(),
             Definition::Context(c) => c.to_trz(),
             Definition::Import(i) => i.to_trz(),
+            Definition::Enum(e) => e.to_trz(),
         }
     }
 }
@@ -226,6 +261,18 @@ impl ToTrz for DataDef {
         out.push_str(&format!("data {}:\n", self.name));
         for field in &self.fields {
             out.push_str(&format!("  {}{}: {}\n", if field.mutable { "var " } else { "" }, field.name, field.datatype));
+        }
+        out
+    }
+}
+
+impl ToTrz for EnumDef {
+    fn to_trz(&self) -> String {
+        let mut out = String::new();
+        if self.is_public { out.push_str("pub "); }
+        out.push_str(&format!("type {}:\n", self.name));
+        for variant in &self.variants {
+            out.push_str(&format!("  | {}\n", variant));
         }
         out
     }

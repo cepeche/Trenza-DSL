@@ -57,6 +57,7 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
                     Definition::External(_) => {},
                     Definition::System(_) => {},
                     Definition::Import(_) => {},
+                    Definition::Enum(_) => {},
                 }
             }
 

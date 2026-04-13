@@ -38,6 +38,7 @@ pub fn parse_file(content: &str) -> std::result::Result<Program, pest::error::Er
                             Rule::system_def => definitions.push(Definition::System(parse_system(actual_def))),
                             Rule::context_def => definitions.push(Definition::Context(parse_context(actual_def, is_public))),
                             Rule::import_def => definitions.push(Definition::Import(parse_import(actual_def))),
+                            Rule::enum_def => definitions.push(Definition::Enum(parse_enum(actual_def, is_public))),
                             _ => {}
                         }
                     },
@@ -100,6 +101,35 @@ fn parse_import(pair: pest::iterators::Pair<Rule>) -> ImportDef {
     let name = it.next().unwrap().as_str().to_string();
     let hash = it.next().unwrap().as_str().to_string();
     ImportDef { span, name, hash }
+}
+
+fn parse_enum(pair: pest::iterators::Pair<Rule>, is_public: bool) -> EnumDef {
+    let mut name = String::new();
+    let mut name_span = get_span(&pair); // Fallback
+    let mut variants = Vec::new();
+    let span = get_span(&pair);
+
+    for inner in pair.into_inner() {
+        match inner.as_rule() {
+            Rule::ident => {
+                if name.is_empty() {
+                    name = inner.as_str().to_string();
+                    name_span = get_span(&inner);
+                } else {
+                    variants.push(inner.as_str().to_string());
+                }
+            },
+            _ => {}
+        }
+    }
+
+    EnumDef {
+        span,
+        name,
+        name_span,
+        is_public,
+        variants,
+    }
 }
 
 fn parse_external(pair: pest::iterators::Pair<Rule>) -> ExternalDef {

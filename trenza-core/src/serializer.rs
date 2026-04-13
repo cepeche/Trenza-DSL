@@ -81,4 +81,39 @@ data Interno:
         assert_eq!(reparsed.definitions.len(), surface.definitions.len(),
             "roundtrip lost definitions. Serialized:\n{}", text);
     }
+
+    #[test]
+    fn roundtrip_enum() {
+        let source = "
+pub type Estado:
+  | Pendiente
+  | Validado
+  | Rechazado
+        ";
+        let program = parse_file(source).unwrap();
+        let text = serialize_trz(&program);
+        let reparsed = parse_file(&text).expect("serialized output should reparse");
+        
+        assert_eq!(reparsed.definitions.len(), 1);
+        if let Definition::Enum(e) = &reparsed.definitions[0] {
+            assert_eq!(e.name, "Estado");
+            assert_eq!(e.variants.len(), 3);
+            assert!(e.variants.contains(&"Pendiente".to_string()));
+            assert!(e.is_public);
+        } else {
+            panic!("Expected Enum definition");
+        }
+    }
+
+    #[test]
+    fn test_parse_cimbra_spec() {
+        let path = "c:\\Proyectos\\Cimbra\\spec\\cimbra.trz";
+        let source = std::fs::read_to_string(path).expect("failed to read cimbra.trz");
+        let program = parse_file(&source).expect("failed to parse cimbra.trz with new features");
+        
+        // Verificar que encontramos los nuevos tipos
+        let names: Vec<_> = program.definitions.iter().map(|d| d.name()).collect();
+        assert!(names.contains(&"StrandType"));
+        assert!(names.contains(&"ComponentStatus"));
+    }
 }
