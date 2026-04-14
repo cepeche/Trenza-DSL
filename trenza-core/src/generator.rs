@@ -38,49 +38,47 @@ fn rust_type(s: &str) -> String {
         let inner = rust_type(&s[..s.len() - 1]);
         return format!("Option<{}>", inner);
     }
-    if s.starts_with("Lista<") && s.ends_with('>') {
-        let inner = &s[6..s.len() - 1];
+    if s.starts_with("List<") && s.ends_with('>') {
+        let inner = &s[5..s.len() - 1];
         return format!("Vec<{}>", rust_type(inner));
     }
-    if s == "Lista" {
-        return "Vec<String>".to_string();
-    }
-    match s {
-        "Texto"     => "String".to_string(),
-        "Numero"    => "i32".to_string(),
-        "Booleano"  => "bool".to_string(),
-        "Id"        => "String".to_string(),
-        "Entero"    => "i32".to_string(),
-        "Color"     => "String".to_string(),
-        "Timestamp" => "u64".to_string(),
-        other       => other.to_string(),
-    }
+    crate::primitives::rust_type_of(s)
+        .map(String::from)
+        .unwrap_or_else(|| s.to_string())
 }
 
 fn ts_type(s: &str) -> String {
-    // Handle optional suffix (e.g. "Texto?")
+    // Handle optional suffix (e.g. "String?")
     if s.ends_with('?') {
         return ts_type(&s[..s.len() - 1]);
     }
-    // Handle Lista<X>
-    if s.starts_with("Lista<") && s.ends_with('>') {
-        let inner = &s[6..s.len() - 1];
+    // Handle List<X>
+    if s.starts_with("List<") && s.ends_with('>') {
+        let inner = &s[5..s.len() - 1];
         return format!("{}[]", ts_type(inner));
     }
-    // Handle bare Lista (no type param)
-    if s == "Lista" {
-        return "any[]".to_string();
+    crate::primitives::ts_type_of(s)
+        .map(String::from)
+        .unwrap_or_else(|| s.to_string())
+}
+
+fn generate_enum_rust(e: &EnumDef) -> String {
+    let mut out = String::new();
+    out.push_str("#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]\n");
+    out.push_str("#[serde(rename_all = \"camelCase\")]\n");
+    out.push_str(&format!("pub enum {} {{\n", e.name));
+    for variant in &e.variants {
+        out.push_str(&format!("    {},\n", variant));
     }
-    match s {
-        "Texto"     => "string".to_string(),
-        "Numero"    => "number".to_string(),
-        "Booleano"  => "boolean".to_string(),
-        "Id"        => "string".to_string(),
-        "Entero"    => "number".to_string(),
-        "Color"     => "string".to_string(),
-        "Timestamp" => "number".to_string(),
-        other       => other.to_string(),
-    }
+    out.push_str("}\n\n");
+    out
+}
+
+fn generate_enum_ts(e: &EnumDef) -> String {
+    let variants: Vec<String> = e.variants.iter()
+        .map(|v| format!("\"{}\"", v))
+        .collect();
+    format!("export type {} = {};\n\n", e.name, variants.join(" | "))
 }
 
 pub fn generate_typescript_wasm(program: &Program) -> String {
@@ -220,7 +218,14 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
     }
     output.push_str("}\n\n");
 
-    // 2. Data Interfaces
+    // 2. Sum Types (Enums)
+    for def in &program.definitions {
+        if let Definition::Enum(e) = def {
+            output.push_str(&generate_enum_ts(e));
+        }
+    }
+
+    // 3. Data Interfaces
     for def in &program.definitions {
         if let Definition::Data(d) = def {
             output.push_str(&format!("export interface {} {{\n", d.name));
@@ -530,17 +535,26 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
         }
     }
 
-    output.push_str("#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]\n");
+    output.push_str("#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]\n");
     output.push_str("pub enum Contexto {\n");
     for ctx in &contexts {
         output.push_str(&format!("    {},\n", ctx));
     }
     output.push_str("}\n\n");
 
-    // 2. Data Structures (Strand 1)
+    // 2. Sum Types (Enums)
+    for def in &program.definitions {
+        if let Definition::Enum(e) = def {
+            output.push_str(&generate_enum_rust(e));
+        }
+    }
+
+    // 3. Data Structures (Strand 1)
     for def in &program.definitions {
         if let Definition::Data(d) = def {
-            output.push_str(&format!("#[allow(non_snake_case)]\n#[derive(Debug, Clone, Default)]\npub struct {} {{\n", d.name));
+            output.push_str(&format!("#[allow(non_snake_case)]\n#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]\n"));
+            output.push_str("#[serde(rename_all = \"camelCase\")]\n");
+            output.push_str(&format!("pub struct {} {{\n", d.name));
             for field in &d.fields {
                 output.push_str(&format!("    pub {}: {},\n", field.name, rust_type(&field.datatype)));
             }

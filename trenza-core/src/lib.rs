@@ -1,5 +1,6 @@
 pub mod ast;
 pub mod parser;
+pub mod primitives;
 pub mod validator;
 pub mod generator;
 pub mod runtime;

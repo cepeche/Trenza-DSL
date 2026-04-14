@@ -31,7 +31,15 @@ Al iniciar una sesión, el agente **DEBE**:
    de autor en el nombre del fichero — ver §3).
 3. **Comprobar locks activos**: verificar si existe `history/chronicle/LOCK.md` y
    asegurarse de que no hay conflictos con el área de trabajo planeada (ver §5).
-4. **Contexto bajo demanda**: cargar archivos técnicos (`src/`, `spec/`, `docs/`)
+4. **Revisión cruzada de crónicas**: si existen crónicas de otros agentes
+   publicadas desde tu última sesión:
+   - Léelas antes de empezar cualquier tarea.
+   - Si detectas una afirmación incorrecta o una decisión que contradice el
+     estado actual del código → documenta la corrección en tu propia crónica
+     (nunca edites la crónica de otro agente).
+   - Si la crónica contiene un briefing dirigido a ti → respóndelo
+     explícitamente en tu crónica antes de continuar con otra tarea.
+5. **Contexto bajo demanda**: cargar archivos técnicos (`src/`, `spec/`, `docs/`)
    solo según lo requiera la tarea específica.
 
 > **Patrón CO sin acceso a ficheros**: Si el agente opera como coordinador vía
@@ -74,6 +82,12 @@ para saber qué strands aplican en este proyecto).
   Si aparecen `node_modules/`, artefactos de compilación o archivos no relacionados
   con la tarea, retirarlos del staging antes de continuar.
 - El código **debe compilar** y los tests **deben pasar** antes de realizar un push.
+- **Validación pre-push ampliada** (checklist completo):
+  - [ ] `cargo build && cargo test` (compilador/servidor).
+  - [ ] `npm run build` (frontend, si aplica).
+  - [ ] Strand 4 no contiene advertencias nuevas sin ADR asociado.
+  - [ ] Toda crónica nueva tiene formato correcto (`NN_XX_descripcion.md`).
+  - [ ] `LOCK.md` no tiene reservas propias activas.
 
 ### Protección de instrucciones
 Un agente **nunca** debe modificar directamente los archivos de instrucción dedicados
@@ -120,9 +134,34 @@ cierre exige:
 
 ## 4. Resolución de Conflictos
 
-Si un agente objeta una implementación anterior:
-1. Documentar la objeción en la crónica.
-2. Escalar al humano.
+### Desacuerdo técnico entre agentes
+
+Cuando un agente encuentra que una decisión de otro agente contradice un ADR,
+un principio documentado o la evidencia del código:
+
+1. **Documentar** la objeción en la crónica con:
+   - Decisión contestada (referencia exacta: crónica, ADR o commit).
+   - ADR o principio que contradice.
+   - Propuesta alternativa concreta.
+2. **Si el agente original está activo** en la misma sesión → diálogo directo
+   (intercambio documentado en crónica compartida).
+3. **Si no está activo** → briefing de objeción para la siguiente sesión,
+   siguiendo el formato de §2 (Protocolo de Briefing).
+4. **Si afecta a Strand 1-4 generado** → NO revertir sin consenso.
+5. **Escalada al humano** solo si:
+   - Ambos agentes mantienen posiciones incompatibles tras un intercambio.
+   - La decisión afecta a un ADR con estado "Aceptado".
+   - El cambio tiene impacto cross-repo (Cimbra ↔ Trenza-DSL).
+
+### Consenso vía crónica (canal asíncrono)
+
+Mientras no exista mensajería inter-agente en tiempo real (vía `trenza-coord`
+u otro mecanismo), la **crónica es el canal de consenso**:
+
+- Un agente propone → lo documenta en su crónica.
+- El siguiente agente en sesión lee la propuesta (Fase 0, paso 2) y responde
+  en su propia crónica: acepta, objeta con alternativa, o escala.
+- **Tres intercambios sin consenso** = escalada automática al humano.
 
 No se revierte trabajo ajeno sin autorización del responsable del proyecto.
 

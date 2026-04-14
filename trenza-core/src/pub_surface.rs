@@ -106,11 +106,7 @@ fn find_definition(program: &Program, name: &str) -> Option<Definition> {
 }
 
 fn is_primitive(name: &str) -> bool {
-    // Lista básica de primitivos de Trenza
-    match name {
-        "Texto" | "Entero" | "Decimal" | "Booleano" | "Instante" | "Nada" | "Raiz" => true,
-        _ => false,
-    }
+    crate::primitives::is_primitive(name)
 }
 
 #[cfg(test)]

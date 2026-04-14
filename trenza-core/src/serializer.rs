@@ -24,16 +24,16 @@ mod tests {
         let source = "
 pub data A:
   f: B
-  g: Texto
+  g: String
 
 data B:
   h: C
 
 data C:
-  i: Entero
+  i: Int
 
 data D:
-  j: Texto
+  j: String
         ";
         let program = parse_file(source).unwrap();
         let surface = public_surface(&program);
@@ -56,11 +56,11 @@ pub context Compra:
     precio: Importe
 
 data Importe:
-  valor: Entero
-  moneda: Texto
+  valor: Int
+  moneda: String
 
 data Interno:
-  secreto: Texto
+  secreto: String
         ";
         let program = parse_file(source).unwrap();
         let surface = public_surface(&program);
