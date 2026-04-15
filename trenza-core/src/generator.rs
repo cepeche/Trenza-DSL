@@ -346,7 +346,14 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
             initial_state = sys.initial.clone();
             for sec in &sys.sections {
                 match sec {
-                    SystemSection::Concurrent(ctxs) => concurrent_contexts = ctxs.clone(),
+                    SystemSection::Concurrent(entries) => {
+                        for entry in entries {
+                            match entry {
+                                ConcurrentEntry::Name(name) => concurrent_contexts.push(name.clone()),
+                                ConcurrentEntry::Anonymous(ctx) => concurrent_contexts.push(ctx.name.clone()),
+                            }
+                        }
+                    },
                     SystemSection::Overlays(ctxs) => overlay_set.extend(ctxs.iter().cloned()),
                     _ => {}
                 }
@@ -528,8 +535,18 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
         if let Definition::System(sys) = def {
             initial_state = sys.initial.clone();
             for sec in &sys.sections {
-                if let SystemSection::Concurrent(ctxs) = sec {
-                    concurrent_contexts = ctxs.clone();
+                if let SystemSection::Concurrent(entries) = sec {
+                    for entry in entries {
+                        match entry {
+                            ConcurrentEntry::Name(name) => {
+                                concurrent_contexts.push(name.clone());
+                            },
+                            ConcurrentEntry::Anonymous(ctx) => {
+                                concurrent_contexts.push(ctx.name.clone());
+                                contexts.push(ctx.name.clone());
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1126,9 +1143,12 @@ fn extract_system_metadata(program: &Program) -> SystemMetadata {
         if let Definition::System(sys) = def {
             initial = sys.initial.clone();
             for sec in &sys.sections {
-                if let SystemSection::Concurrent(ctxs) = sec {
-                    for ctx in ctxs {
-                        concurrent_contexts.insert(ctx.clone());
+                if let SystemSection::Concurrent(entries) = sec {
+                    for entry in entries {
+                        match entry {
+                            ConcurrentEntry::Name(name) => { concurrent_contexts.insert(name.clone()); },
+                            ConcurrentEntry::Anonymous(ctx) => { concurrent_contexts.insert(ctx.name.clone()); }
+                        }
                     }
                 }
             }

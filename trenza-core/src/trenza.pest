@@ -22,7 +22,7 @@ action_params = { ident ~ ":" ~ type_ident ~ ("," ~ ident ~ ":" ~ type_ident)* }
 system_def = { "system" ~ ident ~ ":" ~ "initial:" ~ ident ~ system_sections* }
 system_sections = { context_list | concurrent_list | overlay_list | event_list_section }
 context_list = { "contexts:" ~ section_ident* }
-concurrent_list = { "concurrent:" ~ section_ident* }
+concurrent_list = { "concurrent:" ~ (section_ident | anonymous_context_def)* }
 overlay_list = { "overlays:" ~ section_ident* }
 event_list_section = { "events:" ~ (!definition_kw ~ ident)* }
 
@@ -34,6 +34,7 @@ section_ident = @{ !reserved_section ~ !definition_kw ~ ident }
 event_list = { ident ~ ("," ~ ident)* }
 
 context_def = { "context" ~ ident ~ ":" ~ context_clause* }
+anonymous_context_def = { context_clause+ }
 context_clause = { input_def | pub_kw? ~ (role_def | slot_def) | role_wildcard | transitions_def | effects_def | fills_def }
 
 input_def = { "input:" ~ input_field* }

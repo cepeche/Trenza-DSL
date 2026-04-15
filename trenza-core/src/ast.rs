@@ -118,9 +118,15 @@ pub struct SystemDef {
 #[derive(Debug, Clone)]
 pub enum SystemSection {
     Contexts(Vec<String>),
-    Concurrent(Vec<String>),
+    Concurrent(Vec<ConcurrentEntry>),
     Overlays(Vec<String>),
     Events(Vec<String>),
+}
+
+#[derive(Debug, Clone)]
+pub enum ConcurrentEntry {
+    Name(String),
+    Anonymous(ContextDef),
 }
 
 #[derive(Debug, Clone)]
@@ -136,6 +142,7 @@ pub struct ContextDef {
     pub slots: Vec<SlotDef>,
     pub fills: Vec<FillsDef>,
     pub ignore_rest: bool,
+    pub is_anonymous: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -282,7 +289,9 @@ impl ToTrz for ContextDef {
     fn to_trz(&self) -> String {
         let mut out = String::new();
         if self.is_public { out.push_str("pub "); }
-        out.push_str(&format!("context {}:\n", self.name));
+        if !self.name.is_empty() {
+            out.push_str(&format!("context {}:\n", self.name));
+        }
         if !self.inputs.is_empty() {
             out.push_str("  input:\n");
             for input in &self.inputs {
@@ -367,7 +376,21 @@ impl ToTrz for SystemDef {
         for section in &self.sections {
             match section {
                 SystemSection::Contexts(c) => out.push_str(&format!("  contexts:\n    {}\n", c.join("\n    "))),
-                SystemSection::Concurrent(c) => out.push_str(&format!("  concurrent:\n    {}\n", c.join("\n    "))),
+                SystemSection::Concurrent(entries) => {
+                    out.push_str("  concurrent:\n");
+                    for entry in entries {
+                        match entry {
+                            ConcurrentEntry::Name(name) => out.push_str(&format!("    {}\n", name)),
+                            ConcurrentEntry::Anonymous(ctx) => {
+                                // Indent the anonymous context content
+                                let content = ctx.to_trz();
+                                for line in content.lines() {
+                                    out.push_str(&format!("    {}\n", line));
+                                }
+                            }
+                        }
+                    }
+                },
                 SystemSection::Overlays(c) => out.push_str(&format!("  overlays:\n    {}\n", c.join("\n    "))),
                 SystemSection::Events(c) => out.push_str(&format!("  events:\n    {}\n", c.join("\n    "))),
             }

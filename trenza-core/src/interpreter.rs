@@ -16,7 +16,12 @@ impl Interpreter {
                 initial_state = sys.initial.clone();
                 for sec in &sys.sections {
                     if let SystemSection::Concurrent(cc) = sec {
-                        concurrent_states.extend(cc.clone());
+                        for entry in cc {
+                            match entry {
+                                ConcurrentEntry::Name(name) => { concurrent_states.push(name.clone()); },
+                                ConcurrentEntry::Anonymous(ctx) => { concurrent_states.push(ctx.name.clone()); }
+                            }
+                        }
                     }
                 }
             }

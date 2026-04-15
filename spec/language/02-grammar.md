@@ -264,6 +264,8 @@ context <name>:
 | `transitions` | Declares context changes |
 | `effects` | Declares side effects associated with actions |
 | `external` | Marks an action implemented in conventional code |
+| `pub` | Marks a definition or member as part of the public surface (ADR-021) |
+| `use` | Imports a specific system by name and hash from a package (ADR-021, ADR-022) |
 
 
 
@@ -1356,6 +1358,8 @@ comes for free.
 | 6 | CLI language | **Python for prototype → Rust for final tool** | Discover design gaps with minimal friction; JSON AST as conformance contract for migration |
 | 7 | Manifest format | **Simple custom JSON schema** with `trenza_version`; OPC principles adopted (mimetype + manifest at root) | OPC is XML/verbose; JSON Schema published only once the format stabilizes |
 | 8 | Inheritance in nested contexts | **Implicit** (rules H1–H5); local roles; completeness by level; `trenza inspect` for expanded view | Sub-scenes, not OO inheritance; explicit override; new events on inherited roles are prohibited |
+| 9 | Inter-project reuse | **`use Name#Hash`** syntax | Inter-project composition; name-hash validation (ADR-022); content-addressed catalog |
+| 10 | Canonical Identity | **`_<hash6>`** internal ID; prefix `_` reserved | Identity derived from content, not name; stable diffs; prefix `_` is prohibited for user-defined names (ADR-021) |
 
 
 
@@ -1387,5 +1391,68 @@ All originally pending decisions were resolved on March 12, 2026. See decisions 
 
 - `docs/2026-03-12-02-decisiones-pendientes-claude.md` (Sonnet position)
 - `docs/2026-03-12-03-decisiones-pendientes-opus.md` (Opus position + joint resolution)
+
+
+
+---
+
+
+
+## Public Surface and Composition (ADR-021, ADR-022)
+
+
+
+### 1. Public Surface and `header.trz`
+
+
+
+A Trenza package (`.tzp`) can expose a **public header**: a legal subset of `.trz` that declares only the components necessary for a consumer to interact with the system.
+
+
+
+- **Manual Marking**: The `pub` keyword marks elements for inclusion in the public header. It can be applied to `data`, `context`, `type` (Enum), `slot`, and `role`.
+- **Transitive Closure**: Types appearing in the signature of a `pub` element (e.g., field types of a `pub data`, role types in a `pub context`) are **automatically and transitively** included in the header. The compiler calculates this closure; the author does not maintain a parallel inventory.
+
+#### EBNF (Local Subset)
+```ebnf
+definition = [pub_kw] (data_def | context_def | enum_def) | system_def | import_def;
+pub_kw = "pub";
+context_clause = ... | [pub_kw] (role_def | slot_def) | ...;
+```
+
+### 2. Inter-Project Reuse (`use`)
+
+Systems reference external components using content-addressed identification.
+
+```trenza
+system MyDuct:
+    use Relay#a3f2b1c8e4d2...
+```
+
+- **Identification**: `Name#Hash`
+- **Validation (ADR-022)**: The name (e.g., `Relay`) **MUST** match the name of the single `system` defined within the referenced package. If they differ, the compiler issues an `import-mismatch` error.
+- **Reproducibility**: Resolution is strictly by hash in the current phase. The `cimbra.lock` file ensures bit-for-bit reproducibility.
+
+### 3. Canonical Identity (`_<hash6>`)
+
+Anonymous components (glue code that provides no semantic behavior) or generated types receive a content-addressed identifier.
+
+- **Format**: `_<hash6>`, where `hash6` is a 24-bit truncated SHA-256 hash (6 hexadecimal characters).
+- **Reserved Prefix**: Characters starting with `_` are **reserved for the compiler**.
+- **Canonical Form**: The hash is computed over a canonical representation of the AST:
+    - Fixed field and variant order.
+    - Irrelevant whitespace and comments excluded.
+    - Deterministic capitalization.
+
+> [!WARNING]
+> **Technical Debt Note**: As of `trenza-core v0.1.0`, the validator does not yet enforce the prohibition of user-defined names starting with `_`. This is a known issue (ADR-021 compliance gap). The 24-bit SHA-256 hashing logic is also pending migration from the prototype to the Rust core.
+
+### 4. Compiler Diagnostics
+
+| Code | Severity | Meaning |
+|------|----------|---------|
+| `import-mismatch` | Error | The name in `use Name#Hash` does not match the system name in the package. |
+| `slot-conflict` | Error | Multiple contexts attempt to fill the same public slot without priority rules. |
+| `privacy` | Error | Data with a privacy label flows to an unauthorized external module. |
 
 

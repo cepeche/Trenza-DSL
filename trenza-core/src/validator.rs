@@ -22,7 +22,12 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
                         for o in ov { overlays.insert(o.clone()); }
                     },
                     SystemSection::Concurrent(cc) => {
-                        for c in cc { concurrent_contexts.insert(c.clone()); }
+                        for entry in cc {
+                            match entry {
+                                ConcurrentEntry::Name(name) => { concurrent_contexts.insert(name.clone()); },
+                                ConcurrentEntry::Anonymous(ctx) => { concurrent_contexts.insert(ctx.name.clone()); }
+                            }
+                        }
                     },
                     SystemSection::Contexts(ctxs) => {
                         for c in ctxs { base_contexts.insert(c.clone()); }
@@ -40,6 +45,62 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
     let mut context_roles: HashMap<String, HashSet<String>> = HashMap::new();
     let mut all_roles: HashSet<String> = HashSet::new();
     let mut adjacency_list: HashMap<String, Vec<String>> = HashMap::new();
+
+    // Pass 0: Prefix check (ADR-021)
+    for def in &program.definitions {
+        match def {
+            Definition::Data(d) => {
+                if d.name.starts_with('_') { errors.push(name_reserved_error(&d.name, &d.name_span)); }
+                for f in &d.fields {
+                    if f.name.starts_with('_') { errors.push(name_reserved_error(&f.name, &d.name_span)); }
+                }
+            },
+            Definition::Context(c) => {
+                if c.name.starts_with('_') { errors.push(name_reserved_error(&c.name, &c.name_span)); }
+                for i in &c.inputs {
+                    if i.name.starts_with('_') { errors.push(name_reserved_error(&i.name, &c.name_span)); }
+                }
+                for r in &c.roles {
+                    if r.name.starts_with('_') { errors.push(name_reserved_error(&r.name, &r.name_span)); }
+                    for a in &r.actions {
+                        if a.event.starts_with('_') { errors.push(name_reserved_error(&a.event, &r.name_span)); }
+                    }
+                }
+                for s in &c.slots {
+                    if s.name.starts_with('_') { errors.push(name_reserved_error(&s.name, &c.name_span)); }
+                }
+                for t in &c.transitions {
+                    if t.event.starts_with('_') { errors.push(name_reserved_error(&t.event, &c.name_span)); }
+                }
+                for fills in &c.fills {
+                    for r in &fills.roles {
+                        if r.name.starts_with('_') { errors.push(name_reserved_error(&r.name, &r.name_span)); }
+                        for a in &r.actions {
+                            if a.event.starts_with('_') { errors.push(name_reserved_error(&a.event, &r.name_span)); }
+                        }
+                    }
+                }
+            },
+            Definition::Enum(e) => {
+                if e.name.starts_with('_') { errors.push(name_reserved_error(&e.name, &e.name_span)); }
+                for v in &e.variants {
+                    if v.starts_with('_') { errors.push(name_reserved_error(v, &e.name_span)); }
+                }
+            },
+            Definition::System(s) => {
+                if s.name.starts_with('_') { errors.push(name_reserved_error(&s.name, &s.name_span)); }
+                for sec in &s.sections {
+                    if let SystemSection::Events(evs) = sec {
+                        for e in evs {
+                            if e.starts_with('_') { errors.push(name_reserved_error(e, &s.name_span)); }
+                        }
+                    }
+                }
+            },
+            _ => {}
+        }
+    }
+    if !errors.is_empty() { return Err(errors); }
 
     // Pass 1: Build indexes & Check Determinism (Rule 2)
             let mut context_spans: HashMap<String, Span> = HashMap::new();
@@ -419,6 +480,15 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
     }
 }
 
+fn name_reserved_error(name: &str, span: &Span) -> Diagnostic {
+    Diagnostic {
+        span: span.clone(),
+        message: format!("El identificador '{}' no puede empezar por '_'. El prefijo '_' está reservado para uso interno del compilador (ADR-021).", name),
+        severity: "error".to_string(),
+        code: "name-reserved".to_string(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -466,5 +536,29 @@ data Foo:
         if let Err(errs) = result {
             assert!(!errs.iter().any(|e| e.code == "import-mismatch"));
         }
+    }
+
+    #[test]
+    fn test_name_reservation() {
+        let source = "
+data _Privado:
+  secreto: Texto
+";
+        let program = crate::parser::parse_file(source).unwrap();
+        let result = verify(&program);
+        assert!(result.is_err());
+        let errs = result.unwrap_err();
+        assert!(errs.iter().any(|e| e.code == "name-reserved"));
+    }
+
+    #[test]
+    fn test_field_reservation() {
+        let source = "
+data Usuario:
+  _uid: Texto
+";
+        let program = crate::parser::parse_file(source).unwrap();
+        let result = verify(&program);
+        assert!(result.is_err());
     }
 }

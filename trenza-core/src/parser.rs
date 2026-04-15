@@ -205,8 +205,17 @@ fn parse_system(pair: pest::iterators::Pair<Rule>) -> SystemDef {
                         sections.push(SystemSection::Contexts(idents));
                     },
                     Rule::concurrent_list => {
-                        let idents = sec_inner.into_inner().map(|p| p.as_str().to_string()).collect();
-                        sections.push(SystemSection::Concurrent(idents));
+                        let mut entries = Vec::new();
+                        for p in sec_inner.into_inner() {
+                            match p.as_rule() {
+                                Rule::section_ident => entries.push(ConcurrentEntry::Name(p.as_str().to_string())),
+                                Rule::anonymous_context_def => {
+                                    entries.push(ConcurrentEntry::Anonymous(parse_anonymous_context(p)));
+                                },
+                                _ => {}
+                            }
+                        }
+                        sections.push(SystemSection::Concurrent(entries));
                     },
                     Rule::overlay_list => {
                         let idents = sec_inner.into_inner().map(|p| p.as_str().to_string()).collect();
@@ -227,8 +236,32 @@ fn parse_system(pair: pest::iterators::Pair<Rule>) -> SystemDef {
 }
 
 fn parse_context(pair: pest::iterators::Pair<Rule>, is_public: bool) -> ContextDef {
-    let mut name = String::new();
-    let mut name_span = get_span(&pair); // Fallback
+    let span = get_span(&pair);
+    
+    let mut inner_it = pair.into_inner();
+    // First ident is the name
+    let name_pair = inner_it.next().unwrap();
+    let name = name_pair.as_str().to_string();
+    let name_span = get_span(&name_pair);
+
+    let mut context = parse_context_clauses(inner_it);
+    context.name = name;
+    context.name_span = name_span;
+    context.span = span.clone();
+    context.is_public = is_public;
+    context
+}
+
+fn parse_anonymous_context(pair: pest::iterators::Pair<Rule>) -> ContextDef {
+    let span = get_span(&pair);
+    let mut context = parse_context_clauses(pair.into_inner());
+    context.span = span.clone();
+    context.name = "".to_string(); // Will be hashed later
+    context.name_span = span.clone();
+    context
+}
+
+fn parse_context_clauses(pairs: pest::iterators::Pairs<Rule>) -> ContextDef {
     let mut inputs = Vec::new();
     let mut roles = Vec::new();
     let mut transitions = Vec::new();
@@ -237,13 +270,8 @@ fn parse_context(pair: pest::iterators::Pair<Rule>, is_public: bool) -> ContextD
     let mut fills = Vec::new();
     let mut ignore_rest = false;
 
-    let span = get_span(&pair);
-    for inner in pair.into_inner() {
+    for inner in pairs {
         match inner.as_rule() {
-            Rule::ident => {
-                name = inner.as_str().to_string();
-                name_span = get_span(&inner);
-            },
             Rule::context_clause => {
                 let mut c_iter = inner.into_inner();
                 let first = c_iter.next().unwrap();
@@ -304,7 +332,14 @@ fn parse_context(pair: pest::iterators::Pair<Rule>, is_public: bool) -> ContextD
             _ => {}
         }
     }
-    ContextDef { span, name, name_span, is_public, inputs, roles, transitions, effects, slots, fills, ignore_rest }
+    ContextDef { 
+        span: Span { start: Pos { line: 0, col: 0 }, end: Pos { line: 0, col: 0 } }, 
+        name: "".into(), 
+        name_span: Span { start: Pos { line: 0, col: 0 }, end: Pos { line: 0, col: 0 } }, 
+        is_public: false, 
+        inputs, roles, transitions, effects, slots, fills, ignore_rest,
+        is_anonymous: false
+    }
 }
 
 

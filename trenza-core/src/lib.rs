@@ -7,6 +7,7 @@ pub mod runtime;
 pub mod interpreter;
 pub mod pub_surface;
 pub mod serializer;
+pub mod identity;
 
 #[cfg(feature = "wasm")]
 pub mod wasm;

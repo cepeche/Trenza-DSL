@@ -87,6 +87,19 @@ fn get_dependencies(def: &Definition) -> Vec<String> {
             }
         }
         Definition::Enum(_) => {}
+        Definition::System(s) => {
+            for sec in &s.sections {
+                if let SystemSection::Concurrent(entries) = sec {
+                    for entry in entries {
+                        if let ConcurrentEntry::Anonymous(ctx) = entry {
+                            // Recursively get dependencies from the anonymous context
+                            let ctx_def = Definition::Context(ctx.clone());
+                            deps.extend(get_dependencies(&ctx_def));
+                        }
+                    }
+                }
+            }
+        }
         _ => {}
     }
     deps
