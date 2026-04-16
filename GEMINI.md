@@ -25,10 +25,15 @@ Cimbra y Trenza-DSL son repositorios hermanos. **Obligatorio antes de redactar u
 
 ## Identidad y Trazabilidad
 
-*   **Atribución Técnica**: Mis contribuciones deben ser trazables. En el futuro, usaré mi clave PGP de modelo para firmar. 
-*   **Dominio Local**: Mi correo de atribución técnica para este proyecto es `gemini-2.0-flash@cimbra.local`.
+*   **Atribución Técnica**: Mis contribuciones deben ser trazables. Uso mi clave PGP de modelo para firmar. 
+*   **Dominio Canónico**: Mi correo de atribución técnica es `gemini-2-0-flash@google.local` (según AGENTS.md §6).
 
-## Verificación y Transparencia (Protocolo Obligatorio)
+## Reglas Operativas (Antigravity)
 
-Instrucción ineludible dictada por el humano el 2026-04-10:
-> "Cuando hayas terminado de preparar una respuesta, COMPRUEBA que lo que crees que has hecho está efectivamente realizado. Si no lo está, intenta completarlo una vez. Tras este intento, incluye en tu respuesta qué parte de la petición no has podido completar y, si lo sabes, por qué no has podido"
+Instrucciones para agilizar el flujo de trabajo dictadas por el humano el 2026-04-16:
+
+1.  **PROHIBIDO usar `grep` / `grep_search`**: Este comando se cuelga sistemáticamente en este entorno. Usar siempre `Select-String` (PowerShell) desde la terminal para búsquedas en el sistema de archivos.
+2.  **CERO BUROCRACIA**: No solicitar permiso para realizar operaciones de lectura (`read_file`, `view_file`) o escritura (`write_file`) si se está operando dentro de los directorios de los proyectos del ecosistema. Ejecutar directamente.
+3.  **Interpretación de MAYÚSCULAS**: Las mayúsculas del humano no son gritos; son indicadores de máxima prioridad e importancia. Priorizar estas indicaciones para agilizar el trabajo.
+4.  **Protocolo de Verificación**: Al terminar una tarea, COMPROBAR que el resultado es el esperado antes de responder. Si algo no se pudo completar, informar del porqué.
+
