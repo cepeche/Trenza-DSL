@@ -180,7 +180,7 @@ pub struct RoleDef {
 
 #[derive(Debug, Clone)]
 pub struct RoleAction {
-    pub decorator: Option<Decorator>,
+    pub decorators: Vec<Decorator>,
     pub event: String,
     pub target: ActionTarget,
 }
@@ -206,7 +206,7 @@ pub struct ActionCall {
 
 #[derive(Debug, Clone)]
 pub struct TransitionRule {
-    pub decorator: Option<Decorator>,
+    pub decorators: Vec<Decorator>,
     pub event: String,
     pub target: String,
     pub with_clause: Vec<(String, String)>,
@@ -304,6 +304,9 @@ impl ToTrz for ContextDef {
         if !self.transitions.is_empty() {
             out.push_str("  transitions:\n");
             for trans in &self.transitions {
+                for deco in &trans.decorators {
+                    out.push_str(&format!("    @{}(\"{}\")\n", deco.name, deco.args));
+                }
                 out.push_str(&format!("    on {} -> {}\n", trans.event, trans.target));
             }
         }
@@ -347,6 +350,9 @@ impl RoleDef {
         }
         out.push_str("\n");
         for action in &self.actions {
+            for deco in &action.decorators {
+                out.push_str(&format!("{}  @{}(\"{}\")\n", indent, deco.name, deco.args));
+            }
             out.push_str(&format!("{}  on {} -> ", indent, action.event));
             match &action.target {
                 ActionTarget::Call(c) => out.push_str(&format!("{}({})\n", c.function, c.args.join(", "))),

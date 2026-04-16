@@ -48,7 +48,7 @@ fills_clause = { role_def | effects_def }
 role_def = { "role" ~ ident ~ role_annotation? ~ ":" ~ type_ident ~ role_binding? ~ role_action* }
 role_annotation = { "[" ~ ident ~ ":" ~ type_ident ~ "]" }
 role_binding = { "(" ~ "bind:" ~ ident ~ ")" }
-role_action = { decorator? ~ "on" ~ ident ~ ("->" ~ action_target)? }
+role_action = { decorator* ~ "on" ~ ident ~ ("->" ~ action_target)? }
 role_wildcard = { "role" ~ "*" ~ ":" ~ action_target }
 
 ignored_kw = { "ignored" }
@@ -65,7 +65,7 @@ field_access = { ident ~ "." ~ ident }
 number = @{ ASCII_DIGIT+ }
 
 transitions_def = { "transitions:" ~ transition_rule* }
-transition_rule = { decorator? ~ "on" ~ ident ~ "->" ~ transition_target ~ with_clause? }
+transition_rule = { decorator* ~ "on" ~ ident ~ "->" ~ transition_target ~ with_clause? }
 transition_target = { "[" ~ ident ~ "]" | ident }
 with_clause = { "with" ~ with_arg ~ ("," ~ with_arg)* }
 with_arg = { ident ~ ":" ~ ident }

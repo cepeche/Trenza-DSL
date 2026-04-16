@@ -376,13 +376,13 @@ fn parse_role(pair: pest::iterators::Pair<Rule>, is_public: bool) -> RoleDef {
 }
 
 fn parse_role_action(pair: pest::iterators::Pair<Rule>) -> RoleAction {
-    let mut decorator = None;
+    let mut decorators = Vec::new();
     let mut event = String::new();
     let mut target = ActionTarget::Ignored;
 
     for inner in pair.into_inner() {
         match inner.as_rule() {
-            Rule::decorator => decorator = Some(parse_decorator(inner)),
+            Rule::decorator => decorators.push(parse_decorator(inner)),
             Rule::ident => event = inner.as_str().to_string(),
             Rule::action_target => {
                 let target_inner = inner.into_inner().next().unwrap();
@@ -400,18 +400,18 @@ fn parse_role_action(pair: pest::iterators::Pair<Rule>) -> RoleAction {
             _ => {}
         }
     }
-    RoleAction { decorator, event, target }
+    RoleAction { decorators, event, target }
 }
 
 fn parse_transition(pair: pest::iterators::Pair<Rule>) -> TransitionRule {
-    let mut decorator = None;
+    let mut decorators = Vec::new();
     let mut event = String::new();
     let mut target = String::new();
     let mut with_clause = Vec::new();
 
     for inner in pair.into_inner() {
         match inner.as_rule() {
-            Rule::decorator => decorator = Some(parse_decorator(inner)),
+            Rule::decorator => decorators.push(parse_decorator(inner)),
             Rule::ident => event = inner.as_str().to_string(),
             Rule::transition_target => target = inner.as_str().to_string(),
             Rule::with_clause => {
@@ -425,7 +425,7 @@ fn parse_transition(pair: pest::iterators::Pair<Rule>) -> TransitionRule {
             _ => {}
         }
     }
-    TransitionRule { decorator, event, target, with_clause }
+    TransitionRule { decorators, event, target, with_clause }
 }
 
 fn parse_action_call(pair: pest::iterators::Pair<Rule>) -> ActionCall {
@@ -504,4 +504,90 @@ fn parse_fills(pair: pest::iterators::Pair<Rule>) -> FillsDef {
         }
     }
     FillsDef { target_context, target_slot, roles, effects }
+}
+#[cfg(test)]
+mod decorator_tests {
+    use super::*;
+
+    #[test]
+    fn parse_role_action_no_decorators() {
+        let source = "context C: role R: T on tap -> call()";
+        let program = parse_file(source).unwrap();
+        if let Definition::Context(ctx) = &program.definitions[0] {
+            let action = &ctx.roles[0].actions[0];
+            assert!(action.decorators.is_empty());
+        } else { panic!("Wrong definition type"); }
+    }
+
+    #[test]
+    fn parse_role_action_single_decorator() {
+        let source = "context C: role R: T @intent(\"test\") on tap -> call()";
+        let program = parse_file(source).unwrap();
+        if let Definition::Context(ctx) = &program.definitions[0] {
+            let action = &ctx.roles[0].actions[0];
+            assert_eq!(action.decorators.len(), 1);
+            assert_eq!(action.decorators[0].name, "intent");
+            assert_eq!(action.decorators[0].args, "test");
+        } else { panic!("Wrong definition type"); }
+    }
+
+    #[test]
+    fn parse_role_action_multiple_decorators() {
+        let source = r#"
+context C:
+  role R: T
+    @intent("intent-1")
+    @audit("audit-1")
+    on tap -> call()
+"#;
+        let program = parse_file(source).unwrap();
+        if let Definition::Context(ctx) = &program.definitions[0] {
+            let action = &ctx.roles[0].actions[0];
+            assert_eq!(action.decorators.len(), 2);
+            assert_eq!(action.decorators[0].name, "intent");
+            assert_eq!(action.decorators[0].args, "intent-1");
+            assert_eq!(action.decorators[1].name, "audit");
+            assert_eq!(action.decorators[1].args, "audit-1");
+        } else { panic!("Wrong definition type"); }
+    }
+
+    #[test]
+    fn parse_transition_multiple_decorators() {
+        let source = r#"
+context C:
+  transitions:
+    @intent("low-latency")
+    @audit("strict")
+    on tap -> [Target]
+"#;
+        let program = parse_file(source).unwrap();
+        if let Definition::Context(ctx) = &program.definitions[0] {
+            let trans = &ctx.transitions[0];
+            assert_eq!(trans.decorators.len(), 2);
+            assert_eq!(trans.decorators[0].name, "intent");
+            assert_eq!(trans.decorators[1].name, "audit");
+        } else { panic!("Wrong definition type"); }
+    }
+
+    #[test]
+    fn test_decorator_roundtrip() {
+        let source = r#"context C:
+  role R: T
+    @intent("x")
+    @audit("y")
+    on tap -> call()
+  transitions:
+    @intent("z")
+    on back -> [Home]
+"#;
+        let program = parse_file(source).unwrap();
+        let serialized = program.to_trz();
+        
+        assert!(serialized.contains("@intent(\"x\")"));
+        assert!(serialized.contains("@audit(\"y\")"));
+        assert!(serialized.contains("@intent(\"z\")"));
+        
+        let reparsed = parse_file(&serialized).unwrap();
+        assert_eq!(reparsed.to_trz(), serialized);
+    }
 }
