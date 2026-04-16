@@ -21,8 +21,8 @@ Thumbs.db
 target/
 *.pdb
 
-# Claude Code (configuración local)
-.claude/settings.local.json
+# Claude Code (configuración y temporales)
+.claude/
 
 # Node (global — no vuelvas a committear node_modules, Flash)
 node_modules/
@@ -38,4 +38,5 @@ project_viz*
 project_summary*
 
 # Coordination server runtime data
+locks.db
 trenza-coord/locks.db
