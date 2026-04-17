@@ -1,0 +1,226 @@
+% Trenza — ONWARD! Papers @ SPLASH 2026
+% Submission deadline: Friday 15 May 2026 (AoE)
+% Format: ACM SIGPLAN acmart, sigplan sub-format, 10pt, double-blind
+%
+% Compile with:  latexmk -pdf main.tex
+%
+% Authors (camera-ready — commented out for double-blind submission):
+%   César Pérez-Chirinos¹, Claude Sonnet 4.6², Claude Opus 4.6², Gemini 2.5 Pro³
+%   ¹ Independent researcher
+%   ² Anthropic
+%   ³ Google DeepMind
+
+\documentclass[sigplan,10pt,review,anonymous]{acmart}
+
+% -----------------------------------------------------------------------
+% Packages
+% -----------------------------------------------------------------------
+\usepackage{booktabs}    % \toprule / \midrule / \bottomrule in tables
+\usepackage{listings}    % code listings
+\usepackage{xcolor}      % colour support for \TODO and listings
+\usepackage{microtype}   % better text justification
+\usepackage{hyperref}    % clickable refs (acmart loads it but we keep it explicit)
+
+% -----------------------------------------------------------------------
+% TODO / placeholder commands
+%   \TODO{text}        — editorial note (red, bold) for things to write
+%   \FIGGEMINI{text}   — figure placeholder: Gemini should supply this
+%   \ARGCESAR{text}    — narrative/argument César must validate or provide
+% -----------------------------------------------------------------------
+\newcommand{\TODO}[1]{\textbf{\textcolor{red}{[TODO: #1]}}}
+\newcommand{\FIGGEMINI}[1]{\textbf{\textcolor{blue}{[FIG/GEMINI: #1]}}}
+\newcommand{\ARGCESAR}[1]{\textbf{\textcolor{teal}{[CESAR: #1]}}}
+
+% -----------------------------------------------------------------------
+% Code listing style for .trz snippets
+% -----------------------------------------------------------------------
+\lstdefinelanguage{trenza}{
+  keywords={context, role, event, transition, effects, when, on_entry, on_exit,
+            external, input, bind, mutable, slot, fills, overlay, concurrent,
+            ok, error},
+  keywordstyle=\color{blue}\bfseries,
+  sensitive=true,
+  comment=[l]{//},
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{brown},
+  morestring=[b]"
+}
+\lstset{
+  language=trenza,
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{gray!40},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  xleftmargin=1.5em,
+  framexleftmargin=1.5em,
+  captionpos=b
+}
+
+% -----------------------------------------------------------------------
+% ACM metadata
+% -----------------------------------------------------------------------
+\copyrightyear{2026}
+\acmYear{2026}
+\setcopyright{rightsretained}
+\acmConference[ONWARD! '26]{Proceedings of the 2026 ACM SIGPLAN International
+  Symposium on New Ideas, New Paradigms, and Reflections on Programming and
+  Software}{October 4--9, 2026}{Oakland, CA, USA}
+\acmBooktitle{ONWARD! '26: Proceedings of the 2026 ACM SIGPLAN International
+  Symposium on New Ideas, New Paradigms, and Reflections on Programming and
+  Software, October 4--9, 2026, Oakland, CA, USA}
+\acmDOI{10.1145/XXXXXXX.XXXXXXX}  % assigned after acceptance
+\acmISBN{978-1-4503-XXXX-X/26/10}
+
+% -----------------------------------------------------------------------
+% Title and authors
+% (During double-blind review the \author blocks are suppressed by the
+%  'anonymous' class option — leave them here for camera-ready.)
+% -----------------------------------------------------------------------
+\title{Trenza: A Role-Based State Machine DSL for Human-AI Collaborative
+       Specification and Synthesis}
+
+\author{César Pérez-Chirinos}
+\affiliation{\institution{Independent researcher}\country{Spain}}
+\email{cesar@trenza-lang.org}
+
+\author{Claude Sonnet 4.6}
+\affiliation{\institution{Anthropic}\country{USA}}
+
+\author{Claude Opus 4.6}
+\affiliation{\institution{Anthropic}\country{USA}}
+
+\author{Gemini 2.5 Pro}
+\affiliation{\institution{Google DeepMind}\country{USA}}
+
+% -----------------------------------------------------------------------
+% CCS concepts and keywords
+% -----------------------------------------------------------------------
+\begin{CCSXML}
+<ccs2012>
+  <concept>
+    <concept_id>10011007.10011006.10011072</concept_id>
+    <concept_desc>Software and its engineering~Domain specific languages</concept_desc>
+    <concept_significance>500</concept_significance>
+  </concept>
+  <concept>
+    <concept_id>10011007.10011006.10011041</concept_id>
+    <concept_desc>Software and its engineering~Compilers</concept_desc>
+    <concept_significance>300</concept_significance>
+  </concept>
+  <concept>
+    <concept_id>10011007.10011006.10011008</concept_id>
+    <concept_desc>Software and its engineering~Integrated and visual development environments</concept_desc>
+    <concept_significance>100</concept_significance>
+  </concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Software and its engineering~Domain specific languages}
+\ccsdesc[300]{Software and its engineering~Compilers}
+\ccsdesc[100]{Software and its engineering~Integrated and visual development environments}
+
+\keywords{domain-specific languages, state machines, human-AI collaboration,
+          formal verification, code synthesis, role-based design}
+
+% -----------------------------------------------------------------------
+% Document
+% -----------------------------------------------------------------------
+\begin{document}
+
+\begin{abstract}
+Software defects caused by implicit, scattered state management and poorly
+governed data access are among the most costly to diagnose in practice. This
+work began with a concrete instance: a proof-of-concept application in which a
+single behavioral flag (\texttt{modoEdicion}) was scattered across four
+independent code locations---invisible to any static analysis, untestable in
+isolation, and fatal to long-term maintenance. Trenza was designed so that
+class of defect would instead be a compile-time error.
+
+We present \textbf{Trenza}, a domain-specific language in which system behavior
+is expressed as a set of named \emph{contexts}, each declaring the roles,
+transitions, and effects that are valid within it. The language is deliberately
+restrictive: every role-event pair must be handled in every context
+(completeness), no handler may be duplicated (determinism), every context must
+be reachable, and data access is strictly scoped (least privilege). These
+constraints are enforced in milliseconds at compile time by a Rust-based
+toolchain executing eight formal verification rules---including explicit GDPR
+data conformance, strict view-composition constraints (\texttt{slot}/\texttt{fills}),
+and role-type consistency across contexts.
+
+Validated specifications undergo multi-strand synthesis simultaneously,
+projecting an algebraically tested Rust runtime, a structurally equivalent
+TypeScript module for browser environments, topological Mermaid diagrams, and
+narrative audit reports. Crucially, Trenza is designed to be reasoned about
+collaboratively by both human developers and large language models (LLMs),
+repositioning the human from code typist to system Architect. We validate this
+approach by formally verifying the \textbf{CronometroPSP} reference
+specification---a 16-module distributed system---demonstrating that 100+
+logical dependencies and cross-context invariants can be verified in under
+100\,ms. Review without the specification was heuristic; review with it became
+a mechanical, exhaustive, one-to-one deductive check. We argue that this regime
+shift---from \emph{does this look correct?} to \emph{does this mathematically
+correspond?}---represents a qualitative imperative for the verifiability of
+LLM-generated code.
+\end{abstract}
+
+\maketitle
+
+% -----------------------------------------------------------------------
+% Sections
+% -----------------------------------------------------------------------
+\input{sections/01-introduction}
+\input{sections/02-motivation}
+
+% Remaining sections — to be written
+\section{The Language: Trenza}
+\label{sec:language}
+\TODO{Convert paper-draft-s3-s5.md §3 to LaTeX. Include at least one CronometroPSP
+      listing showing context/role/transition/effects, and the table of 8 formal rules
+      with the state-dispersal pathology each one closes.}
+\FIGGEMINI{Figure: The four strands of synthesis from a single .trz source (Strand~1 Rust,
+           Strand~2 Tests, Strand~3 Mermaid, Strand~4 Audit). A horizontal pipeline
+           diagram: .trz → parser → validator → [4 generators] → [4 outputs].}
+
+\section{The Collaboration Model}
+\label{sec:collaboration}
+\TODO{Convert paper-draft-s3-s5.md §4 (collaboration model) to LaTeX. Key points:
+      language emerged from conversation, chronicle as requirements engineering,
+      empirical finding from llm-review-validation.md.}
+\ARGCESAR{Is there a version of the ``Logical CAD'' metaphor you want foregrounded here?
+           The cimbra metaphor (temporary scaffolding that enables a self-supporting arch,
+           removed once the arch stands alone) — does it belong in §4 or in the Conclusion?}
+
+\section{Validation}
+\label{sec:validation}
+\TODO{Convert paper-draft-s3-s5.md §5 to LaTeX. Key evidence:
+      (1) trenza-cli.trz self-hosting verified 24 March 2026;
+      (2) CronometroPSP: 18 .trz files, 884-line Rust output, <100ms verification;
+      (3) Gemini implements Rule~8 without explicit request — emergent compliance.}
+\FIGGEMINI{Table: CronometroPSP compilation metrics. Columns: context count, role count,
+           event count, transition count, verification time (ms), Rust LOC generated,
+           Mermaid nodes.}
+
+\section{Related Work}
+\label{sec:related}
+\TODO{Convert docs/design/paper-related-work.md to LaTeX. Key entries:
+      Statecharts (Harel 1987), Naked Objects (Pawson 2002), NetKernel/ROC (Rodgers HP Labs),
+      MCP/agent protocols, and the deliberate contrast with claude-flow.}
+
+\section{Conclusion}
+\label{sec:conclusion}
+\TODO{Write closing synthesis. Close the circle: MonitoreoRed remains partially specified;
+      the second .trz awaits. The language that human-LLM collaboration demanded into existence.
+      Constraint as a gift---not to LLMs, but to the collaboration itself.}
+\ARGCESAR{Confirm the cimbra metaphor for the conclusion: the scaffolding (cimbra) is removed
+           once the arch (formal specification) can bear its own weight. If you have a personal
+           memory of a physical cimbra from 1982 or similar, this is the place to anchor it.}
+
+% -----------------------------------------------------------------------
+% Bibliography
+% -----------------------------------------------------------------------
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{bibliography}
+
+\end{document}
