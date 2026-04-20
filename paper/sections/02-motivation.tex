@@ -58,10 +58,13 @@ independently maintained data structures---a reconstruction that neither the
 system nor any assisting LLM could perform mechanically, because the rule was
 nowhere written down.
 
-\FIGGEMINI{State diagram: three nodes (DispositivoConocido, Ausente, AlertaActiva)
-           with labelled transitions and icons for the three storage layers beneath
-           each state. Show which layers \emph{can} and \emph{cannot} represent
-           each state.}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{figures/monitoreored.svg}
+  \caption{State diagram for the network monitoring system, automatically synthesized by Trenza-DSL.}
+  \label{fig:monitoreored}
+\end{figure}
+
 
 The \texttt{claude-flow} framework, which uses a fifteen-agent coordination
 model to manage complex AI workflows~\cite{claudeflow2024}, represents one
@@ -103,12 +106,12 @@ Reconstructing the intent of four conditional branches scattered across several
 hundred lines required the same heuristic reasoning that would have been
 required for foreign code---with the same probability of misdiagnosis.
 
-\FIGGEMINI{Side-by-side: (left) the dispersed boolean flag pattern ---
-           four \texttt{if (modoEdicion)} checks in four code locations with
-           a gap at location 4; (right) the polymorphic alternative ---
-           two context objects (ModoNormal, ModoEdicion) selecting a single
-           handler implementation. Visually emphasise the structural gap
-           that becomes a compile error.}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{figures/dispersed.svg}
+  \caption{Comparison of the dispersed boolean flag pattern versus the Trenza polymorphic alternative.}
+  \label{fig:dispersed}
+\end{figure}
 
 The correct fix was structural: \texttt{modoEdicion} should not have been a
 boolean flag. It should have been the identity of a polymorphic object. The
