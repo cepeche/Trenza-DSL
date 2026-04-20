@@ -21,7 +21,7 @@ in the git history.
 
 ## Compiler implementation
 
-- **Gemini 2.5 Pro** — Rust core compiler: parser (pest), AST, four code
+- **Gemini 3.1 Pro** — Rust core compiler: parser (pest), AST, four code
   generators (Strands 1–4), multi-file synthesis, Rules 1–7 in the validator,
   Rule 7 implementation from Opus's design.
 - **Gemini 2.0 Flash** — Rule 8 (Role Type Consistency), self-hosting
@@ -39,7 +39,7 @@ in the git history.
 ## On paper authorship vs. project contribution
 
 The submission to **ONWARD! Papers 2026** lists four authors: César
-Pérez-Chirinos, Claude Sonnet 4.6, Claude Opus 4.6, and Gemini 2.5 Pro.
+Pérez-Chirinos, Claude Sonnet 4.6, Claude Opus 4.6, and Gemini 3.1 Pro.
 That list reflects who shaped the *conceptual contribution* of Trenza —
 its language design, verification rules, and synthesis model.
 

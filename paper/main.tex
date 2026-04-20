@@ -5,7 +5,7 @@
 % Compile with:  latexmk -pdf main.tex
 %
 % Authors (camera-ready — commented out for double-blind submission):
-%   César Pérez-Chirinos¹, Claude Sonnet 4.6², Claude Opus 4.6², Gemini 2.5 Pro³
+%   César Pérez-Chirinos¹, Claude Sonnet 4.6², Claude Opus 4.6², Gemini 3.1 Pro³
 %   ¹ Independent researcher
 %   ² Anthropic
 %   ³ Google DeepMind
@@ -91,7 +91,7 @@
 \author{Claude Opus 4.6}
 \affiliation{\institution{Anthropic}\country{USA}}
 
-\author{Gemini 2.5 Pro}
+\author{Gemini 3.1 Pro}
 \affiliation{\institution{Google DeepMind}\country{USA}}
 
 % -----------------------------------------------------------------------
@@ -174,23 +174,8 @@ LLM-generated code.
 \input{sections/02-motivation}
 
 % Remaining sections — to be written
-\section{The Language: Trenza}
-\label{sec:language}
-\TODO{Convert paper-draft-s3-s5.md §3 to LaTeX. Include at least one CronometroPSP
-      listing showing context/role/transition/effects, and the table of 8 formal rules
-      with the state-dispersal pathology each one closes.}
-\FIGGEMINI{Figure: The four strands of synthesis from a single .trz source (Strand~1 Rust,
-           Strand~2 Tests, Strand~3 Mermaid, Strand~4 Audit). A horizontal pipeline
-           diagram: .trz → parser → validator → [4 generators] → [4 outputs].}
-
-\section{The Collaboration Model}
-\label{sec:collaboration}
-\TODO{Convert paper-draft-s3-s5.md §4 (collaboration model) to LaTeX. Key points:
-      language emerged from conversation, chronicle as requirements engineering,
-      empirical finding from llm-review-validation.md.}
-\ARGCESAR{Is there a version of the ``Logical CAD'' metaphor you want foregrounded here?
-           The cimbra metaphor (temporary scaffolding that enables a self-supporting arch,
-           removed once the arch stands alone) — does it belong in §4 or in the Conclusion?}
+\input{sections/03-language}
+\input{sections/04-collaboration}
 
 \section{Validation}
 \label{sec:validation}
@@ -198,9 +183,21 @@ LLM-generated code.
       (1) trenza-cli.trz self-hosting verified 24 March 2026;
       (2) CronometroPSP: 18 .trz files, 884-line Rust output, <100ms verification;
       (3) Gemini implements Rule~8 without explicit request — emergent compliance.}
-\FIGGEMINI{Table: CronometroPSP compilation metrics. Columns: context count, role count,
-           event count, transition count, verification time (ms), Rust LOC generated,
-           Mermaid nodes.}
+\begin{table}[h]
+  \centering
+  \caption{Compilation Metrics: CronometroPSP Reference System}
+  \label{tab:metrics}
+  \begin{tabular}{lrlr}
+    \toprule
+    \textbf{Metric} & \textbf{Value} & \textbf{Metric} & \textbf{Value} \\
+    \midrule
+    Context Count & 18 & Verification Time & < 100\,ms \\
+    Role Count & 33 & Rust LOC Generated & 884 \\
+    Event Count & 29 & Mermaid Nodes & 41 \\
+    Transition Count & 46 & TS Bridge LOC & 1122 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \section{Related Work}
 \label{sec:related}
@@ -208,14 +205,7 @@ LLM-generated code.
       Statecharts (Harel 1987), Naked Objects (Pawson 2002), NetKernel/ROC (Rodgers HP Labs),
       MCP/agent protocols, and the deliberate contrast with claude-flow.}
 
-\section{Conclusion}
-\label{sec:conclusion}
-\TODO{Write closing synthesis. Close the circle: MonitoreoRed remains partially specified;
-      the second .trz awaits. The language that human-LLM collaboration demanded into existence.
-      Constraint as a gift---not to LLMs, but to the collaboration itself.}
-\ARGCESAR{Confirm the cimbra metaphor for the conclusion: the scaffolding (cimbra) is removed
-           once the arch (formal specification) can bear its own weight. If you have a personal
-           memory of a physical cimbra from 1982 or similar, this is the place to anchor it.}
+\input{sections/07-conclusion}
 
 % -----------------------------------------------------------------------
 % Bibliography
