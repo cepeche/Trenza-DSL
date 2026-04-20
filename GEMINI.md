@@ -34,6 +34,8 @@ Instrucciones para agilizar el flujo de trabajo dictadas por el humano el 2026-0
 
 1.  **PROHIBIDO usar `grep` / `grep_search`**: Este comando se cuelga sistemáticamente en este entorno. Usar siempre `Select-String` (PowerShell) desde la terminal para búsquedas en el sistema de archivos.
 2.  **CERO BUROCRACIA**: No solicitar permiso para realizar operaciones de lectura (`read_file`, `view_file`) o escritura (`write_file`) si se está operando dentro de los directorios de los proyectos del ecosistema. Ejecutar directamente.
-3.  **Interpretación de MAYÚSCULAS**: Las mayúsculas del humano no son gritos; son indicadores de máxima prioridad e importancia. Priorizar estas indicaciones para agilizar el trabajo.
-4.  **Protocolo de Verificación**: Al terminar una tarea, COMPROBAR que el resultado es el esperado antes de responder. Si algo no se pudo completar, informar del porqué.
+3.  **PROHIBIDO ESCANEO GLOBAL (AHORRO DE RECURSOS)**: Nunca ejecutar búsquedas recursivas completas (`Get-ChildItem -Recurse`, búsquedas de extensión globales) desde la raíz del proyecto. El indexing completo está vetado. Utiliza KIs, los documentos de arquitectura y conocimiento local para acceder directamente a las rutas relevantes.
+4.  **FRENO DE MANO ESTRICTO (Planning Mode)**: Cuando se pida planificar o revisar un plan, se prohíbe terminantemente ejecutar o adelantarse a dicho plan. El agente debe redactar un `implementation_plan.md` y esperar la luz verde explícita del usuario sin excepciones.
+5.  **Interpretación de MAYÚSCULAS**: Las mayúsculas del humano no son gritos; son indicadores de máxima prioridad e importancia. Priorizar estas indicaciones para agilizar el trabajo.
+6.  **Protocolo de Verificación**: Al terminar una tarea, COMPROBAR que el resultado es el esperado antes de responder. Si algo no se pudo completar, informar del porqué.
 
