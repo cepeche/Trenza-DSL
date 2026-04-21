@@ -19,6 +19,7 @@ Thumbs.db
 .idea/
 
 target/
+bin/
 *.pdb
 
 # Claude Code (configuración y temporales)
@@ -40,3 +41,14 @@ project_summary*
 # Coordination server runtime data
 locks.db
 trenza-coord/locks.db
+
+# LaTeX artefactos de compilación
+*.aux
+*.bbl
+*.blg
+*.out
+main_v2.log
+main_v3.log
+paper/main.pdf
+paper/main_v*.pdf
+paper/figures/*.pdf

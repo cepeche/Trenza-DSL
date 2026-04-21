@@ -4,7 +4,7 @@
 This paper was not proposed by its human author. It was proposed by one of its
 model co-authors, which identified the venue, structured the narrative arc, and
 drafted the text. The human's contribution was to provide the empirical cases,
-validate the account, and locate the conference call for submissions---a step
+validate the account, and locate the conference call for sub\-missions---a step
 that was, admittedly, not obvious.
 
 We record this at the outset not as a curiosity but as evidence. A model that
@@ -24,8 +24,8 @@ within.
 
 \medskip
 
-One of the human authors of this paper spent thirty years working with
-distributed objects before writing a single line of code with AI assistance.
+One of the human authors of this paper spent decades working with distributed
+systems before writing a single line of code with AI assistance.
 Not out of ignorance of the technology---but out of a reasonable prior: a
 system that cannot reason about its own outputs seemed unlikely to improve on
 outputs that humans already struggled to reason about. The technology had a
@@ -34,9 +34,9 @@ plausible text with no understanding of what the text described.
 
 The prior was wrong, and the correction arrived in a single morning.
 
-The task was concrete: build a local network monitoring tool to replace the
-functionality of Fing, a commercial application, on a home network of fourteen
-devices. The stack was real---Prometheus, Grafana, Blackbox Exporter, Node
+The task was concrete: build a local network monitoring tool to evaluate how
+far a model could replicate significant functionality of Fing, a commercial
+application, on a home network of fourteen devices. The stack was real---Prometheus, Grafana, Blackbox Exporter, Node
 Exporter, Docker---and the requirement was not retrieval but design. What
 emerged was not a faithful reproduction of what had been asked for. Claude
 identified device manufacturers from their MAC addresses. That detail had not
@@ -48,7 +48,7 @@ conversion also revealed the problem that this paper addresses.
 
 The monitoring tool worked. What it did not have was a model of state. Device
 presence was represented three ways simultaneously: as a JSON snapshot
-(\texttt{dispositivos.json}), as Prometheus time-series metrics, and as
+(\texttt{devices.json}), as Prometheus time-series metrics, and as
 point-in-time ping results from scripts that ran and discarded their output.
 Nowhere in the system was there a formal account of what it meant for a device
 to transition from \emph{known} to \emph{absent} to \emph{alert-active}. The
@@ -56,30 +56,32 @@ state existed---it was just invisible to the system that was supposed to track
 it.
 
 When this problem surfaced, an obvious response was available: delegate
-coordination to more agents. The \texttt{claude-flow}
+coordination to more agents. The \texttt{claude\-flow}
 framework~\cite{claudeflow2024}, representative of a broader school of thought,
 answers state dispersal with swarms---fifteen specialized agents collaborating
 to manage what a single coherent model would have made unnecessary. The author
 had been following the intellectual trajectory of that approach for some time,
-with interest and scepticism in equal measure. He had written about the
-inadequacy of relational databases as a persistence model for complex systems
-more than twenty-five years earlier. He was not convinced that adding
+with interest and scepticism in equal measure. He was not convinced that adding
 coordination layers was the right answer to a design problem.
 \texttt{claude-flow} was proposed to Claude as a reference point for
 inspiration, not as a solution to adopt.
 
-\ARGCESAR{Optional: if the cimbra metaphor has a personal anchor --- e.g., a
-          physical arch or scaffolding structure you encountered around 1982 or
-          in your architectural/engineering work --- this paragraph is the place
-          for it. A concrete image here would give the abstract argument a
-          material foundation. If not, the paragraph stands without it.}
+The metaphor that clarified the problem was architectural. Roman engineers
+building an aqueduct could not place the keystone until the arch could bear its
+own weight; they built a temporary wooden structure---a \emph{cimbra}---to hold
+the stones in position until the mortar set. The cimbra was then removed. The
+aqueduct stands without it. The data pipelines this project required---\emph{dataductos}
+rather than aqueducts---needed the same kind of temporary structure: formal
+constraint during construction, against which the system is shaped and verified,
+and from which the running system is eventually freed. That structure became
+Trenza.
 
 The conclusion that this paper argues was already forming: the problem was not
 a shortage of agents. It was the absence of formal constraint.
 
 The second experiment made the diagnosis precise. In a proof-of-concept
 application---a time-tracking tool built for personal use---a behavioral flag
-called \texttt{modoEdicion} was scattered across four independent locations in
+called \texttt{editMode} was scattered across four independent locations in
 the JavaScript source. When a bug appeared in the mobile interface, Claude was
 asked to find and fix it. The bug was trivial. The search was not.
 
@@ -117,7 +119,7 @@ This paper makes the following contributions:
   \item \textbf{An empirical collaboration model} in which human intent,
         LLM crystallization, and compiler enforcement jointly produce a
         verified specification (Section~\ref{sec:collaboration}).
-  \item \textbf{Validation} against a 16-module real application
-        (CronometroPSP) demonstrating a regime shift from heuristic to
-        deductive review (Section~\ref{sec:validation}).
+  \item \textbf{Validation} against CronometroPSP (thirteen contexts,
+        sixteen \texttt{.trz} files) demonstrating a regime shift from
+        heuristic to deductive review (Section~\ref{sec:validation}).
 \end{enumerate}

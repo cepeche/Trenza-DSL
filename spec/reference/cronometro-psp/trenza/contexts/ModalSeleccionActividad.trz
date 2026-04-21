@@ -36,7 +36,7 @@ context ModalSeleccionActividad:
 
     -- input:
 
-    --     tipoTareaId: Id
+    --     tipoTareaId: ID
 
 
 
@@ -44,7 +44,7 @@ context ModalSeleccionActividad:
 
     -- role boton_actividad[]: Actividad
 
-    --     on tap -> elegirActividad(self.id)
+    --     on tap -> elegirActividad(self.ID)
 
     --
 
@@ -52,7 +52,7 @@ context ModalSeleccionActividad:
 
     role boton_actividad: Actividad
 
-        on tap -> elegirActividad(self.id)
+        on tap -> elegirActividad(self.ID)
 
 
 

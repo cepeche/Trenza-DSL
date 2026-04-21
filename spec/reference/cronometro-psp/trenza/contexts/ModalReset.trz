@@ -100,11 +100,11 @@ context ResetFase2:
 
         -- role checkbox_actividad[]: OpcionActividad
 
-        --     on cambio -> toggleConservar(self.id, self.marcado)
+        --     on cambio -> toggleConservar(self.ID, self.marcado)
 
         role checkbox_actividad: OpcionActividad
 
-            on cambio -> toggleConservar(self.id, self.marcado)
+            on cambio -> toggleConservar(self.ID, self.marcado)
 
 
 

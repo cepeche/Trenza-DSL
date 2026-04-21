@@ -37,31 +37,33 @@ three incompatible forms:
   \caption{Three representations of device state in MonitoreoRed, none of which
            captures the full state machine.}
   \label{tab:monitoreo-state}
-  \begin{tabular}{lll}
+  \small
+  \begin{tabular}{p{1.9cm}p{2.2cm}p{3.5cm}}
     \toprule
     Representation & Location & What it captures \\
     \midrule
-    JSON snapshot   & \texttt{dispositivos.json}   & Known devices at last scan \\
-    Time-series     & Prometheus TSDB              & Metrics (latency, reachability) \\
-                    &                              & \quad --- not states \\
-    Point-in-time   & \texttt{ping\_check.py},     & Instantaneous presence \\
-                    & \texttt{network\_scan.py}    & \quad --- discarded after check \\
+    JSON snapshot  & \texttt{devices.json} & Known devices at last scan \\
+    Time-series    & Prometheus TSDB            & Metrics (latency, reachability) --- not states \\
+    Point-in-time  & \texttt{ping\_check.py}, \texttt{network\_scan.py} & Instantaneous presence --- discarded after check \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-There was no model of \texttt{DispositivoConocido}~$\to$~\texttt{Ausente}~$\to$~\texttt{AlertaActiva}.
-The transition from ``this device was present'' to ``this device has been absent
-long enough to warrant an alert'' was not representable in any of the three
-layers. It had to be reconstructed each time from the intersection of three
-independently maintained data structures---a reconstruction that neither the
-system nor any assisting LLM could perform mechanically, because the rule was
-nowhere written down.
+\begin{sloppypar}
+There was no model of the transition \texttt{KnownDevice} $\to$ \texttt{Absent}
+$\to$ \texttt{ActiveAlert}. The transition from ``this device was present'' to
+``this device has been absent long enough to warrant an alert'' was not
+representable in any of the three layers. It had to be reconstructed each time
+from the intersection of three independently maintained data structures---a
+reconstruction that neither the system nor any assisting LLM could perform
+mechanically, because the rule was nowhere written down.
+\end{sloppypar}
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\linewidth]{figures/monitoreored.svg}
-  \caption{State diagram for the network monitoring system, automatically synthesized by Trenza-DSL.}
+  \includegraphics[width=0.825\linewidth]{figures/monitoreored}
+  \caption{MonitoreoRed state model: three states and the storage layers
+           present (\textbf{+}) or absent (\textbf{--}) for each.}
   \label{fig:monitoreored}
 \end{figure}
 
@@ -69,11 +71,11 @@ nowhere written down.
 The \texttt{claude-flow} framework, which uses a fifteen-agent coordination
 model to manage complex AI workflows~\cite{claudeflow2024}, represents one
 response to this kind of problem: if the system is too complex for a single
-model to reason about, distribute the reasoning. We reject this approach as a
-response to state dispersal. The problem is not cognitive capacity---it is the
+model to reason about, distribute the reasoning. We think this approach does
+not address state dispersal. The problem is not cognitive capacity---it is the
 absence of a shared, formal account of what the system's state is. Adding
-agents without adding a state model produces a system that is more complex and
-equally incoherent.
+agents without adding a state model produces a system that is more complex
+without being more coherent.
 
 \subsection{Case~2 --- CronometroPSP}
 \label{sec:cronometro}
@@ -81,10 +83,10 @@ equally incoherent.
 CronometroPSP is a personal software process (PSP) time-tracking application
 with a mobile-first HTML/JavaScript interface. It was also built with Claude.
 Its behavioral complexity is dominated by a modal UI with two distinct
-interaction modes: normal operation (\texttt{ModoNormal}) and activity editing
-(\texttt{ModoEdicion}).
+interaction modes: normal operation (\texttt{NormalMode}) and activity editing
+(\texttt{EditMode}).
 
-The flag \texttt{modoEdicion} was checked in four independent locations:
+The flag \texttt{editMode} was checked in four independent locations:
 
 \begin{enumerate}
   \item The card-tap handler in the main view.
@@ -108,12 +110,12 @@ required for foreign code---with the same probability of misdiagnosis.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\linewidth]{figures/dispersed.svg}
+  \includegraphics[width=\linewidth]{figures/dispersed}
   \caption{Comparison of the dispersed boolean flag pattern versus the Trenza polymorphic alternative.}
   \label{fig:dispersed}
 \end{figure}
 
-The correct fix was structural: \texttt{modoEdicion} should not have been a
+The correct fix was structural: \texttt{editMode} should not have been a
 boolean flag. It should have been the identity of a polymorphic object. The
 four conditional branches should have been four method implementations, selected
 at construction time by a factory. In that design, the missing case at

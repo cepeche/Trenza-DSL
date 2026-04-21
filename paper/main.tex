@@ -133,8 +133,8 @@
 Software defects caused by implicit, scattered state management and poorly
 governed data access are among the most costly to diagnose in practice. This
 work began with a concrete instance: a proof-of-concept application in which a
-single behavioral flag (\texttt{modoEdicion}) was scattered across four
-independent code locations---invisible to any static analysis, untestable in
+single edit-mode boolean flag was scattered across four independent code
+locations---invisible to any static analysis, untestable in
 isolation, and fatal to long-term maintenance. Trenza was designed so that
 class of defect would instead be a compile-time error.
 
@@ -177,35 +177,13 @@ LLM-generated code.
 \input{sections/03-language}
 \input{sections/04-collaboration}
 
-\section{Validation}
-\label{sec:validation}
-\TODO{Convert paper-draft-s3-s5.md §5 to LaTeX. Key evidence:
-      (1) trenza-cli.trz self-hosting verified 24 March 2026;
-      (2) CronometroPSP: 18 .trz files, 884-line Rust output, <100ms verification;
-      (3) Gemini implements Rule~8 without explicit request — emergent compliance.}
-\begin{table}[h]
-  \centering
-  \caption{Compilation Metrics: CronometroPSP Reference System}
-  \label{tab:metrics}
-  \begin{tabular}{lrlr}
-    \toprule
-    \textbf{Metric} & \textbf{Value} & \textbf{Metric} & \textbf{Value} \\
-    \midrule
-    Context Count & 18 & Verification Time & < 100\,ms \\
-    Role Count & 33 & Rust LOC Generated & 884 \\
-    Event Count & 29 & Mermaid Nodes & 41 \\
-    Transition Count & 46 & TS Bridge LOC & 1122 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+\input{sections/05-validation}
 
-\section{Related Work}
-\label{sec:related}
-\TODO{Convert docs/design/paper-related-work.md to LaTeX. Key entries:
-      Statecharts (Harel 1987), Naked Objects (Pawson 2002), NetKernel/ROC (Rodgers HP Labs),
-      MCP/agent protocols, and the deliberate contrast with claude-flow.}
+\input{sections/06-related-work}
 
 \input{sections/07-conclusion}
+
+\input{sections/08-glossary}
 
 % -----------------------------------------------------------------------
 % Bibliography

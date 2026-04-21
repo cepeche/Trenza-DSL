@@ -30,7 +30,7 @@ context ModoEdicion:
 
     role pestana_actividad: Actividad
 
-        on tap -> abrirEditarActividad(self.id)
+        on tap -> abrirEditarActividad(self.ID)
 
 
 

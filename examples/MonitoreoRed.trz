@@ -1,0 +1,60 @@
+-- MonitoreoRed.trz
+-- Minimum example for ONWARDS! paper
+-- Skeleton for a network monitoring system
+
+type NodeStatus:
+    | Up
+    | Down
+    | Flapping
+
+data NetworkNode:
+    id: ID
+    ip: String
+    status: NodeStatus
+    latency_ms: Int
+    last_seen: Timestamp
+
+data Alert:
+    node_id: ID
+    message: String
+    severity: Int
+
+system MonitoreoRed:
+    initial: Idle
+
+    contexts:
+        Idle
+        Scanning
+        Alerting
+
+context Idle:
+    role *: ignored
+    role admin: NetworkNode
+        on start_scan -> start_scanning
+
+    transitions:
+        on start_scanning -> Scanning
+
+context Scanning:
+    role *: ignored
+    role system: NetworkNode
+        on node_up   -> update_node_status(self.id, "Up")
+        on node_down -> update_node_status(self.id, "Down")
+        on scan_complete -> finish_scan
+
+    transitions:
+        on finish_scan -> Idle
+        on node_down   -> Alerting
+
+context Alerting:
+    role *: ignored
+    role monitor: Alert
+        on send_alert -> notify_admin(self.node_id, self.message)
+        on acknowledge -> clear_alert
+
+    transitions:
+        on clear_alert -> Idle
+
+effects:
+    update_node_status -> update_db(id, status)
+    notify_admin       -> send_email(node, msg)

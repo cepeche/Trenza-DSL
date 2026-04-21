@@ -13,8 +13,8 @@ A context is not a class. It is not a module. It is the formal description
 of a use case---a named situation in which specific roles interact through
 specific events to produce specific outcomes. The same data object (a task
 card, a navigation tab) can participate in multiple contexts, playing different
-roles in each. In \texttt{ModoNormal}, a task card \emph{selects a task} when
-tapped. In \texttt{ModoEdicion}, the same card \emph{opens an edit dialog}.
+roles in each. In \texttt{NormalMode}, a task card \emph{selects a task} when
+tapped. In \texttt{EditMode}, the same card \emph{opens an edit dialog}.
 The data is identical; the behavior is contextually determined.
 
 This separation of structure from behavior resolves a problem that
@@ -27,8 +27,8 @@ different situations. In Trenza there is no inheritance hierarchy. There is a
 \subsection{The Four Strands}
 \label{sec:strands}
 
-Each Trenza specification generates four artifacts simultaneously---the four
-strands of the braid that gives the language its name:
+Each Trenza specification generates four artifacts---the four
+strands of the braid---simultaneously and from the same source:
 
 \textbf{Strand~1---Implementation.} A Rust state machine in which each
 role-event combination becomes a function with an exhaustive \texttt{match}
@@ -52,17 +52,29 @@ implementation.
 system topology, including all contexts, transitions, and overlay relationships.
 The diagram is always current because it is generated, not drawn.
 
-\textbf{Strand~4---Audit report.} A narrative document that maps each
-specification element to a formal verification result, providing the kind of
-traceable artifact that GDPR Article~30 and similar regulations require. The
-audit cannot be separated from the specification that generated it.
+\textbf{Strand~4---Traceability document.} A narrative projection that serves
+two roles simultaneously: a requirements document (enumerating what each role
+may do, in each context, on what data) and a compliance audit (mapping each
+specification element to a formal verification result, providing the traceable
+artifact that GDPR Article~30 and similar regulations require). The two
+functions are unified because they derive from the same source: who does what,
+where, and on what data is the same question whether asked by a stakeholder
+or an auditor.
 
 The four strands are projections of a single artifact. Modifying the
 \texttt{.trz} regenerates all four. They cannot diverge.
 
+Before these four strands, there is a fifth that generates the \texttt{.trz}
+itself: the chronicle of dialogue between the human architect and the model
+collaborators. That strand is not synthesized by the compiler; it is recorded
+in version control as the dated, attributed history of every design decision.
+It is the requirements engineering process, not its output---and the reason
+the output can be trusted. Section~\ref{sec:collaboration} develops this
+argument in full.
+
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\linewidth]{figures/strands.svg}
+  \includegraphics[width=\linewidth]{figures/strands}
   \caption{The four strands of synthesis projected from a single Trenza-DSL specification.}
   \label{fig:strands}
 \end{figure}
@@ -119,7 +131,7 @@ CronometroPSP expressible---could produce structurally incoherent compositions
 that would fail only at runtime.
 
 \textbf{Rule~8---Role-type consistency.} A role name carries a type signature
-across the entire specification. If \texttt{EditorTarea} is declared with a
+across the entire specification. If \texttt{TaskEditor} is declared with a
 particular event surface in one context, the same name in any other context
 must declare the same surface. This prevents a subtle class of defect in which
 the same conceptual actor acquires divergent capabilities depending on which

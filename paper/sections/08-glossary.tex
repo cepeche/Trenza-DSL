@@ -1,0 +1,72 @@
+\section{Spanish Terminology Reference}
+\label{sec:glossary}
+
+The following table maps Spanish-language identifiers from the original
+development artefacts to the English terms used in this paper and its figures.
+These names appear verbatim in the repository's \texttt{.trz} source files and
+generated outputs. They are preserved unchanged in the public repository as
+evidence that the system was built for personal use---not for
+publication---before Trenza existed as a language.
+
+\begin{table*}[t]
+  \centering
+  \caption{Spanish identifiers in the source repository and their English
+           equivalents used in this paper and figures.}
+  \label{tab:glossary}
+  \footnotesize
+  \begin{tabular}{p{3.8cm}p{2.9cm}@{\hskip 1.5em\vrule\hskip 1.5em}p{3.8cm}p{2.9cm}}
+    \toprule
+    \textbf{Spanish identifier} & \textbf{English} &
+    \textbf{Spanish identifier} & \textbf{English} \\
+    \midrule
+    \multicolumn{2}{l}{\textit{Applications}} &
+    \multicolumn{2}{l}{\textit{Device states (MonitoreoRed)}} \\
+    \texttt{CronometroPSP}   & CronometroPSP\textsuperscript{*} &
+    \texttt{DispositivoConocido} & KnownDevice \\
+    \texttt{MonitoreoRed}    & MonitoreoRed\textsuperscript{*} &
+    \texttt{Ausente}             & Absent \\
+    \multicolumn{2}{l}{\textit{Behavioral contexts (CronometroPSP)}} &
+    \texttt{AlertaActiva}        & ActiveAlert \\
+    \texttt{ModoNormal}      & NormalMode &
+    \multicolumn{2}{l}{\textit{Events (MonitoreoRed)}} \\
+    \texttt{ModoEdicion}     & EditMode &
+    \texttt{sin\_respuesta}      & no\_response \\
+    \texttt{SesionActiva}    & ActiveSession &
+    \texttt{dispositivo\_vuelve} & device\_returns \\
+    \texttt{MenuConfiguracion} & ConfigMenu &
+    \texttt{umbral\_superado}    & threshold\_exceeded \\
+    \texttt{ModalComentario} & CommentModal &
+    \texttt{alerta\_resuelta}    & alert\_resolved \\
+    \texttt{Modal\-CrearTarea} & CreateTaskModal &
+    \multicolumn{2}{l}{\textit{Selected events (CronometroPSP)}} \\
+    \texttt{Modal\-EditarTarea} & EditTaskModal &
+    \texttt{activarEdicion}      & activateEdit \\
+    \texttt{Modal\-EditarActividad} & EditActivityModal &
+    \texttt{desactivarEdicion}   & deactivateEdit \\
+    \texttt{Modal\-CrearActividad} & CreateActivityModal &
+    \texttt{iniciarTarea}        & startTask \\
+    \texttt{Modal\-SeleccionActividad} & SelectActivityModal &
+    \texttt{sesionFinalizada}    & sessionEnded \\
+    \texttt{ModalHistorial}  & HistoryModal &
+    \texttt{seleccionarTipoTarea} & selectTaskType \\
+    \texttt{ModalReset}      & ResetModal &
+    \texttt{elegirActividad}     & chooseActivity \\
+    \texttt{ModalAcercaDe}   & AboutModal &
+    \multicolumn{2}{l}{\textit{Fields and flags}} \\
+    \multicolumn{2}{l}{\textit{History/reset sub-states (CronometroPSP)}} &
+    \texttt{modoEdicion}         & \texttt{editMode} (dispersed flag) \\
+    \texttt{Historial7Dias}  & History7Days &
+    \texttt{tareaIdPendiente}    & \texttt{pendingTaskId} \\
+    \texttt{Historial30Dias} & History30Days &
+    \texttt{EditorTarea}         & \texttt{TaskEditor} (role) \\
+    \texttt{ResetFase1}      & ResetPhase1 &
+    \texttt{dispositivos.json}   & \texttt{devices.json} \\
+    \texttt{ResetFase2}      & ResetPhase2 &
+    \multicolumn{2}{l}{\textit{Architectural metaphors}} \\
+    \texttt{ResetFase3}      & ResetPhase3 &
+    \textit{cimbra}              & centering (temporary support arch) \\
+    & & \textit{dataductos}          & data pipelines \\
+    \bottomrule
+    \multicolumn{4}{l}{\textsuperscript{*}Proper name; unchanged in the paper.}
+  \end{tabular}
+\end{table*}

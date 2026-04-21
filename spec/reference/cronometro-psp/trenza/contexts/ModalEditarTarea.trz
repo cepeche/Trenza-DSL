@@ -24,7 +24,7 @@ context ModalEditarTarea:
 
     -- input:
 
-    --     tipoTareaId: Id
+    --     tipoTareaId: ID
 
 
 

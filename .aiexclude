@@ -1,29 +1,3 @@
-# Freno al Indexado Ineficiente de Antigravity (y otros agentes de IA)
-# Evita analizar archivos pesados autogenerados, compilados o artefactos de ejecución.
-
-# Directorios de compilación y salida (Rust, Python, TS)
-/target/
-/dist/
-/build/
-/__pycache__/
-*.pyc
-
-# Dependencias (si estuvieran instaladas localmente)
-/node_modules/
-
-# Archivos de la crónica y logs que no son relevantes para compilar
-/history/chronicle/
-*.log
-
-# Entornos virtuales
-/.venv/
-/venv/
-
-# Paper y exportaciones pesadas
-/paper/*.pdf
-/paper/*.aux
-/paper/*.out
-/paper/*.log
-*.svg
-*.png
-*.webp
+# Exclusión total - modo seguro (anti-crash agente AI)
+# Añadir excepciones mínimas según se vaya necesitando
+**

@@ -22,7 +22,7 @@ context ModalEditarActividad:
 
     -- input:
 
-    --     actividadId: Id
+    --     actividadId: ID
 
 
 

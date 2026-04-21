@@ -104,6 +104,30 @@ cargo build && cargo test
 
 ---
 
+## Gestión de artefactos de compilación
+
+Tras una compilación `--release` exitosa, el agente **debe** ejecutar el siguiente
+procedimiento antes de cerrar sesión:
+
+```powershell
+cargo build --release
+if ($LASTEXITCODE -eq 0) {
+    Copy-Item target\release\trenza-cli.exe bin\trenza-cli.exe
+    cargo clean
+}
+```
+
+**Motivo**: el directorio `target/` puede contener más de 100.000 archivos intermedios
+de Rust. Tenerlos en disco mientras el proyecto está abierto como workspace en el IDE
+satura el canal IPC del agente y causa crashes. Mantener solo el ejecutable en `bin/`
+resuelve el problema sin perder el resultado de la build.
+
+> `bin/` es un directorio **local** para preservar el ejecutable tras `cargo clean`.
+> Está en `.gitignore` y **no debe commitarse**. Git no está diseñado para distribuir
+> binarios de plataforma. Para releases formales, usar GitHub Releases con un tag versionado.
+
+---
+
 ## Strands del compilador
 
 El compilador genera los siguientes strands para cada especificación `.trz`:

@@ -18,29 +18,30 @@ export interface ArgumentosUsuario {
 }
 
 export interface AST {
-    pares: any[];
+    pares: List;
     valido: boolean;
 }
 
 export interface ErrorCompilacion {
-    linea: number;
+    linea: Numero;
     mensaje: string;
 }
 
 export interface Effects {
-    comprobarIntegridad(arg0: any): void;
-    emitirCodigoRust(arg0: any): void;
-    emitirCodigoTS(arg0: any): void;
+    comprobarIntegridad(self: any): void;
+    emitirCodigoRust(pares: List): void;
+    emitirCodigoTS(pares: List): void;
     imprimirAyudaCLI(): void;
-    imprimirErrorFatal(arg0: any, arg1: any): void;
-    imprimirMensajeExito(arg0: any): void;
-    leerYEvaluarArgumentos(arg0: any, arg1: any): void;
-    leerYParsear(arg0: any): void;
+    imprimirErrorFatal(mensaje: string, linea: Numero): void;
+    imprimirMensajeExito(archivoTrz: string): void;
+    leerYEvaluarArgumentos(comando: string, archivoTrz: string): void;
+    leerYParsear(archivoTrz: string): void;
 }
 
 export class System {
     public state: Contexto;
     public concurrent_states: Set<Contexto> = new Set();
+    private stateStack: Contexto[] = [];
     private effects: Effects;
 
     constructor(initial: Contexto, effects: Effects) {
@@ -114,236 +115,238 @@ export class System {
     public deactivateConcurrent(ctx: Contexto): void {
         this.concurrent_states.delete(ctx);
     }
+
+    public dispatch_generador_iniciar_generacion_rust(generador: AST): void {
+        const event = handle_generador_iniciar_generacion_rust(this.state, generador, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_generador_iniciar_generacion_ts(generador: AST): void {
+        const event = handle_generador_iniciar_generacion_ts(this.state, generador, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_lector_fs_iniciar_lectura(lector_fs: ArgumentosUsuario): void {
+        const event = handle_lector_fs_iniciar_lectura(this.state, lector_fs, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_logger_entrar(logger: ErrorCompilacion): void {
+        const event = handle_logger_entrar(this.state, logger, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_resultado_entrar(resultado: ArgumentosUsuario): void {
+        const event = handle_resultado_entrar(this.state, resultado, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_terminal_ejecutar(terminal: ArgumentosUsuario): void {
+        const event = handle_terminal_ejecutar(this.state, terminal, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
+    public dispatch_validador_iniciar_validacion(validador: AST): void {
+        const event = handle_validador_iniciar_validacion(this.state, validador, this.effects);
+        if (event !== null) this.handleEvent(event);
+    }
+
 }
 
-export function handle_generador_iniciar_generacion_rust(ctx: Contexto, generador: AST, effects: Effects): void {
+export function handle_generador_iniciar_generacion_rust(ctx: Contexto, generador: AST, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.EsperandoComando:
             console.log(`[telemetry] context=${ctx}, role=generador, event=iniciar_generacion_rust`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.ParseandoArchivo:
             console.log(`[telemetry] context=${ctx}, role=generador, event=iniciar_generacion_rust`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.VerificandoReglas:
             console.log(`[telemetry] context=${ctx}, role=generador, event=iniciar_generacion_rust`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.GenerandoStrands:
             console.log(`[telemetry] context=${ctx}, role=generador, event=iniciar_generacion_rust`);
             effects.emitirCodigoRust(generador.pares);
-            break;
+            return "emitirCodigoRust";
         case Contexto.ErrorFatal:
             console.log(`[telemetry] context=${ctx}, role=generador, event=iniciar_generacion_rust`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.Exito:
             console.log(`[telemetry] context=${ctx}, role=generador, event=iniciar_generacion_rust`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.MostrarAyuda:
             console.log(`[telemetry] context=${ctx}, role=generador, event=iniciar_generacion_rust`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
     }
+    return null;
 }
 
-export function handle_generador_iniciar_generacion_ts(ctx: Contexto, generador: AST, effects: Effects): void {
+export function handle_generador_iniciar_generacion_ts(ctx: Contexto, generador: AST, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.EsperandoComando:
             console.log(`[telemetry] context=${ctx}, role=generador, event=iniciar_generacion_ts`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.ParseandoArchivo:
             console.log(`[telemetry] context=${ctx}, role=generador, event=iniciar_generacion_ts`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.VerificandoReglas:
             console.log(`[telemetry] context=${ctx}, role=generador, event=iniciar_generacion_ts`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.GenerandoStrands:
             console.log(`[telemetry] context=${ctx}, role=generador, event=iniciar_generacion_ts`);
             effects.emitirCodigoTS(generador.pares);
-            break;
+            return "emitirCodigoTS";
         case Contexto.ErrorFatal:
             console.log(`[telemetry] context=${ctx}, role=generador, event=iniciar_generacion_ts`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.Exito:
             console.log(`[telemetry] context=${ctx}, role=generador, event=iniciar_generacion_ts`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.MostrarAyuda:
             console.log(`[telemetry] context=${ctx}, role=generador, event=iniciar_generacion_ts`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
     }
+    return null;
 }
 
-export function handle_lector_fs_iniciar_lectura(ctx: Contexto, lector_fs: ArgumentosUsuario, effects: Effects): void {
+export function handle_lector_fs_iniciar_lectura(ctx: Contexto, lector_fs: ArgumentosUsuario, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.EsperandoComando:
             console.log(`[telemetry] context=${ctx}, role=lector_fs, event=iniciar_lectura`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.ParseandoArchivo:
             console.log(`[telemetry] context=${ctx}, role=lector_fs, event=iniciar_lectura`);
             effects.leerYParsear(lector_fs.archivoTrz);
-            break;
+            return "leerYParsear";
         case Contexto.VerificandoReglas:
             console.log(`[telemetry] context=${ctx}, role=lector_fs, event=iniciar_lectura`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.GenerandoStrands:
             console.log(`[telemetry] context=${ctx}, role=lector_fs, event=iniciar_lectura`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.ErrorFatal:
             console.log(`[telemetry] context=${ctx}, role=lector_fs, event=iniciar_lectura`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.Exito:
             console.log(`[telemetry] context=${ctx}, role=lector_fs, event=iniciar_lectura`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.MostrarAyuda:
             console.log(`[telemetry] context=${ctx}, role=lector_fs, event=iniciar_lectura`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
     }
+    return null;
 }
 
-export function handle_logger_entrar(ctx: Contexto, logger: ErrorCompilacion, effects: Effects): void {
+export function handle_logger_entrar(ctx: Contexto, logger: ErrorCompilacion, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.EsperandoComando:
             console.log(`[telemetry] context=${ctx}, role=logger, event=entrar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.ParseandoArchivo:
             console.log(`[telemetry] context=${ctx}, role=logger, event=entrar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.VerificandoReglas:
             console.log(`[telemetry] context=${ctx}, role=logger, event=entrar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.GenerandoStrands:
             console.log(`[telemetry] context=${ctx}, role=logger, event=entrar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.ErrorFatal:
             console.log(`[telemetry] context=${ctx}, role=logger, event=entrar`);
             effects.imprimirErrorFatal(logger.mensaje, logger.linea);
-            break;
+            return "imprimirErrorFatal";
         case Contexto.Exito:
             console.log(`[telemetry] context=${ctx}, role=logger, event=entrar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.MostrarAyuda:
             console.log(`[telemetry] context=${ctx}, role=logger, event=entrar`);
             effects.imprimirAyudaCLI();
-            break;
+            return "imprimirAyudaCLI";
     }
+    return null;
 }
 
-export function handle_resultado_entrar(ctx: Contexto, resultado: ArgumentosUsuario, effects: Effects): void {
+export function handle_resultado_entrar(ctx: Contexto, resultado: ArgumentosUsuario, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.EsperandoComando:
             console.log(`[telemetry] context=${ctx}, role=resultado, event=entrar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.ParseandoArchivo:
             console.log(`[telemetry] context=${ctx}, role=resultado, event=entrar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.VerificandoReglas:
             console.log(`[telemetry] context=${ctx}, role=resultado, event=entrar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.GenerandoStrands:
             console.log(`[telemetry] context=${ctx}, role=resultado, event=entrar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.ErrorFatal:
             console.log(`[telemetry] context=${ctx}, role=resultado, event=entrar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.Exito:
             console.log(`[telemetry] context=${ctx}, role=resultado, event=entrar`);
             effects.imprimirMensajeExito(resultado.archivoTrz);
-            break;
+            return "imprimirMensajeExito";
         case Contexto.MostrarAyuda:
             console.log(`[telemetry] context=${ctx}, role=resultado, event=entrar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
     }
+    return null;
 }
 
-export function handle_terminal_ejecutar(ctx: Contexto, terminal: ArgumentosUsuario, effects: Effects): void {
+export function handle_terminal_ejecutar(ctx: Contexto, terminal: ArgumentosUsuario, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.EsperandoComando:
             console.log(`[telemetry] context=${ctx}, role=terminal, event=ejecutar`);
             effects.leerYEvaluarArgumentos(terminal.comando, terminal.archivoTrz);
-            break;
+            return "leerYEvaluarArgumentos";
         case Contexto.ParseandoArchivo:
             console.log(`[telemetry] context=${ctx}, role=terminal, event=ejecutar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.VerificandoReglas:
             console.log(`[telemetry] context=${ctx}, role=terminal, event=ejecutar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.GenerandoStrands:
             console.log(`[telemetry] context=${ctx}, role=terminal, event=ejecutar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.ErrorFatal:
             console.log(`[telemetry] context=${ctx}, role=terminal, event=ejecutar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.Exito:
             console.log(`[telemetry] context=${ctx}, role=terminal, event=ejecutar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.MostrarAyuda:
             console.log(`[telemetry] context=${ctx}, role=terminal, event=ejecutar`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
     }
+    return null;
 }
 
-export function handle_validador_iniciar_validacion(ctx: Contexto, validador: AST, effects: Effects): void {
+export function handle_validador_iniciar_validacion(ctx: Contexto, validador: AST, effects: Effects): string | null {
     switch (ctx) {
         case Contexto.EsperandoComando:
             console.log(`[telemetry] context=${ctx}, role=validador, event=iniciar_validacion`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.ParseandoArchivo:
             console.log(`[telemetry] context=${ctx}, role=validador, event=iniciar_validacion`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.VerificandoReglas:
             console.log(`[telemetry] context=${ctx}, role=validador, event=iniciar_validacion`);
             effects.comprobarIntegridad(validador);
-            break;
+            return "comprobarIntegridad";
         case Contexto.GenerandoStrands:
             console.log(`[telemetry] context=${ctx}, role=validador, event=iniciar_validacion`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.ErrorFatal:
             console.log(`[telemetry] context=${ctx}, role=validador, event=iniciar_validacion`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.Exito:
             console.log(`[telemetry] context=${ctx}, role=validador, event=iniciar_validacion`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
         case Contexto.MostrarAyuda:
             console.log(`[telemetry] context=${ctx}, role=validador, event=iniciar_validacion`);
             throw new Error(`Forbidden action called in context ${ctx}`);
-            break;
     }
+    return null;
 }
 

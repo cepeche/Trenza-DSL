@@ -28,7 +28,7 @@ context ModoNormal:
 
     role pestana_actividad: Actividad
 
-        on tap -> cambiarPestana(self.id)
+        on tap -> cambiarPestana(self.ID)
 
 
 
