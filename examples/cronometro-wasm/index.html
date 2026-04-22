@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-    <!-- Timer activo -->
+    <!-- Timer activo — click para parar la sesión en curso -->
     <div class="active-timer">
         <div class="timer-info">
             <div>
@@ -18,27 +18,27 @@
     </div>
 
     <!-- Botón de settings -->
-    <button class="settings-button">⚙️</button>
+    <button class="settings-button" data-event="abrirMenuConfiguracion">⚙️</button>
 
     <!-- Menú de settings -->
     <div class="settings-menu" id="settingsMenu">
-        <div class="settings-item">
+        <div class="settings-item" data-event="abrirCrearActividad">
             <span>📁</span>
             <span>Nueva actividad</span>
         </div>
-        <div class="settings-item">
+        <div class="settings-item" data-event="abrirHistorial">
             <span>📊</span>
             <span>Historial</span>
         </div>
-        <div class="settings-item">
+        <div class="settings-item" data-event="exportarCSV">
             <span>📥</span>
             <span>Exportar CSV</span>
         </div>
-        <div class="settings-item">
+        <div class="settings-item" data-event="abrirAcercaDe">
             <span>ℹ️</span>
             <span>Acerca de</span>
         </div>
-        <div class="settings-item settings-item-danger">
+        <div class="settings-item settings-item-danger" data-event="abrirReset">
             <span>🗑️</span>
             <span>Puesta a cero</span>
         </div>
@@ -59,14 +59,14 @@
     <!-- Barra inferior -->
     <div class="bottom-bar">
         <div class="bottom-comment" id="bottomComment"></div>
-        <div class="total-today" id="totalToday">Hoy: 0:00</div>
+        <div class="total-today" id="totalToday">Hoy: 0 min</div>
     </div>
 
-    <!-- Botón modo edición -->
+    <!-- Botón modo edición (JS registra listener explícito por ser toggle) -->
     <button class="edit-mode-button" id="editModeButton" title="Modo edición">✏️</button>
 
     <!-- Botón flotante + -->
-    <button class="fab-button" title="Nueva tarea">+</button>
+    <button class="fab-button" data-event="abrirCrearTarea" title="Nueva tarea">+</button>
 
     <!-- Modal selector de actividad -->
     <div class="modal-overlay" id="activityModal">
@@ -76,8 +76,9 @@
                 <div class="modal-task-name" id="modalTaskName"></div>
                 <div class="modal-question">¿En qué actividad?</div>
             </div>
+            <!-- renderActivityButtons() puebla este contenedor -->
             <div class="activity-buttons" id="activityButtons"></div>
-            <button class="modal-cancel">Cancelar</button>
+            <button class="modal-cancel" data-event="cancelar">Cancelar</button>
         </div>
     </div>
 
@@ -90,28 +91,22 @@
 
             <div class="form-group">
                 <label class="form-label">Nombre</label>
-                <input type="text" class="form-input" id="newTaskName" placeholder="Ej: Codificar">
+                <input type="text" class="form-input" id="newTaskName"
+                       placeholder="Ej: Codificar"
+                       data-input-event="actualizarNombre">
             </div>
 
             <div class="form-group">
-                <label class="form-label">Icono</label>
-                <input type="text" class="icon-picker-search" id="iconSearchCreate"
-                       placeholder="Buscar icono (ej: coffee, book, run...)">
-                <div class="icon-picker-selected-preview" id="iconPreviewCreate">
-                    <span class="material-symbols-outlined" id="iconPreviewSymbolCreate">draft</span>
-                    <span id="iconPreviewNameCreate">draft</span>
-                </div>
-                <div class="icon-picker-grid" id="iconPickerCreate"></div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Actividades donde se puede usar</label>
-                <div class="checkbox-group" id="actividadesCheckbox"></div>
+                <label class="form-label">Icono (emoji)</label>
+                <input type="text" class="form-input" id="iconSearchCreate"
+                       placeholder="Ej: 💻 📚 🏃"
+                       data-input-event="seleccionarIconoNuevo">
             </div>
 
             <div class="form-buttons">
-                <button class="btn-secondary">Cancelar</button>
-                <button class="btn-primary" id="btnGuardarTarea">Crear</button>
+                <button class="btn-secondary" data-event="cancelar">Cancelar</button>
+                <button class="btn-primary" id="btnGuardarTarea"
+                        data-event="guardarNuevaTarea">Crear</button>
             </div>
         </div>
     </div>
@@ -125,7 +120,9 @@
 
             <div class="form-group">
                 <label class="form-label">Nombre</label>
-                <input type="text" class="form-input" id="newActivityName" placeholder="Ej: Proyecto Z">
+                <input type="text" class="form-input" id="newActivityName"
+                       placeholder="Ej: Proyecto Z"
+                       data-input-event="actualizarNombreNuevaActividad">
             </div>
 
             <div class="form-group">
@@ -141,8 +138,9 @@
             </div>
 
             <div class="form-buttons">
-                <button class="btn-secondary">Cancelar</button>
-                <button class="btn-primary" id="btnGuardarActividad">Crear</button>
+                <button class="btn-secondary" data-event="cancelar">Cancelar</button>
+                <button class="btn-primary" id="btnGuardarActividad"
+                        data-event="guardarNuevaActividad">Crear</button>
             </div>
         </div>
     </div>
@@ -157,13 +155,15 @@
             </div>
             <div class="form-group">
                 <input type="text" class="form-input" id="commentInput"
-                       placeholder="¿En qué concretamente?" maxlength="120">
+                       placeholder="¿En qué concretamente?" maxlength="120"
+                       data-input-event="actualizarComentario">
             </div>
             <div class="form-group retroactivo-group">
                 <label class="form-label retroactivo-label">⏪ Ya llevo</label>
                 <div class="retroactivo-row">
-                    <input type="number" class="form-input retroactivo-input" id="retroactivoInput"
-                           value="0" min="0" max="480" step="5">
+                    <input type="number" class="form-input retroactivo-input"
+                           id="retroactivoInput" value="0" min="0" max="480" step="5"
+                           data-input-event="actualizarRetroactivo">
                     <span class="retroactivo-unit">min</span>
                 </div>
             </div>
@@ -174,8 +174,8 @@
                 </label>
             </div>
             <div class="form-buttons">
-                <button class="btn-secondary">Cancelar</button>
-                <button class="btn-primary">Iniciar</button>
+                <button class="btn-secondary" data-event="cancelar">Cancelar</button>
+                <button class="btn-primary" data-event="confirmarInicio">Iniciar</button>
             </div>
         </div>
     </div>
@@ -187,10 +187,17 @@
                 <div class="modal-task-name">Acerca de</div>
             </div>
             <div id="aboutContent">
-                <div class="about-loading">Comprobando conexión…</div>
+                <p style="color:var(--text-secondary,#94a3b8);font-size:0.9rem;line-height:1.6">
+                    Demo CronometroPSP generado por <strong>Trenza DSL</strong>.<br><br>
+                    La máquina de estados de este demo fue especificada en
+                    <code>.trz</code>, compilada a Rust + WASM, y esta interfaz
+                    es una proyección directa del estado del intérprete.<br><br>
+                    Ningún modal se abre o cierra por lógica de UI: el estado
+                    de Trenza <em>es</em> la visibilidad.
+                </p>
             </div>
             <div class="form-buttons" style="margin-top:1.5rem">
-                <button class="btn-primary">Cerrar</button>
+                <button class="btn-primary" data-event="cerrar">Cerrar</button>
             </div>
         </div>
     </div>
@@ -207,8 +214,8 @@
             <!-- Fase 1: aviso -->
             <div id="resetStep1">
                 <p class="reset-description">
-                    Se detendrá la tarea en curso, se exportará el historial a CSV
-                    y se borrarán todas las sesiones y contadores.
+                    Se detendrá la tarea en curso, se borrarán todas las sesiones
+                    y contadores.
                 </p>
                 <p class="reset-description">
                     A continuación podrás elegir qué actividades conservar.
@@ -231,7 +238,9 @@
             </div>
 
             <div class="form-buttons" style="margin-top:1.5rem">
-                <button class="btn-secondary" id="btnResetCancel">Cancelar</button>
+                <button class="btn-secondary" id="btnResetCancel"
+                        data-event="cancelar">Cancelar</button>
+                <!-- JS registra listener explícito en #btnReset (3 fases) -->
                 <button class="btn-danger" id="btnReset">Continuar</button>
             </div>
         </div>
@@ -248,23 +257,21 @@
 
             <div class="form-group">
                 <label class="form-label">Nombre</label>
-                <input type="text" class="form-input" id="editTaskName" placeholder="Nombre de la tarea">
+                <input type="text" class="form-input" id="editTaskName"
+                       placeholder="Nombre de la tarea"
+                       data-input-event="actualizarNuevoNombre">
             </div>
 
             <div class="form-group">
-                <label class="form-label">Icono</label>
-                <input type="text" class="icon-picker-search" id="iconSearchEdit"
-                       placeholder="Buscar icono (ej: coffee, book, run...)">
-                <div class="icon-picker-selected-preview" id="iconPreviewEdit">
-                    <span class="material-symbols-outlined" id="iconPreviewSymbolEdit">draft</span>
-                    <span id="iconPreviewNameEdit">draft</span>
-                </div>
-                <div class="icon-picker-grid" id="iconPickerEdit"></div>
+                <label class="form-label">Icono (emoji)</label>
+                <input type="text" class="form-input" id="iconSearchEdit"
+                       placeholder="Ej: 💻"
+                       data-input-event="seleccionarIcono">
             </div>
 
             <div class="form-buttons">
-                <button class="btn-secondary">Cancelar</button>
-                <button class="btn-primary">Guardar</button>
+                <button class="btn-secondary" data-event="cancelar">Cancelar</button>
+                <button class="btn-primary" data-event="guardarEdicion">Guardar</button>
             </div>
         </div>
     </div>
@@ -280,7 +287,9 @@
 
             <div class="form-group">
                 <label class="form-label">Nombre</label>
-                <input type="text" class="form-input" id="editActivityName" placeholder="Nombre de la actividad">
+                <input type="text" class="form-input" id="editActivityName"
+                       placeholder="Nombre de la actividad"
+                       data-input-event="actualizarNombreActividad">
             </div>
 
             <div class="form-group">
@@ -296,8 +305,8 @@
             </div>
 
             <div class="form-buttons">
-                <button class="btn-secondary">Cancelar</button>
-                <button class="btn-primary">Guardar</button>
+                <button class="btn-secondary" data-event="cancelar">Cancelar</button>
+                <button class="btn-primary" data-event="guardarEdicionActividad">Guardar</button>
             </div>
         </div>
     </div>
@@ -310,16 +319,21 @@
             </div>
 
             <div class="historial-selector">
-                <button class="historial-btn-periodo active" data-dias="7">7 días</button>
-                <button class="historial-btn-periodo" data-dias="30">30 días</button>
+                <button class="historial-btn-periodo active"
+                        data-dias="7"
+                        data-event="cambiarA7Dias">7 días</button>
+                <button class="historial-btn-periodo"
+                        data-dias="30"
+                        data-event="cambiarA30Dias">30 días</button>
             </div>
 
+            <!-- renderHistorial() puebla este contenedor -->
             <div id="historialContenido">
                 <div class="historial-loading">Cargando…</div>
             </div>
 
             <div class="form-buttons" style="margin-top:1rem">
-                <button class="btn-primary">Cerrar</button>
+                <button class="btn-primary" data-event="cerrar">Cerrar</button>
             </div>
         </div>
     </div>
