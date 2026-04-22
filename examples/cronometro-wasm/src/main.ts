@@ -1,6 +1,12 @@
 import init, { InterpreterWasm } from './wasm/trenza_core.js';
 import { TrenzaSystem } from './CronometroPSP_out';
 import cronometroDsl from './cronometro_full.trz?raw';
+import {
+  makeDispatchWithSync,
+  makeOverlayEffectStubs,
+  syncOverlayVisibility,
+  wireGlobalCloseHandlers,
+} from './overlays';
 
 const log = (msg: string) => {
   const logEl = document.getElementById('log');
@@ -47,62 +53,54 @@ async function run() {
     }
   };
 
-  // 1. Implementación de Efectos
+  // Efectos: los `abrir*` y `cerrar` son no-ops (la visibilidad la proyecta
+  // el estado desde overlays.ts). El resto son acciones de negocio locales
+  // al demo — Fase 3 los sustituira por llamadas al storage adapter.
   const effects = {
+    ...makeOverlayEffectStubs(),
     iniciar_sesion: (tareaId: string) => {
-      log(`Efecto de Negocio: Iniciar Sesión para Tarea ${tareaId}`);
+      log(`Efecto de Negocio: Iniciar Sesion para Tarea ${tareaId}`);
       startTimer();
     },
     parar_sesion: () => {
-      log("Efecto de Negocio: Detener Sesión");
+      log("Efecto de Negocio: Detener Sesion");
       stopTimer();
     },
-    abrirMenuConfiguracion: () => log("UI: Abriendo Menú Configuración"),
-    abrirReset: () => {
-      log("UI: Abriendo Modal Reset");
-      stopTimer();
-    },
-    confirmarInicio: () => log("Validación: Inicio confirmado por usuario"),
+    confirmarInicio: () => log("Validacion: Inicio confirmado por usuario"),
     reset_datos: () => {
       log("Efecto de Negocio: Reset de todos los datos");
       seconds = 0;
       const display = document.getElementById('display');
       if (display) display.textContent = "00:00:00";
-    }
+    },
   } as any;
 
-  // 2. Instanciar Sistema (Pasando el DSL consolidado)
-  log("Cargando especificación Cronómetro-PSP...");
+  log("Cargando especificacion Cronometro-PSP...");
   const interpreter = new InterpreterWasm(cronometroDsl);
   const system = new TrenzaSystem(interpreter, effects);
+  const dispatch = makeDispatchWithSync(system);
+
+  wireGlobalCloseHandlers(dispatch);
+  syncOverlayVisibility(system);
 
   log("Sistema Trenza Ready.");
   updateUI(system.current_state);
 
-  // 3. Vincular Eventos del DOM a Despachos de Trenza
-  document.getElementById('btn-iniciar')?.addEventListener('click', () => {
-    log("Evento: 'iniciarTarea' disparado");
-    system.dispatch('iniciarTarea', { tareaId: 'TASK-001' });
-    updateUI(system.current_state);
-  });
+  // Los cuatro botones del demo actual. Cuando Brief A porte el HTML real,
+  // estos handlers pueden permanecer (los ids siguen existiendo como puntos
+  // de entrada minimos) o sustituirse por delegacion sobre data-event.
+  const wire = (id: string, event: string, payload?: unknown) => {
+    document.getElementById(id)?.addEventListener('click', () => {
+      log(`Evento: '${event}' disparado`);
+      dispatch(event, payload);
+      updateUI(system.current_state);
+    });
+  };
 
-  document.getElementById('btn-parar')?.addEventListener('click', () => {
-    log("Evento: 'terminarSesion' disparado");
-    system.dispatch('terminarSesion');
-    updateUI(system.current_state);
-  });
-
-  document.getElementById('btn-config')?.addEventListener('click', () => {
-    log("Evento: 'abrirMenuConfiguracion' disparado");
-    system.dispatch('abrirMenuConfiguracion');
-    updateUI(system.current_state);
-  });
-
-  document.getElementById('btn-reset')?.addEventListener('click', () => {
-    log("Evento: 'abrirReset' disparado");
-    system.dispatch('abrirReset');
-    updateUI(system.current_state);
-  });
+  wire('btn-iniciar', 'iniciarTarea', { tareaId: 'TASK-001' });
+  wire('btn-parar',   'terminarSesion');
+  wire('btn-config',  'abrirMenuConfiguracion');
+  wire('btn-reset',   'abrirReset');
 }
 
 run().catch(e => {
