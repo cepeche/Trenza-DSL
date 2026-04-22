@@ -1,112 +1,329 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trenza DSL: Cronómetro WASM</title>
-    <style>
-      body {
-        margin: 0;
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        background: #0f172a;
-        color: #f8fafc;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-      }
-      .container {
-        max-width: 600px;
-        width: 90%;
-        background: #1e293b;
-        padding: 2rem;
-        border-radius: 1rem;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        border: 1px solid #334155;
-      }
-      .display {
-        font-size: 4rem;
-        font-family: 'JetBrains Mono', monospace;
-        text-align: center;
-        margin: 1rem 0;
-        color: #38bdf8;
-      }
-      .state-badge {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        background: #0ea5e9;
-        border-radius: 9999px;
-        font-size: 0.875rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-      }
-      .controls {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-        margin-top: 1rem;
-      }
-      button {
-        padding: 0.75rem;
-        border-radius: 0.5rem;
-        border: none;
-        background: #334155;
-        color: white;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      button:hover:not(:disabled) {
-        background: #475569;
-      }
-      button:active:not(:disabled) {
-        transform: scale(0.95);
-      }
-      button.primary {
-        background: #0284c7;
-      }
-      button.primary:hover {
-        background: #0369a1;
-      }
-      button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      .log {
-        margin-top: 2rem;
-        padding: 1rem;
-        background: #0f172a;
-        border-radius: 0.5rem;
-        font-size: 0.75rem;
-        max-height: 150px;
-        overflow-y: auto;
-        border: 1px solid #334155;
-      }
-      .log-entry {
-        margin-bottom: 0.25rem;
-        border-left: 2px solid #38bdf8;
-        padding-left: 0.5rem;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div id="state" class="state-badge">Cargando...</div>
-      <div id="display" class="display">00:00:00</div>
-      
-      <div class="controls">
-        <button id="btn-iniciar" class="primary">Iniciar Tarea</button>
-        <button id="btn-parar">Parar</button>
-        <button id="btn-config">Configuración</button>
-        <button id="btn-reset">Reset</button>
-      </div>
-
-      <div id="log" class="log">
-        <div class="log-entry">Trenza Runtime Initializing...</div>
-      </div>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Cronómetro PSP</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <!-- Timer activo -->
+    <div class="active-timer">
+        <div class="timer-info">
+            <div>
+                <div class="timer-task" id="activeTaskName">Ninguna tarea activa</div>
+            </div>
+            <div class="timer-duration" id="timerDisplay">--:--</div>
+        </div>
     </div>
+
+    <!-- Botón de settings -->
+    <button class="settings-button">⚙️</button>
+
+    <!-- Menú de settings -->
+    <div class="settings-menu" id="settingsMenu">
+        <div class="settings-item">
+            <span>📁</span>
+            <span>Nueva actividad</span>
+        </div>
+        <div class="settings-item">
+            <span>📊</span>
+            <span>Historial</span>
+        </div>
+        <div class="settings-item">
+            <span>📥</span>
+            <span>Exportar CSV</span>
+        </div>
+        <div class="settings-item">
+            <span>ℹ️</span>
+            <span>Acerca de</span>
+        </div>
+        <div class="settings-item settings-item-danger">
+            <span>🗑️</span>
+            <span>Puesta a cero</span>
+        </div>
+    </div>
+
+    <!-- Pestañas (las de actividades se generan dinámicamente) -->
+    <div class="tabs" id="tabs">
+        <button class="tab active" data-tab="frecuentes">⭐ Frecuentes</button>
+    </div>
+
+    <!-- Contenido de pestañas (las de actividades se generan dinámicamente) -->
+    <div id="tabsContent">
+        <div class="tab-content active" data-tab="frecuentes">
+            <div class="tasks-grid" id="gridFrecuentes"></div>
+        </div>
+    </div>
+
+    <!-- Barra inferior -->
+    <div class="bottom-bar">
+        <div class="bottom-comment" id="bottomComment"></div>
+        <div class="total-today" id="totalToday">Hoy: 0:00</div>
+    </div>
+
+    <!-- Botón modo edición -->
+    <button class="edit-mode-button" id="editModeButton" title="Modo edición">✏️</button>
+
+    <!-- Botón flotante + -->
+    <button class="fab-button" title="Nueva tarea">+</button>
+
+    <!-- Modal selector de actividad -->
+    <div class="modal-overlay" id="activityModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-icon" id="modalTaskIcon"></div>
+                <div class="modal-task-name" id="modalTaskName"></div>
+                <div class="modal-question">¿En qué actividad?</div>
+            </div>
+            <div class="activity-buttons" id="activityButtons"></div>
+            <button class="modal-cancel">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal crear tarea -->
+    <div class="modal-overlay" id="createTaskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-name">Nueva tarea</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-input" id="newTaskName" placeholder="Ej: Codificar">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Icono</label>
+                <input type="text" class="icon-picker-search" id="iconSearchCreate"
+                       placeholder="Buscar icono (ej: coffee, book, run...)">
+                <div class="icon-picker-selected-preview" id="iconPreviewCreate">
+                    <span class="material-symbols-outlined" id="iconPreviewSymbolCreate">draft</span>
+                    <span id="iconPreviewNameCreate">draft</span>
+                </div>
+                <div class="icon-picker-grid" id="iconPickerCreate"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Actividades donde se puede usar</label>
+                <div class="checkbox-group" id="actividadesCheckbox"></div>
+            </div>
+
+            <div class="form-buttons">
+                <button class="btn-secondary">Cancelar</button>
+                <button class="btn-primary" id="btnGuardarTarea">Crear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal crear actividad -->
+    <div class="modal-overlay" id="createActivityModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-name">Nueva actividad</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-input" id="newActivityName" placeholder="Ej: Proyecto Z">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Color</label>
+                <div class="color-picker" id="colorPicker"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="actividadPermanente">
+                    <span class="toggle-text">🔒 Conservar tras puesta a cero</span>
+                </label>
+            </div>
+
+            <div class="form-buttons">
+                <button class="btn-secondary">Cancelar</button>
+                <button class="btn-primary" id="btnGuardarActividad">Crear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal comentario al iniciar tarea -->
+    <div class="modal-overlay" id="commentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-icon" id="commentModalIcon"></div>
+                <div class="modal-task-name" id="commentModalName"></div>
+                <div class="modal-question">Comentario opcional</div>
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-input" id="commentInput"
+                       placeholder="¿En qué concretamente?" maxlength="120">
+            </div>
+            <div class="form-group retroactivo-group">
+                <label class="form-label retroactivo-label">⏪ Ya llevo</label>
+                <div class="retroactivo-row">
+                    <input type="number" class="form-input retroactivo-input" id="retroactivoInput"
+                           value="0" min="0" max="480" step="5">
+                    <span class="retroactivo-unit">min</span>
+                </div>
+            </div>
+            <div class="form-group sustituir-group" id="sustituirGroup" style="display:none">
+                <label class="toggle-label">
+                    <input type="checkbox" id="sustituirCheck">
+                    <span class="toggle-text">🔄 Sustituye a la tarea en curso</span>
+                </label>
+            </div>
+            <div class="form-buttons">
+                <button class="btn-secondary">Cancelar</button>
+                <button class="btn-primary">Iniciar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Acerca de -->
+    <div class="modal-overlay" id="aboutModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-name">Acerca de</div>
+            </div>
+            <div id="aboutContent">
+                <div class="about-loading">Comprobando conexión…</div>
+            </div>
+            <div class="form-buttons" style="margin-top:1.5rem">
+                <button class="btn-primary">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Puesta a cero -->
+    <div class="modal-overlay" id="resetModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-icon">⚠️</div>
+                <div class="modal-task-name">Puesta a cero</div>
+                <div class="modal-question">Esta acción no se puede deshacer</div>
+            </div>
+
+            <!-- Fase 1: aviso -->
+            <div id="resetStep1">
+                <p class="reset-description">
+                    Se detendrá la tarea en curso, se exportará el historial a CSV
+                    y se borrarán todas las sesiones y contadores.
+                </p>
+                <p class="reset-description">
+                    A continuación podrás elegir qué actividades conservar.
+                </p>
+            </div>
+
+            <!-- Fase 2: selección de actividades -->
+            <div id="resetStep2" style="display:none">
+                <p class="reset-confirm-text" style="margin-bottom:0.75rem">
+                    Marca las actividades que quieres <strong>conservar</strong>:
+                </p>
+                <div class="reset-activities-list" id="resetActivitiesList"></div>
+            </div>
+
+            <!-- Fase 3: confirmación BORRAR -->
+            <div id="resetStep3" style="display:none">
+                <p class="reset-confirm-text">Escribe <strong>BORRAR</strong> para confirmar:</p>
+                <input type="text" class="form-input" id="resetConfirmInput"
+                       placeholder="BORRAR" autocomplete="off">
+            </div>
+
+            <div class="form-buttons" style="margin-top:1.5rem">
+                <button class="btn-secondary" id="btnResetCancel">Cancelar</button>
+                <button class="btn-danger" id="btnReset">Continuar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal editar tarea existente -->
+    <div class="modal-overlay" id="editTaskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-name">Editar tarea</div>
+            </div>
+
+            <input type="hidden" id="editTaskId">
+
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-input" id="editTaskName" placeholder="Nombre de la tarea">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Icono</label>
+                <input type="text" class="icon-picker-search" id="iconSearchEdit"
+                       placeholder="Buscar icono (ej: coffee, book, run...)">
+                <div class="icon-picker-selected-preview" id="iconPreviewEdit">
+                    <span class="material-symbols-outlined" id="iconPreviewSymbolEdit">draft</span>
+                    <span id="iconPreviewNameEdit">draft</span>
+                </div>
+                <div class="icon-picker-grid" id="iconPickerEdit"></div>
+            </div>
+
+            <div class="form-buttons">
+                <button class="btn-secondary">Cancelar</button>
+                <button class="btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal editar actividad -->
+    <div class="modal-overlay" id="editActivityModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-name">Editar actividad</div>
+            </div>
+
+            <input type="hidden" id="editActivityId">
+
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-input" id="editActivityName" placeholder="Nombre de la actividad">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Color</label>
+                <div class="color-picker" id="editColorPicker"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="editActivityPermanente">
+                    <span class="toggle-text">🔒 Conservar tras puesta a cero</span>
+                </label>
+            </div>
+
+            <div class="form-buttons">
+                <button class="btn-secondary">Cancelar</button>
+                <button class="btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Historial -->
+    <div class="modal-overlay historial-overlay" id="historialModal">
+        <div class="modal-content historial-content">
+            <div class="modal-header">
+                <div class="modal-task-name">Historial</div>
+            </div>
+
+            <div class="historial-selector">
+                <button class="historial-btn-periodo active" data-dias="7">7 días</button>
+                <button class="historial-btn-periodo" data-dias="30">30 días</button>
+            </div>
+
+            <div id="historialContenido">
+                <div class="historial-loading">Cargando…</div>
+            </div>
+
+            <div class="form-buttons" style="margin-top:1rem">
+                <button class="btn-primary">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="/src/main.ts"></script>
-  </body>
+</body>
 </html>
