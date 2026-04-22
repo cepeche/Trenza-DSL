@@ -23,6 +23,13 @@ pub const PRIMITIVES: &[Primitive] = &[
     Primitive { name: "Bool",      rust_type: "bool",   ts_type: "boolean" },
     Primitive { name: "ID",        rust_type: "String", ts_type: "string"  },
     Primitive { name: "Timestamp", rust_type: "u64",    ts_type: "number"  },
+    // Spanish aliases used by early CronometroPSP spec (pre-ADR-005 harmonization).
+    // Kept for backward compatibility until the .trz source is translated to canonical names.
+    Primitive { name: "Texto",     rust_type: "String", ts_type: "string"  },
+    Primitive { name: "Entero",    rust_type: "i32",    ts_type: "number"  },
+    Primitive { name: "Booleano",  rust_type: "bool",   ts_type: "boolean" },
+    Primitive { name: "Id",        rust_type: "String", ts_type: "string"  },
+    Primitive { name: "Color",     rust_type: "String", ts_type: "string"  },
 ];
 
 /// Returns true if `name` is a recognised scalar primitive.

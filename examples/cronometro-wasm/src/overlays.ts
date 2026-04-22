@@ -13,7 +13,8 @@
 //   estado, no por manipulacion directa del DOM.
 // - wireGlobalCloseHandlers() conecta Esc y click-en-backdrop al dispatcher.
 
-import type { TrenzaSystem, Effects } from './CronometroPSP_out';
+import type { Effects } from './CronometroPSP_out';
+import type { TrenzaSystem } from './snapshot-bridge';
 
 export const OVERLAY_DOM_IDS: Readonly<Record<string, string>> = Object.freeze({
   MenuConfiguracion:       'settingsMenu',
@@ -26,17 +27,37 @@ export const OVERLAY_DOM_IDS: Readonly<Record<string, string>> = Object.freeze({
   ModalEditarTarea:        'editTaskModal',
   ModalEditarActividad:    'editActivityModal',
   ModalHistorial:          'historialModal',
+  // Sub-contexts: when the runtime pushes a sub-context onto overlay_stack,
+  // its parent overlay is the one that should remain visible. The shim's
+  // `parent_overlay_of` resolves that at compile-time, but the overlay_stack
+  // surface still contains the sub-context name, so we alias it here.
+  Historial7Dias:          'historialModal',
+  Historial30Dias:         'historialModal',
+  ResetFase1:              'resetModal',
+  ResetFase2:              'resetModal',
+  ResetFase3:              'resetModal',
 });
 
 export function syncOverlayVisibility(system: TrenzaSystem): void {
   const active = new Set<string>();
   active.add(system.current_state);
+  // overlay_stack contains every active overlay (including sub-contexts).
+  for (const s of system.overlay_stack) active.add(s);
   for (const s of system.concurrent_states) active.add(s);
 
+  // Project: an overlay is visible iff itself or one of its sub-contexts is
+  // active. OVERLAY_DOM_IDS aliases sub-contexts to the same DOM id, so a
+  // single OR over the table is enough.
+  const visibleDomIds = new Set<string>();
   for (const [overlay, domId] of Object.entries(OVERLAY_DOM_IDS)) {
+    if (active.has(overlay)) visibleDomIds.add(domId);
+  }
+  // Apply: pass over each unique DOM id once, toggling .active accordingly.
+  const allDomIds = new Set(Object.values(OVERLAY_DOM_IDS));
+  for (const domId of allDomIds) {
     const el = document.getElementById(domId);
     if (!el) continue;
-    el.classList.toggle('active', active.has(overlay));
+    el.classList.toggle('active', visibleDomIds.has(domId));
   }
 
   document.body.classList.toggle('editing', active.has('ModoEdicion'));

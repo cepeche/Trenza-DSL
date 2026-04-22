@@ -23,6 +23,7 @@
 
 
 context ModalReset:
+    initial: ResetFase1
     role *: ignored
 
 
@@ -75,7 +76,7 @@ context ResetFase1:
 
             on avanzarAFase2 -> ResetFase2
 
-            on cerrar        -> ModalReset
+            on cerrar        -> [close_overlay]
 
 
 
@@ -126,6 +127,8 @@ context ResetFase2:
 
             on retrocederAFase1 -> ResetFase1
 
+            on cerrar          -> [close_overlay]
+
 
 
     -- ─────────────────────────────────────────────────────────────
@@ -168,6 +171,8 @@ context ResetFase3:
             on ejecutarReset   -> [close_overlay]
 
             on retrocederAFase2 -> ResetFase2
+
+            on cerrar          -> [close_overlay]
 
 
 

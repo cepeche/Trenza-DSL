@@ -269,6 +269,7 @@ fn parse_context_clauses(pairs: pest::iterators::Pairs<Rule>) -> ContextDef {
     let mut slots = Vec::new();
     let mut fills = Vec::new();
     let mut ignore_rest = false;
+    let mut initial_sub: Option<String> = None;
 
     for inner in pairs {
         match inner.as_rule() {
@@ -282,6 +283,12 @@ fn parse_context_clauses(pairs: pest::iterators::Pairs<Rule>) -> ContextDef {
                 };
 
                 match clause_pair.as_rule() {
+                    Rule::initial_def => {
+                        // `initial: Foo` — Foo is the single inner ident.
+                        if let Some(id) = clause_pair.into_inner().next() {
+                            initial_sub = Some(id.as_str().to_string());
+                        }
+                    },
                     Rule::input_def => {
                         for field in clause_pair.into_inner() {
                             let mut f_iter = field.into_inner();
@@ -332,13 +339,14 @@ fn parse_context_clauses(pairs: pest::iterators::Pairs<Rule>) -> ContextDef {
             _ => {}
         }
     }
-    ContextDef { 
-        span: Span { start: Pos { line: 0, col: 0 }, end: Pos { line: 0, col: 0 } }, 
-        name: "".into(), 
-        name_span: Span { start: Pos { line: 0, col: 0 }, end: Pos { line: 0, col: 0 } }, 
-        is_public: false, 
+    ContextDef {
+        span: Span { start: Pos { line: 0, col: 0 }, end: Pos { line: 0, col: 0 } },
+        name: "".into(),
+        name_span: Span { start: Pos { line: 0, col: 0 }, end: Pos { line: 0, col: 0 } },
+        is_public: false,
         inputs, roles, transitions, effects, slots, fills, ignore_rest,
-        is_anonymous: false
+        is_anonymous: false,
+        initial_sub,
     }
 }
 

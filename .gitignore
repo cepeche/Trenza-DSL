@@ -42,6 +42,10 @@ project_summary*
 locks.db
 trenza-coord/locks.db
 
+# Scratch dirs para regeneración del compilador (`--out-dir=tmp_*`)
+tmp_regen/
+tmp_audit/
+
 # LaTeX artefactos de compilación
 *.aux
 *.bbl

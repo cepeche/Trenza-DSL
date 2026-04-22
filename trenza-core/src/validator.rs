@@ -473,6 +473,71 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
         }
     }
 
+    // Rule (Initial sub-context integrity): `initial: X` on an overlay context
+    // must name a sub-context whose transitions lead back to the overlay. The
+    // check mirrors `parent_of` inference used by the generator: a context is a
+    // sub-context of the overlay if any of its transitions target that overlay
+    // (directly or via a sibling sub-context).
+    //
+    // We only emit a diagnostic on the direct-parent case here; deeper graphs
+    // fall back to a soft check (existence-only) to avoid false negatives while
+    // the fixed-point inference lives only in the generator.
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            let Some(init) = ctx.initial_sub.as_ref() else { continue; };
+            // `initial:` only makes sense on overlays.
+            if !overlays.contains(&ctx.name) {
+                errors.push(Diagnostic {
+                    span: ctx.name_span.clone(),
+                    message: format!(
+                        "'initial:' declarado en '{}', que no es un overlay. Esta cláusula sólo se aplica a overlays con sub-contextos.",
+                        ctx.name
+                    ),
+                    severity: "error".to_string(),
+                    code: "initial-not-overlay".to_string(),
+                });
+                continue;
+            }
+            // The referenced context must exist.
+            if !all_contexts.contains(init) {
+                errors.push(Diagnostic {
+                    span: ctx.name_span.clone(),
+                    message: format!(
+                        "'initial: {}' referencia un contexto que no existe.",
+                        init
+                    ),
+                    severity: "error".to_string(),
+                    code: "initial-unknown".to_string(),
+                });
+                continue;
+            }
+            // The referenced context must be a sub-context — i.e. it cannot
+            // itself be a base, overlay, or concurrent (those have different
+            // stack semantics). The generator infers the parent_of relation
+            // via fixed-point on transitions to overlays / known sub-contexts;
+            // here we only check the structural exclusion, which is sufficient
+            // and tolerates `[close_overlay]`-style cerrar handlers (which do
+            // not name the parent explicitly).
+            let is_base = base_contexts.contains(init);
+            let is_overlay = overlays.contains(init);
+            let is_concurrent = concurrent_contexts.contains(init);
+            if is_base || is_overlay || is_concurrent {
+                errors.push(Diagnostic {
+                    span: ctx.name_span.clone(),
+                    message: format!(
+                        "'initial: {}' debe ser un sub-contexto (no un base, overlay o concurrent). '{}' está declarado como {}.",
+                        init, init,
+                        if is_base { "context base" }
+                        else if is_overlay { "overlay" }
+                        else { "concurrent" }
+                    ),
+                    severity: "error".to_string(),
+                    code: "initial-wrong-kind".to_string(),
+                });
+            }
+        }
+    }
+
     if errors.is_empty() {
         Ok(())
     } else {

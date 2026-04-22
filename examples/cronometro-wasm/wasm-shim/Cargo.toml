@@ -1,0 +1,24 @@
+[workspace]
+
+[package]
+name = "cronometro-wasm-shim"
+version = "0.1.0"
+edition = "2021"
+
+# Per-spec WASM bridge for CronometroPSP. Wraps the Rust module emitted by
+# trenza-cli (CronometroPSP_out.rs) with wasm-bindgen so the browser demo can
+# drive the verified state machine directly, with no generic interpreter in
+# between. Fase 4 of the "Per aspera ad astra" recovery plan.
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[profile.release]
+# Smaller wasm binaries; the demo doesn't need debug info in production.
+opt-level = "s"
+lto = true

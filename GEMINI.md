@@ -39,3 +39,10 @@ Instrucciones para agilizar el flujo de trabajo dictadas por el humano el 2026-0
 5.  **Interpretación de MAYÚSCULAS**: Las mayúsculas del humano no son gritos; son indicadores de máxima prioridad e importancia. Priorizar estas indicaciones para agilizar el trabajo.
 6.  **Protocolo de Verificación**: Al terminar una tarea, COMPROBAR que el resultado es el esperado antes de responder. Si algo no se pudo completar, informar del porqué.
 
+## Lecciones Aprendidas (Incidente CronometroPSP)
+
+Estas reglas actúan como cortafuegos contra el "optimismo algorítmico" y deben guiar todas las interacciones futuras:
+
+1.  **Principio de Desconfianza Estructural (Trust, but Verify the Bridge)**: Cuando trabajes en una capa que integra código autogenerado (ej. puente TypeScript) con un núcleo compilado (ej. WASM), NUNCA asumas que los métodos llamados por el código autogenerado existen realmente en el binario. Verifica siempre la firma real en el módulo destino antes de dar por buena la integración.
+2.  **Visión End-to-End contra la Ejecución en Silos**: Aunque recibas un Brief muy acotado y específico (ej. "porta este HTML"), mantén la conciencia situacional. Si al hacer tu tarea detectas que el código circundante tiene errores críticos o asunciones falsas, PÁRATE. No construyas un tejado perfecto sobre unos cimientos rotos. Reporta el bloqueador al arquitecto o al humano.
+3.  **Inmunidad a la "Trampa de la Especificación"**: Jamás confundas un DSL elegante y un AST validado con un compilador funcional. La belleza de la especificación no garantiza la ejecución. Antes de afirmar que un sistema está listo para la integración final, debes aportar la prueba de compilación y ejecución de la cadena completa.

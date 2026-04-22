@@ -4,7 +4,7 @@
 // Se invocan desde efectos Trenza o desde el bucle principal tras dispatch.
 
 import { listTareas, listActividades, listSesiones } from './storage';
-import type { TrenzaSystem } from './CronometroPSP_out';
+import type { TrenzaSystem } from './snapshot-bridge';
 import { Contexto } from './CronometroPSP_out';
 import type { Dispatch } from './overlays';
 

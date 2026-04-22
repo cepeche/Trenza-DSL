@@ -42,6 +42,10 @@ fn rust_type(s: &str) -> String {
         let inner = &s[5..s.len() - 1];
         return format!("Vec<{}>", rust_type(inner));
     }
+    if s.starts_with("Lista<") && s.ends_with('>') {
+        let inner = &s[6..s.len() - 1];
+        return format!("Vec<{}>", rust_type(inner));
+    }
     crate::primitives::rust_type_of(s)
         .map(String::from)
         .unwrap_or_else(|| s.to_string())
@@ -55,6 +59,10 @@ fn ts_type(s: &str) -> String {
     // Handle List<X>
     if s.starts_with("List<") && s.ends_with('>') {
         let inner = &s[5..s.len() - 1];
+        return format!("{}[]", ts_type(inner));
+    }
+    if s.starts_with("Lista<") && s.ends_with('>') {
+        let inner = &s[6..s.len() - 1];
         return format!("{}[]", ts_type(inner));
     }
     crate::primitives::ts_type_of(s)
@@ -79,6 +87,110 @@ fn generate_enum_ts(e: &EnumDef) -> String {
         .map(|v| format!("\"{}\"", v))
         .collect();
     format!("export type {} = {};\n\n", e.name, variants.join(" | "))
+}
+
+/// Classify a transition target into the Rust statements that should run.
+/// `decl_ctx` is the context whose `transitions:` block declares this target
+/// (used to resolve `[deactivate]`, which always means "deactivate self").
+///
+/// `initial_of` maps each overlay that declares an `initial:` sub-context to
+/// that sub-context name. When a transition targets such an overlay, both the
+/// overlay AND its initial sub-context are pushed, so the stack is left in the
+/// sub-context and the sub-context's `[on_entry]` fires automatically (driven
+/// by the snapshot-after-dispatch run_on_entry mechanism).
+fn classify_target_actions(
+    target: &str,
+    bases: &HashSet<String>,
+    overlays: &HashSet<String>,
+    concurrents: &HashSet<String>,
+    sub_contexts: &HashSet<String>,
+    parent_of: &BTreeMap<String, String>,
+    initial_of: &BTreeMap<String, String>,
+    decl_ctx: &str,
+) -> Vec<String> {
+    // Sub-context returning to its own parent overlay is a pop (go up one
+    // level), not a push — a push would re-stack the parent on top of its
+    // own sub-context, producing an oscillation bug instead of a clean
+    // "return up one level". Must be checked before the generic "target is
+    // an overlay" branch (which would otherwise emit push).
+    if let Some(parent) = parent_of.get(decl_ctx) {
+        if parent == target {
+            return vec!["self.overlay_stack.pop();".to_string()];
+        }
+    }
+    match target {
+        "[stay]" => Vec::new(),
+        "[close_overlay]" => {
+            // Closing "the current overlay" from a sub-context means popping
+            // both the sub-context AND its parent overlay — otherwise the
+            // user would only see the sub-context disappear while the parent
+            // overlay's DOM stays visible (modal looks stuck on second layer).
+            // From a top-level overlay, a single pop is enough.
+            if parent_of.contains_key(decl_ctx) {
+                vec![
+                    "self.overlay_stack.pop();".to_string(),
+                    "self.overlay_stack.pop();".to_string(),
+                ]
+            } else {
+                vec!["self.overlay_stack.pop();".to_string()]
+            }
+        },
+        "[deactivate]" => vec![format!("self.concurrent.remove(&Contexto::{});", decl_ctx)],
+        name if bases.contains(name) => vec![
+            format!("self.base = Contexto::{};", name),
+            "self.overlay_stack.clear();".to_string(),
+        ],
+        name if overlays.contains(name) => {
+            let mut actions = vec![
+                format!("self.overlay_stack.push(Contexto::{});", name),
+            ];
+            if let Some(sub) = initial_of.get(name) {
+                // Auto-enter the declared initial sub-context. The push puts
+                // the sub-context on top; run_on_entry (called after dispatch
+                // completes) will then fire the sub-context's [on_entry].
+                actions.push(format!("self.overlay_stack.push(Contexto::{});", sub));
+            }
+            actions
+        },
+        name if concurrents.contains(name) => vec![
+            format!("self.concurrent.insert(Contexto::{});", name),
+        ],
+        name if sub_contexts.contains(name) => vec![
+            format!("self.replace_top_or_push(Contexto::{});", name),
+        ],
+        // Fallback for unknown names: treat as base swap.
+        name => vec![
+            format!("self.base = Contexto::{};", name),
+            "self.overlay_stack.clear();".to_string(),
+        ],
+    }
+}
+
+/// Emit a single effect call expression (string ending with `;`).
+/// Args are routed:
+/// - `'literal'` / `"literal"` → string literal
+/// - numeric literal           → string literal of the number
+/// - `key: value` (with colon) → string literal of the whole expression
+/// - plain ident               → `payload_str(payload, "ident")`
+fn emit_effect_call_expr(call: &ActionCall) -> String {
+    let func_safe = call.function.replace(".", "_");
+    let mut rust_args = Vec::new();
+    for arg in &call.args {
+        if arg.starts_with('\'') || arg.starts_with('"') {
+            let inner = arg.trim_matches(|c| c == '\'' || c == '"');
+            rust_args.push(format!("\"{}\"", inner.replace('\\', "\\\\").replace('"', "\\\"")));
+        } else if arg.chars().next().map_or(false, |c| c.is_ascii_digit() || c == '-') {
+            rust_args.push(format!("\"{}\"", arg));
+        } else if arg.contains(':') {
+            rust_args.push(format!("\"{}\"", arg.replace('\\', "\\\\").replace('"', "\\\"")));
+        } else if arg.starts_with("self.") || arg == "self" {
+            // Should not appear in event-effects; emit as empty literal as a defensive fallback.
+            rust_args.push("\"\"".to_string());
+        } else {
+            rust_args.push(format!("payload_str(payload, \"{}\")", arg));
+        }
+    }
+    format!("self.effects.{}({});", func_safe, rust_args.join(", "))
 }
 
 pub fn generate_typescript_wasm(program: &Program) -> String {
@@ -580,50 +692,103 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
     }
 
     let is_pre = profile == "pre";
-    let use_threads = concurrency == "threads";
+    let _use_threads = concurrency == "threads";
+
+    // Build data_field_types: data name -> field name -> rust type
+    let mut data_field_types: BTreeMap<String, BTreeMap<String, String>> = BTreeMap::new();
+    for def in &program.definitions {
+        if let Definition::Data(d) = def {
+            let mut fields = BTreeMap::new();
+            for f in &d.fields {
+                fields.insert(f.name.clone(), rust_type(&f.datatype));
+            }
+            data_field_types.insert(d.name.clone(), fields);
+        }
+    }
+
+    // Resolve the Rust type of a single effect arg at a specific call site.
+    let resolve_arg_type = |arg: &str, role_dt: Option<&str>| -> String {
+        if arg == "self" {
+            return role_dt.map(|d| format!("&{}", d)).unwrap_or_else(|| "&str".to_string());
+        }
+        if let Some(field) = arg.strip_prefix("self.") {
+            if let Some(dt) = role_dt {
+                if let Some(fields) = data_field_types.get(dt) {
+                    if let Some(rt) = fields.get(field) {
+                        return format!("&{}", rt);
+                    }
+                }
+            }
+        }
+        // Default: payload-derived &str (covers literals, plain idents, key:value).
+        "&str".to_string()
+    };
 
     // 3. Effects Trait (Strand 2 Preparation)
-    let mut unique_functions: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    // Collect, per function, the observed arg-type vector at each call site.
+    let mut function_arg_obs: BTreeMap<String, Vec<Vec<String>>> = BTreeMap::new();
+    let mut record = |func: &str, types: Vec<String>| {
+        function_arg_obs.entry(func.to_string()).or_default().push(types);
+    };
     for def in &program.definitions {
         if let Definition::Context(ctx) = def {
             for role in &ctx.roles {
                 for action in &role.actions {
                     if let ActionTarget::Call(call) = &action.target {
-                        unique_functions.insert(call.function.clone(), call.args.clone());
+                        let types: Vec<String> = call.args.iter()
+                            .map(|a| resolve_arg_type(a, Some(&role.datatype))).collect();
+                        record(&call.function, types);
                     }
                 }
             }
             for effect in &ctx.effects {
-                unique_functions.insert(effect.call.function.clone(), effect.call.args.clone());
+                let types: Vec<String> = effect.call.args.iter().map(|_| "&str".to_string()).collect();
+                record(&effect.call.function, types);
             }
             for fills in &ctx.fills {
                 for role in &fills.roles {
                     for action in &role.actions {
                         if let ActionTarget::Call(call) = &action.target {
-                            unique_functions.insert(call.function.clone(), call.args.clone());
+                            let types: Vec<String> = call.args.iter()
+                                .map(|a| resolve_arg_type(a, Some(&role.datatype))).collect();
+                            record(&call.function, types);
                         }
                     }
                 }
                 for effect in &fills.effects {
-                    unique_functions.insert(effect.call.function.clone(), effect.call.args.clone());
+                    let types: Vec<String> = effect.call.args.iter().map(|_| "&str".to_string()).collect();
+                    record(&effect.call.function, types);
                 }
             }
         }
     }
 
+    // Unify per position: agreement → that type; disagreement → fall back to &str.
+    let unique_functions: BTreeMap<String, Vec<String>> = function_arg_obs.iter().map(|(name, obs)| {
+        let n = obs.iter().map(|o| o.len()).max().unwrap_or(0);
+        let unified: Vec<String> = (0..n).map(|i| {
+            let set: std::collections::BTreeSet<String> = obs.iter()
+                .filter_map(|o| o.get(i).cloned()).collect();
+            if set.len() == 1 { set.into_iter().next().unwrap() } else { "&str".to_string() }
+        }).collect();
+        (name.clone(), unified)
+    }).collect();
+
     output.push_str("pub trait Effects {\n");
-    for (func, args) in &unique_functions {
+    for (func, types) in &unique_functions {
         let func_safe = func.replace(".", "_");
-        let arg_list = args.iter().enumerate().map(|(i, _)| format!("arg{}: &str", i)).collect::<Vec<_>>().join(", ");
+        let arg_list = types.iter().enumerate()
+            .map(|(i, ty)| format!("arg{}: {}", i, ty)).collect::<Vec<_>>().join(", ");
         output.push_str(&format!("    fn {}(&self, {});\n", func_safe, arg_list));
     }
     output.push_str("}\n\n");
 
     output.push_str("pub struct NoOpEffects;\n");
     output.push_str("impl Effects for NoOpEffects {\n");
-    for (func, args) in &unique_functions {
+    for (func, types) in &unique_functions {
         let func_safe = func.replace(".", "_");
-        let arg_list = args.iter().enumerate().map(|(i, _)| format!("arg{}: &str", i)).collect::<Vec<_>>().join(", ");
+        let arg_list = types.iter().enumerate()
+            .map(|(i, ty)| format!("_arg{}: {}", i, ty)).collect::<Vec<_>>().join(", ");
         output.push_str(&format!("    fn {}(&self, {}) {{}}\n", func_safe, arg_list));
     }
     output.push_str("}\n\n");
@@ -640,143 +805,327 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
     output.push_str("    }\n");
     output.push_str("}\n");
     output.push_str("impl Effects for RecordingEffects {\n");
-    for (func, args) in &unique_functions {
+    for (func, types) in &unique_functions {
         let func_safe = func.replace(".", "_");
-        let arg_list = args.iter().enumerate().map(|(i, _)| format!("arg{}: &str", i)).collect::<Vec<_>>().join(", ");
-        let format_args = args.iter().enumerate().map(|_| format!("{{}}")).collect::<Vec<_>>().join(", ");
-        let format_values = args.iter().enumerate().map(|(i, _)| format!("arg{}", i)).collect::<Vec<_>>().join(", ");
-        
+        let arg_list = types.iter().enumerate()
+            .map(|(i, ty)| format!("arg{}: {}", i, ty)).collect::<Vec<_>>().join(", ");
+        let format_args = types.iter().map(|_| "{:?}".to_string()).collect::<Vec<_>>().join(", ");
+        let format_values = types.iter().enumerate()
+            .map(|(i, _)| format!("arg{}", i)).collect::<Vec<_>>().join(", ");
+
         output.push_str(&format!("    fn {}(&self, {}) {{\n", func_safe, arg_list));
-        if args.is_empty() {
+        if types.is_empty() {
             output.push_str(&format!("        self.calls.borrow_mut().push(\"{}\".to_string());\n", func));
         } else {
-            output.push_str(&format!("        self.calls.borrow_mut().push(format!(\"{}({})\".to_string(), {}));\n", func, format_args, format_values));
+            output.push_str(&format!("        self.calls.borrow_mut().push(format!(\"{}({})\", {}));\n", func, format_args, format_values));
         }
         output.push_str("    }\n");
     }
     output.push_str("}\n\n");
 
     // 4. System Structure and Transition Logic
-    if use_threads {
-        output.push_str("use std::sync::mpsc;\nuse std::thread;\nuse std::collections::HashMap;\n\n");
-        output.push_str("pub struct System<'a> {\n");
-        output.push_str("    pub state: Contexto,\n");
-        output.push_str("    pub concurrent_txs: HashMap<Contexto, mpsc::Sender<String>>,\n");
-        output.push_str("    pub effects: &'a dyn Effects,\n");
-        output.push_str("}\n\n");
-    } else {
-        output.push_str("use std::collections::HashSet as StdHashSet;\n\n");
-        output.push_str("pub struct System<'a> {\n");
-        output.push_str("    pub state: Contexto,\n");
-        output.push_str("    pub concurrent_states: StdHashSet<Contexto>,\n");
-        output.push_str("    pub effects: &'a dyn Effects,\n");
-        output.push_str("}\n\n");
+    //
+    // Topology classification (Runtime model 13_CO_runtime_model.md §3):
+    //   bases / overlays / concurrents come straight from the system: block.
+    //   sub_contexts = all declared contexts \ (bases ∪ overlays ∪ concurrents).
+    let mut bases_set: HashSet<String> = HashSet::new();
+    let mut overlays_set: HashSet<String> = HashSet::new();
+    let mut concurrents_set: HashSet<String> = HashSet::new();
+    for def in &program.definitions {
+        if let Definition::System(sys) = def {
+            for sec in &sys.sections {
+                match sec {
+                    SystemSection::Contexts(v) => { bases_set.extend(v.iter().cloned()); },
+                    SystemSection::Overlays(v) => { overlays_set.extend(v.iter().cloned()); },
+                    SystemSection::Concurrent(entries) => {
+                        for e in entries {
+                            match e {
+                                ConcurrentEntry::Name(n) => { concurrents_set.insert(n.clone()); },
+                                ConcurrentEntry::Anonymous(c) => { concurrents_set.insert(c.name.clone()); },
+                            }
+                        }
+                    },
+                    _ => {}
+                }
+            }
+        }
     }
+    let mut sub_contexts_set: HashSet<String> = HashSet::new();
+    for c in &contexts {
+        if !bases_set.contains(c) && !overlays_set.contains(c) && !concurrents_set.contains(c) {
+            sub_contexts_set.insert(c.clone());
+        }
+    }
+
+    // Derive parent_overlay_of via fixed-point: direct (`on cerrar -> Overlay`)
+    // then indirect (transition to a sibling sub-context with known parent).
+    // Seed: any overlay with `initial: Sub` declares Sub as its child outright,
+    // so we know the parent without needing a transition out of Sub. This
+    // matters when Sub uses `[close_overlay]` (no explicit named target).
+    let mut parent_of: BTreeMap<String, String> = BTreeMap::new();
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            if !overlays_set.contains(&ctx.name) { continue; }
+            if let Some(sub) = &ctx.initial_sub {
+                parent_of.insert(sub.clone(), ctx.name.clone());
+            }
+        }
+    }
+    let mut changed = true;
+    while changed {
+        changed = false;
+        for def in &program.definitions {
+            if let Definition::Context(ctx) = def {
+                if !sub_contexts_set.contains(&ctx.name) { continue; }
+                if parent_of.contains_key(&ctx.name) { continue; }
+                let mut found: Option<String> = None;
+                for trans in &ctx.transitions {
+                    if overlays_set.contains(&trans.target) {
+                        found = Some(trans.target.clone());
+                        break;
+                    }
+                }
+                if found.is_none() {
+                    for trans in &ctx.transitions {
+                        if let Some(p) = parent_of.get(&trans.target) {
+                            found = Some(p.clone());
+                            break;
+                        }
+                    }
+                }
+                if let Some(p) = found {
+                    parent_of.insert(ctx.name.clone(), p);
+                    changed = true;
+                }
+            }
+        }
+    }
+
+    // Collect `initial:` declarations from overlay contexts. This drives the
+    // auto-push emitted by classify_target_actions for any transition whose
+    // target is one of these overlays.
+    let mut initial_of: BTreeMap<String, String> = BTreeMap::new();
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            if !overlays_set.contains(&ctx.name) { continue; }
+            if let Some(sub) = &ctx.initial_sub {
+                initial_of.insert(ctx.name.clone(), sub.clone());
+            }
+        }
+    }
+
+    output.push_str("use std::collections::HashSet as StdHashSet;\n\n");
+
+    output.push_str("#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]\n");
+    output.push_str("pub struct Snapshot {\n");
+    output.push_str("    pub base: Contexto,\n");
+    output.push_str("    pub overlay_stack: Vec<Contexto>,\n");
+    output.push_str("    pub concurrent: Vec<Contexto>,\n");
+    output.push_str("    pub current: Contexto,\n");
+    output.push_str("}\n\n");
+
+    output.push_str("pub struct System<'a> {\n");
+    output.push_str("    pub base: Contexto,\n");
+    output.push_str("    pub overlay_stack: Vec<Contexto>,\n");
+    output.push_str("    pub concurrent: StdHashSet<Contexto>,\n");
+    output.push_str("    pub effects: &'a dyn Effects,\n");
+    output.push_str("}\n\n");
+
+    output.push_str("fn payload_str<'a>(p: &'a serde_json::Value, key: &str) -> &'a str {\n");
+    output.push_str("    p.get(key).and_then(|v| v.as_str()).unwrap_or(\"\")\n");
+    output.push_str("}\n\n");
 
     output.push_str("impl<'a> System<'a> {\n");
     output.push_str("    pub fn new(initial: Contexto, effects: &'a dyn Effects) -> Self {\n");
-    
-    if use_threads {
-        output.push_str("        let mut concurrent_txs = HashMap::new();\n");
-        for cctx in &concurrent_contexts {
-            output.push_str(&format!("        // Spawn thread for concurrent context {}\n", cctx));
-            output.push_str(&format!("        let (tx_{}, rx_{}) = mpsc::channel::<String>();\n", cctx, cctx));
-            output.push_str(&format!("        thread::spawn(move || {{\n"));
-            output.push_str(&format!("            let mut local_state = Contexto::{};\n", cctx));
-            output.push_str(&format!("            while let Ok(msg) = rx_{}.recv() {{\n", cctx));
-            output.push_str(&format!("                if msg == \"TERMINATE\" {{ break; }}\n"));
-            output.push_str(&format!("            }}\n"));
-            output.push_str(&format!("        }});\n"));
-            output.push_str(&format!("        concurrent_txs.insert(Contexto::{}, tx_{});\n", cctx, cctx));
-        }
-        output.push_str("        Self { state: initial, concurrent_txs, effects }\n");
-    } else {
-        output.push_str("        let mut concurrent_states = StdHashSet::new();\n");
-        for cctx in &concurrent_contexts {
-            output.push_str(&format!("        concurrent_states.insert(Contexto::{});\n", cctx));
-        }
-        output.push_str("        Self { state: initial, concurrent_states, effects }\n");
-    }
-    
+    output.push_str("        Self {\n");
+    output.push_str("            base: initial,\n");
+    output.push_str("            overlay_stack: Vec::new(),\n");
+    output.push_str("            concurrent: StdHashSet::new(),\n");
+    output.push_str("            effects,\n");
+    output.push_str("        }\n");
     output.push_str("    }\n\n");
 
+    output.push_str("    pub fn current_state(&self) -> Contexto {\n");
+    output.push_str("        self.overlay_stack.last().copied().unwrap_or(self.base)\n");
+    output.push_str("    }\n\n");
+
+    output.push_str("    pub fn snapshot(&self) -> Snapshot {\n");
+    output.push_str("        Snapshot {\n");
+    output.push_str("            base: self.base,\n");
+    output.push_str("            overlay_stack: self.overlay_stack.clone(),\n");
+    output.push_str("            concurrent: self.concurrent.iter().copied().collect(),\n");
+    output.push_str("            current: self.current_state(),\n");
+    output.push_str("        }\n");
+    output.push_str("    }\n\n");
+
+    output.push_str("    fn parent_overlay_of(c: Contexto) -> Option<Contexto> {\n");
+    output.push_str("        match c {\n");
+    for (sub, par) in &parent_of {
+        output.push_str(&format!("            Contexto::{} => Some(Contexto::{}),\n", sub, par));
+    }
+    output.push_str("            _ => None,\n");
+    output.push_str("        }\n");
+    output.push_str("    }\n\n");
+
+    output.push_str("    fn replace_top_or_push(&mut self, sub: Contexto) {\n");
+    output.push_str("        let parent = Self::parent_overlay_of(sub);\n");
+    output.push_str("        let same_parent = match (self.overlay_stack.last(), parent) {\n");
+    output.push_str("            (Some(top), Some(_)) => Some(*top) == parent || Self::parent_overlay_of(*top) == parent,\n");
+    output.push_str("            _ => false,\n");
+    output.push_str("        };\n");
+    output.push_str("        if same_parent {\n");
+    output.push_str("            *self.overlay_stack.last_mut().unwrap() = sub;\n");
+    output.push_str("        } else {\n");
+    output.push_str("            self.overlay_stack.push(sub);\n");
+    output.push_str("        }\n");
+    output.push_str("    }\n\n");
+
+    // Backward-compat wrapper: existing tests / callers use handle_event.
     output.push_str("    pub fn handle_event(&mut self, event: &str) {\n");
-    
-    if use_threads {
-        output.push_str("        // Dispatch to concurrent threads\n");
-        output.push_str("        for tx in self.concurrent_txs.values() {\n");
-        output.push_str("            let _ = tx.send(event.to_string());\n");
-        output.push_str("        }\n");
-    } else {
-        output.push_str("        // Evaluate concurrent states sequentially (Composite Mode)\n");
-        for cctx in &concurrent_contexts {
-            output.push_str(&format!("        if self.concurrent_states.contains(&Contexto::{}) {{\n", cctx));
-            output.push_str(&format!("            // In a full composite synthesis, we evaluate {} logic here\n", cctx));
+    output.push_str("        self.dispatch(event, &serde_json::Value::Null);\n");
+    output.push_str("    }\n\n");
+
+    output.push_str("    pub fn dispatch(&mut self, event: &str, payload: &serde_json::Value) {\n");
+    output.push_str("        let prev = self.current_state();\n");
+    output.push_str("        self.dispatch_concurrent(event, payload);\n");
+    output.push_str("        self.dispatch_main(event, payload);\n");
+    output.push_str("        let new_current = self.current_state();\n");
+    output.push_str("        if new_current != prev {\n");
+    output.push_str("            self.run_on_entry(new_current, payload);\n");
+    output.push_str("        }\n");
+    output.push_str("    }\n\n");
+
+    // dispatch_concurrent: each active concurrent context handles the event
+    // with its own transitions / event-effects.
+    output.push_str("    fn dispatch_concurrent(&mut self, event: &str, payload: &serde_json::Value) {\n");
+    output.push_str("        let _ = (event, payload);\n");
+    for cctx_name in &concurrent_contexts {
+        let ctx_def = program.definitions.iter().find_map(|d| match d {
+            Definition::Context(c) if &c.name == cctx_name => Some(c),
+            _ => None,
+        });
+        if let Some(ctx) = ctx_def {
+            output.push_str(&format!("        if self.concurrent.contains(&Contexto::{}) {{\n", cctx_name));
+            output.push_str("            match event {\n");
+            for trans in &ctx.transitions {
+                let actions = classify_target_actions(
+                    &trans.target, &bases_set, &overlays_set, &concurrents_set, &sub_contexts_set, &parent_of, &initial_of, &ctx.name,
+                );
+                output.push_str(&format!("                \"{}\" => {{\n", trans.event));
+                for line in &actions {
+                    output.push_str(&format!("                    {}\n", line));
+                }
+                // If the transition leaves the concurrent towards a base,
+                // also deactivate the concurrent itself (otherwise SesionActiva
+                // would linger after `terminarSesion -> ModoNormal`).
+                if bases_set.contains(&trans.target) {
+                    output.push_str(&format!(
+                        "                    self.concurrent.remove(&Contexto::{});\n",
+                        cctx_name
+                    ));
+                }
+                output.push_str("                },\n");
+            }
+            // Event-effects (only if not already handled above as a transition).
+            for effect in &ctx.effects {
+                if let EffectTrigger::Event(ev) = &effect.trigger {
+                    if !ctx.transitions.iter().any(|t| &t.event == ev) {
+                        let call = emit_effect_call_expr(&effect.call);
+                        output.push_str(&format!("                \"{}\" => {{\n", ev));
+                        output.push_str(&format!("                    {}\n", call));
+                        output.push_str("                },\n");
+                    }
+                }
+            }
+            output.push_str("                _ => {},\n");
+            output.push_str("            }\n");
             output.push_str("        }\n");
         }
     }
+    output.push_str("    }\n\n");
 
-    output.push_str("\n        // Evaluate main state\n");
-    output.push_str("        match self.state {\n");
+    // dispatch_main: event handling for the current state (top of overlay_stack
+    // or base if the stack is empty). Concurrent contexts are skipped here —
+    // they are handled by dispatch_concurrent.
+    output.push_str("    fn dispatch_main(&mut self, event: &str, payload: &serde_json::Value) {\n");
+    output.push_str("        let _ = payload;\n");
+    output.push_str("        match self.current_state() {\n");
     for def in &program.definitions {
         if let Definition::Context(ctx) = def {
+            if concurrents_set.contains(&ctx.name) { continue; }
             output.push_str(&format!("            Contexto::{} => {{\n", ctx.name));
             output.push_str("                match event {\n");
+            // Group event-effects by event name so we can emit them with their transition.
+            let mut event_effects: BTreeMap<String, Vec<&EffectRule>> = BTreeMap::new();
+            for effect in &ctx.effects {
+                if let EffectTrigger::Event(ev) = &effect.trigger {
+                    event_effects.entry(ev.clone()).or_default().push(effect);
+                }
+            }
+            // Track which events were emitted as transition arms (so we don't
+            // emit a duplicate arm for the same event below).
+            let mut handled_events: HashSet<String> = HashSet::new();
             for trans in &ctx.transitions {
-                match trans.target.as_str() {
-                    "[stay]" => {
-                        output.push_str(&format!("                    \"{}\" => {{}},\n", trans.event));
-                    },
-                    "[close_overlay]" => {
-                        output.push_str(&format!("                    \"{}\" => self.state = Contexto::{},\n", trans.event, initial_state));
-                    },
-                    "[deactivate]" => {
-                        if use_threads {
-                            output.push_str(&format!("                    \"{}\" => {{ let _ = self.concurrent_txs.get(&Contexto::{}).map(|tx| tx.send(\"TERMINATE\".to_string())); }},\n", trans.event, ctx.name));
-                        } else {
-                            output.push_str(&format!("                    \"{}\" => {{ self.concurrent_states.remove(&Contexto::{}); }},\n", trans.event, ctx.name));
-                        }
-                    },
-                    target => {
-                        output.push_str(&format!("                    \"{}\" => self.state = Contexto::{},\n", trans.event, target));
+                let actions = classify_target_actions(
+                    &trans.target, &bases_set, &overlays_set, &concurrents_set, &sub_contexts_set, &parent_of, &initial_of, &ctx.name,
+                );
+                output.push_str(&format!("                    \"{}\" => {{\n", trans.event));
+                for line in &actions {
+                    output.push_str(&format!("                        {}\n", line));
+                }
+                // Emit any matching event-effects right after the transition.
+                if let Some(effects) = event_effects.get(&trans.event) {
+                    for effect in effects {
+                        let call = emit_effect_call_expr(&effect.call);
+                        output.push_str(&format!("                        {}\n", call));
                     }
                 }
+                handled_events.insert(trans.event.clone());
+                output.push_str("                    },\n");
+            }
+            // Event-effects whose event has no transition: emit standalone arm.
+            for (ev, effects) in &event_effects {
+                if handled_events.contains(ev) { continue; }
+                output.push_str(&format!("                    \"{}\" => {{\n", ev));
+                for effect in effects {
+                    let call = emit_effect_call_expr(&effect.call);
+                    output.push_str(&format!("                        {}\n", call));
+                }
+                output.push_str("                    },\n");
             }
             output.push_str("                    _ => {},\n");
             output.push_str("                }\n");
             output.push_str("            },\n");
         }
     }
+    output.push_str("            _ => {},\n");
     output.push_str("        }\n");
+    output.push_str("    }\n\n");
 
-    // Side effects on transitions (Lifecycle entry)
-    output.push_str("\n        // Evaluate on_entry effects\n");
-    output.push_str("        match self.state {\n");
+    // run_on_entry: emit all on_entry lifecycle effects for the new state.
+    output.push_str("    fn run_on_entry(&self, state: Contexto, payload: &serde_json::Value) {\n");
+    output.push_str("        let _ = payload;\n");
+    output.push_str("        match state {\n");
     for def in &program.definitions {
         if let Definition::Context(ctx) = def {
-            let entry_effects: Vec<_> = ctx.effects.iter()
+            let entry_effects: Vec<&EffectRule> = ctx.effects.iter()
                 .filter(|e| matches!(e.trigger, EffectTrigger::Lifecycle(ref s) if s == "on_entry"))
                 .collect();
-            
-            if !entry_effects.is_empty() {
-                output.push_str(&format!("            Contexto::{} => {{\n", ctx.name));
-                for effect in entry_effects {
-                    let mut args = Vec::new();
-                    for arg in &effect.call.args {
-                        // Lifecycle effects usually take inputs or literals
-                        args.push(format!("\"{}\"", arg)); 
-                    }
-                    output.push_str(&format!("                self.effects.{}({});\n", effect.call.function.replace(".", "_"), args.join(", ")));
-                }
-                output.push_str("            },\n");
+            if entry_effects.is_empty() { continue; }
+            output.push_str(&format!("            Contexto::{} => {{\n", ctx.name));
+            for effect in entry_effects {
+                let call = emit_effect_call_expr(&effect.call);
+                output.push_str(&format!("                {}\n", call));
             }
+            output.push_str("            },\n");
         }
     }
     output.push_str("            _ => {},\n");
     output.push_str("        }\n");
-
     output.push_str("    }\n");
     output.push_str("}\n\n");
+
+    let _ = initial_state; // initial_state is now only embedded by callers, not by the System block.
 
     // 5. Role/Event Handlers (Strand 1)
     let mut grouped_actions: BTreeMap<(String, String), Vec<(String, RoleAction)>> = BTreeMap::new();
@@ -1180,14 +1529,18 @@ fn generate_transition_tests(program: &Program, meta: &SystemMetadata, out: &mut
 
                 let target = &trans.target;
                 if target == "[stay]" {
-                    out.push_str(&format!("        assert_eq!(sys.state, Contexto::{});\n", ctx.name));
-                } else if target == "[cerrar_overlay]" {
-                    out.push_str(&format!("        assert_eq!(sys.state, Contexto::{});\n", meta.initial));
+                    out.push_str(&format!("        assert_eq!(sys.current_state(), Contexto::{});\n", ctx.name));
+                } else if target == "[close_overlay]" {
+                    // After [close_overlay] the stack pops; current_state falls back to base.
+                    out.push_str("        assert!(sys.overlay_stack.is_empty() || sys.overlay_stack.last() != Some(&sys.current_state()) || sys.current_state() == sys.base);\n");
                 } else if target == "[deactivate]" {
-                    out.push_str(&format!("        // In threads mode this might differ, but for composite:\n"));
-                    out.push_str(&format!("        assert!(!sys.concurrent_states.contains(&Contexto::{}));\n", ctx.name));
+                    out.push_str(&format!("        assert!(!sys.concurrent.contains(&Contexto::{}));\n", ctx.name));
+                } else if meta.concurrent_contexts.contains(target) {
+                    // Transitioning *to* a concurrent context activates it without
+                    // changing current_state.
+                    out.push_str(&format!("        assert!(sys.concurrent.contains(&Contexto::{}));\n", target));
                 } else {
-                    out.push_str(&format!("        assert_eq!(sys.state, Contexto::{});\n", target));
+                    out.push_str(&format!("        assert_eq!(sys.current_state(), Contexto::{});\n", target));
                 }
                 out.push_str("    }\n\n");
             }
@@ -1315,10 +1668,10 @@ fn generate_fills_tests(program: &Program, meta: &SystemMetadata, out: &mut Stri
                         out.push_str(&format!("    fn test_fills_{}_{}_{}_{}_{}() {{\n", ctx.name, fills.target_context, fills.target_slot, role.name, event_safe));
                         out.push_str("        let effects = RecordingEffects::new();\n");
                         out.push_str(&format!("        let mut sys = System::new(Contexto::{}, &effects);\n", meta.initial));
-                        // Navigate to overlay
-                        out.push_str(&format!("        sys.state = Contexto::{};\n", fills.target_context));
+                        // Navigate to overlay (push directly to stack for the test).
+                        out.push_str(&format!("        sys.overlay_stack.push(Contexto::{});\n", fills.target_context));
                         out.push_str(&format!("        let data = {}::default();\n", role_type));
-                        out.push_str(&format!("        handle_{}_{}(&sys.state, &data, &effects);\n", role.name, event_safe));
+                        out.push_str(&format!("        handle_{}_{}(&sys.current_state(), &data, &effects);\n", role.name, event_safe));
                         
                         match &action.target {
                             ActionTarget::Call(call) => {

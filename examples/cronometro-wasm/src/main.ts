@@ -7,10 +7,9 @@
 // - formState captura inputs antes de guardar.
 // - sesionEnCurso mantiene la ventana inicio↔fin (ver R-trz2 en memo).
 
-import init, { InterpreterWasm } from './wasm/trenza_core.js';
-import { TrenzaSystem, Contexto } from './CronometroPSP_out';
+import { Contexto } from './CronometroPSP_out';
 import type { Effects } from './CronometroPSP_out';
-import cronometroDsl from './cronometro_full.trz?raw';
+import { createTrenzaSystem } from './snapshot-bridge';
 import {
   makeDispatchWithSync,
   makeOverlayEffectStubs,
@@ -34,8 +33,6 @@ import {
 } from './render';
 
 async function run() {
-  await init();
-
   // ── Estado en memoria ────────────────────────────────────────────────────
   const formState: Record<string, unknown> = {};
 
@@ -267,9 +264,13 @@ async function run() {
 
   // ── Sistema ───────────────────────────────────────────────────────────────
 
-  const interpreter = new InterpreterWasm(cronometroDsl);
-  // system se asigna aquí; los closures en effectsObj lo capturan correctamente.
-  const system = new TrenzaSystem(interpreter, effectsObj as unknown as Effects);
+  // Per-spec WASM shim: SystemWasm is the deterministic engine emitted by
+  // trenza-cli; createTrenzaSystem wraps it with the legacy interface
+  // (current_state, concurrent_states, dispatch) and re-routes recorded
+  // effect calls back to effectsObj.
+  const system = await createTrenzaSystem(
+    effectsObj as unknown as Record<string, (...args: unknown[]) => void>,
+  );
   const baseDispatch = makeDispatchWithSync(system);
 
   // safeDispatch: wraps baseDispatch con hooks post-dispatch:
@@ -305,6 +306,34 @@ async function run() {
 
     if (nextStates.has(Contexto.ModoEdicion) !== prevStates.has(Contexto.ModoEdicion)) {
       renderTasksGrid(safeDispatch);
+    }
+
+    // Reset 3-fases: project the current sub-context to which step DOM is
+    // visible and which label the action button shows. The .trz declares the
+    // transitions as pure state changes (no event-effects), so we mirror the
+    // top of the overlay stack here. This avoids declaring DOM detail in the
+    // spec while keeping the visual flow tied 1:1 to the runtime model.
+    const top = system.current_state;
+    const step1 = document.getElementById('resetStep1');
+    const step2 = document.getElementById('resetStep2');
+    const step3 = document.getElementById('resetStep3');
+    const btnReset = document.getElementById('btnReset');
+    if (top === Contexto.ResetFase1) {
+      step1?.style.setProperty('display', 'block');
+      step2?.style.setProperty('display', 'none');
+      step3?.style.setProperty('display', 'none');
+      if (btnReset) btnReset.textContent = 'Continuar';
+    } else if (top === Contexto.ResetFase2) {
+      step1?.style.setProperty('display', 'none');
+      step2?.style.setProperty('display', 'block');
+      step3?.style.setProperty('display', 'none');
+      if (btnReset) btnReset.textContent = 'Continuar';
+      renderResetActivities();
+    } else if (top === Contexto.ResetFase3) {
+      step1?.style.setProperty('display', 'none');
+      step2?.style.setProperty('display', 'none');
+      step3?.style.setProperty('display', 'block');
+      if (btnReset) btnReset.textContent = 'ELIMINAR TODO';
     }
   }
 
@@ -366,12 +395,21 @@ async function run() {
     }
   });
 
-  // Cierre del menú de settings al hacer click fuera (no es modal-overlay)
+  // Cierre del menú de settings al hacer click fuera. Defensa contra
+  // interferencia con modales apilados:
+  //  - si el target está DENTRO de settingsMenu (un item del menú): no
+  //    disparamos cerrar — el item ya tiene su propio handler y un cerrar
+  //    aquí cancelaría la transición que el item acaba de iniciar.
+  //  - si el target está dentro de cualquier .modal-overlay (un modal
+  //    abierto sobre settings): tampoco — `cerrar` haría pop del modal
+  //    superior por accidente.
+  //  - si es el propio botón ⚙️: tampoco (toggle gestionado en otro sitio).
   document.addEventListener('click', (e) => {
     const menu = document.getElementById('settingsMenu');
     if (!menu?.classList.contains('active')) return;
     const target = e.target as HTMLElement;
     if (menu.contains(target)) return;
+    if (target.closest('.modal-overlay')) return;
     if (target.closest('.settings-button')) return;
     safeDispatch('cerrar');
   });

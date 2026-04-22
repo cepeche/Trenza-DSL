@@ -35,7 +35,12 @@ event_list = { ident ~ ("," ~ ident)* }
 
 context_def = { "context" ~ ident ~ ":" ~ context_clause* }
 anonymous_context_def = { context_clause+ }
-context_clause = { input_def | pub_kw? ~ (role_def | slot_def) | role_wildcard | transitions_def | effects_def | fills_def }
+context_clause = { input_def | initial_def | pub_kw? ~ (role_def | slot_def) | role_wildcard | transitions_def | effects_def | fills_def }
+
+// `initial:` inside an overlay context declares the sub-context that should
+// be auto-pushed on top whenever this overlay is pushed onto the stack.
+// Only meaningful on overlay contexts that have sub-contexts.
+initial_def = { "initial:" ~ ident }
 
 input_def = { "input:" ~ input_field* }
 input_field = { "mutable"? ~ ident ~ ":" ~ type_ident }

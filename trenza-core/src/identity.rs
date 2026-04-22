@@ -55,6 +55,7 @@ mod tests {
             fills: vec![],
             ignore_rest: false,
             is_anonymous: false,
+            initial_sub: None,
         };
         
         let hash1 = compute_hash(&ctx1);

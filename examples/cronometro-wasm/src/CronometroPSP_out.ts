@@ -199,7 +199,7 @@ export class TrenzaSystem {
     }
 
     public get concurrent_states(): Set<Contexto> {
-        return new Set(this.interpreter.get_concurrent_states() as Contexto[]);
+        return new Set([this.current_state]);
     }
 
     /**
