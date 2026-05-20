@@ -46,6 +46,9 @@ fn rust_type(s: &str) -> String {
         let inner = &s[6..s.len() - 1];
         return format!("Vec<{}>", rust_type(inner));
     }
+    if s == "List" || s == "Lista" {
+        return "Vec<String>".to_string();
+    }
     crate::primitives::rust_type_of(s)
         .map(String::from)
         .unwrap_or_else(|| s.to_string())
@@ -64,6 +67,9 @@ fn ts_type(s: &str) -> String {
     if s.starts_with("Lista<") && s.ends_with('>') {
         let inner = &s[6..s.len() - 1];
         return format!("{}[]", ts_type(inner));
+    }
+    if s == "List" || s == "Lista" {
+        return "any[]".to_string();
     }
     crate::primitives::ts_type_of(s)
         .map(String::from)

@@ -18,21 +18,21 @@ export interface ArgumentosUsuario {
 }
 
 export interface AST {
-    pares: List;
+    pares: any[];
     valido: boolean;
 }
 
 export interface ErrorCompilacion {
-    linea: Numero;
+    linea: number;
     mensaje: string;
 }
 
 export interface Effects {
     comprobarIntegridad(self: any): void;
-    emitirCodigoRust(pares: List): void;
-    emitirCodigoTS(pares: List): void;
+    emitirCodigoRust(pares: any[]): void;
+    emitirCodigoTS(pares: any[]): void;
     imprimirAyudaCLI(): void;
-    imprimirErrorFatal(mensaje: string, linea: Numero): void;
+    imprimirErrorFatal(mensaje: string, linea: number): void;
     imprimirMensajeExito(archivoTrz: string): void;
     leerYEvaluarArgumentos(comando: string, archivoTrz: string): void;
     leerYParsear(archivoTrz: string): void;

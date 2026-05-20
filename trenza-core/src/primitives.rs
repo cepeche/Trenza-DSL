@@ -30,6 +30,7 @@ pub const PRIMITIVES: &[Primitive] = &[
     Primitive { name: "Booleano",  rust_type: "bool",   ts_type: "boolean" },
     Primitive { name: "Id",        rust_type: "String", ts_type: "string"  },
     Primitive { name: "Color",     rust_type: "String", ts_type: "string"  },
+    Primitive { name: "Numero",    rust_type: "i32",    ts_type: "number"  },
 ];
 
 /// Returns true if `name` is a recognised scalar primitive.
@@ -37,7 +38,7 @@ pub const PRIMITIVES: &[Primitive] = &[
 /// Note: this does NOT recognise the generic container `List<X>`.
 /// Callers that need to accept containers must handle that separately.
 pub fn is_primitive(name: &str) -> bool {
-    name == "List" || PRIMITIVES.iter().any(|p| p.name == name)
+    name == "List" || name == "Lista" || PRIMITIVES.iter().any(|p| p.name == name)
 }
 
 /// Rust type for a scalar primitive, or `None` if the name is not a primitive.
@@ -64,6 +65,7 @@ mod tests {
     #[test]
     fn is_primitive_recognises_list_generic() {
         assert!(is_primitive("List"));
+        assert!(is_primitive("Lista"));
     }
 
     #[test]
