@@ -126,10 +126,14 @@ backoff y timeout duro.
 
 ### Piloto 3 — "Despertar dirigido" (con scheduler, sin humano)
 - Tras Piloto 2 estable, añadir `ScheduleWakeup` en CL-Code y `schedule` en
-  Antigravity con T=20min, máx 3 intentos.
+  Antigravity con **T=15 min** (límite duro de Antigravity — ver §6.ter),
+  máx 3 intentos.
 - Thread breve, asunto acotado, deadline duro.
 - **Validar:** que el coste de wakeups vacíos sea aceptable, que el timeout
   funcione, que el humano vea progreso en `git log`.
+- Si se usa `CronExpression` en lugar de `DurationSeconds`, el receptor
+  **debe** matar el cron con `manage_task` tras procesar o expirar — los
+  crons de Antigravity no se autolimpian (ver §6.ter).
 
 ---
 
@@ -165,6 +169,17 @@ como parte del v0 un mecanismo **mínimo y sin servidor**:
 - Coste ≈ un script de ~100 líneas.
 - Suficiente para volúmenes bajos (lo que tendremos en los primeros pilotos).
 
+**Portabilidad Windows (corrección de GE, 2026-05-21):** los hooks
+`post-commit` en bash crudo fallan en Windows puro por falta de shell
+compatible en el PATH. El generador HTML debe escribirse en Node.js o
+Python (p. ej. `scripts/generate_mailbox_ui.js` o `.py`), y el hook
+`post-commit` se limita a invocar el runtime:
+```sh
+#!/bin/sh
+node scripts/generate_mailbox_ui.js
+```
+Esto da portabilidad multiplataforma sin asumir shell POSIX.
+
 **Cuándo evolucionar a Opción B (servidor + WebSocket):** cuando aparezca
 dolor real — varios hilos vivos en paralelo, o necesidad de notificaciones
 push de escritorio cuando entre algo en `to-HUMAN/`. Antes es
@@ -173,6 +188,36 @@ over-engineering.
 **Opción C (dashboard escrito en Trenza):** archivada como idea para v2 /
 artículo. Atractiva como meta-dogfooding del DSL, pero requiere que la cadena
 `ts → web` esté madura y que el Mailbox v0 esté operativo. No ahora.
+
+---
+
+## 6.ter Limitaciones operativas de Antigravity (auditoría GE, 2026-05-21)
+
+GE auditó este protocolo desde dentro de Antigravity y reportó tres
+limitaciones del host (Windows) que invalidan o matizan partes del v0:
+
+1. **`grep_search` bloqueado:** se cuelga sistemáticamente en este host.
+   Cualquier agente bajo Antigravity que necesite buscar texto debe usar
+   `Select-String` vía `run_command`. No usar `grep_search` para recolectar
+   ni consolidar hilos del buzón mientras la herramienta esté rota.
+
+2. **`schedule.DurationSeconds` tiene techo de 900 s (15 min):** la propuesta
+   original del Piloto 3 (T=20 min) no es válida. Opciones:
+   - Bajar Δ a 15 min como máximo con `DurationSeconds`.
+   - Usar `CronExpression` para ciclos más largos (con la salvedad del
+     punto 3).
+
+3. **Los `CronExpression` no se autolimpian:** el proceso cron sigue activo
+   indefinidamente hasta que el agente lo mate explícitamente con
+   `manage_task` (usando el `TaskId` devuelto). Regla: tras procesar la
+   respuesta o alcanzar el timeout, **siempre** liberar el cron.
+
+   En cambio, los `DurationSeconds` se autocancelan cuando el agente recibe
+   *cualquier* otro mensaje en la conversación principal (incluida una
+   intervención del humano). Es comportamiento deseable pero silencioso —
+   no asumir que el temporizador sigue activo después de una interacción.
+
+Fuente: `history/coordination/archive/2026-05-21/2026-05-21T20-52_review-protocol-v0_GE_2.md`.
 
 ---
 

@@ -22,7 +22,7 @@ sesión paralela — ver `04_CL_inventario_herramientas_antigravity.md`.
 | Escribir archivo | `write_to_file` | `Write` |
 | Editar 1 bloque | `replace_file_content` | `Edit` |
 | Editar N bloques | `multi_replace_file_content` ⭐ | múltiples `Edit` (más verboso) |
-| Buscar texto | `grep_search` (ripgrep, máx 50) | `Grep` (ripgrep, configurable) |
+| Buscar texto | `grep_search` (ripgrep, máx 50) ⚠️ | `Grep` (ripgrep, configurable) |
 | Listar directorio | `list_dir` | `Glob` + `Bash ls` |
 | Shell | `run_command` (PowerShell con aprobación) | `Bash` **y** `PowerShell` separados |
 | Web fetch | `read_url_content` | `WebFetch` |
@@ -81,6 +81,26 @@ sesión paralela — ver `04_CL_inventario_herramientas_antigravity.md`.
 - **El catálogo de 33 skills científicas en Antigravity** sugiere un perfil
   "todo a la vez" no específico del proyecto. Para uso serio en Trenza
   conviene desactivar el plugin `science` y reducir ruido de contexto.
+
+## 4.bis Erratas y limitaciones reportadas por GE (auditoría, 2026-05-21)
+
+GE (Gemini 3.5 Flash en Antigravity) reportó vía buzón inter-agente las
+siguientes limitaciones que invalidan o matizan la tabla de arriba:
+
+- ⚠️ **`grep_search` está bloqueado en Antigravity-Windows en este host:** se
+  cuelga sistemáticamente. Mientras esté así, los agentes corriendo en
+  Antigravity deben buscar texto mediante `Select-String` vía `run_command`,
+  por ejemplo:
+  ```powershell
+  Select-String -Path history/coordination/**/*.md -Pattern "thread:"
+  ```
+  Esto significa que la equivalencia "grep_search ↔ Grep" no es operativa
+  hoy; Claude Code mantiene ventaja real en búsqueda de texto en este
+  entorno.
+
+Fuente: `history/coordination/archive/2026-05-21/2026-05-21T20-52_review-protocol-v0_GE_2.md`.
+
+---
 
 ## 5. Pendiente
 
