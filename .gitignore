@@ -56,3 +56,6 @@ main_v3.log
 paper/main.pdf
 paper/main_v*.pdf
 paper/figures/*.pdf
+
+# Regenerado por scripts/generate_mailbox_ui.js via post-commit hook
+history/coordination/index.html

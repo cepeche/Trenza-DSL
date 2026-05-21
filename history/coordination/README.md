@@ -72,8 +72,31 @@ closes: false | true
 El receptor `to: CL` no distingue host; el primero que lo recoja responde.
 Si un mensaje requiere un host concreto, indicarlo en el cuerpo.
 
-## Visualización
+## Visualización (Opción A — implementada)
 
-Está prevista una **Opción A** (hook `post-commit` + HTML estático en
-`index.html`) en v0 para que el humano pueda ver el timeline sin leer
-`git log`. Pendiente de implementación tras Piloto 1.
+Tras cada commit que toque `history/coordination/`, un hook
+`.git/hooks/post-commit` regenera `history/coordination/index.html` con un
+timeline filtrable por agente, hilo y estado (sin leer / archivado). Se abre
+con doble clic. No hay servidor.
+
+**Instalación del hook (manual, no versionado por git):**
+
+```sh
+# Desde la raíz del repo:
+cp scripts/post-commit.sample .git/hooks/post-commit  # si existe el sample
+# o crear .git/hooks/post-commit con:
+#   #!/bin/sh
+#   if git diff-tree --no-commit-id --name-only -r HEAD | grep -q '^history/coordination/'; then
+#     node scripts/generate_mailbox_ui.js 2>&1 || true
+#   fi
+chmod +x .git/hooks/post-commit  # en Unix
+```
+
+**Regeneración manual:**
+
+```sh
+node scripts/generate_mailbox_ui.js
+```
+
+`index.html` está en `.gitignore` (es artefacto regenerable, no debe ensuciar
+diffs).
