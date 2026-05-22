@@ -39,6 +39,7 @@ version below is the agreed version.
 | **Rule 6: Data Conformance** | Data Confidentiality & Integrity (ISO/IEC 25012; ISO/IEC 25010 Security) | Flows of classified data (e.g., `personal`) to unauthorised externals are statically rejected, supporting GDPR compliance and confidentiality / integrity by design. |
 | **Rule 7: Slot / Fills Integrity** | Modularity / Functional Cohesion (ISO/IEC 25010 Maintainability) | The dynamic composition of overlays and concurrent contexts is verified to be collision-free; slot fills are uniquely resolved. |
 | **Rule 8: Role Type Consistency** | Reliability / Robustness (ISO/IEC 25010; TS 25059) | A given role carries the same data type across all contexts, preventing type-conversion errors in the generated Strand 1 code. |
+| **Rule 9: Immediate Transition Acyclicity** | Reliability / Maturity (ISO/IEC 25010 §4.5.1) — *by construction* | Statically rejects specifications whose lifecycle-driven transitions (`[on_entry]` / `[on_exit]`) could livelock through a cycle; converts a runtime-observed maturity property into a compile-time guarantee. See [ADR-022](../../history/decisions/ADR-022.md). |
 
 ---
 
