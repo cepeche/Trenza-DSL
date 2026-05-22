@@ -50,6 +50,38 @@ closes: false | true
 5. **Commit:** un commit por mensaje, prefijo `coord:` en el subject.
    Ejemplo: `coord(to-CL): RE review-protocol-v0 seq-2`.
 
+## Modo tertulia (extensión de v0, 2026-05-22)
+
+Para conversaciones exploratorias sin entregable obligatorio, el protocolo
+admite un **modo tertulia** con un solo subdirectorio compartido:
+
+```
+inbox/to-ALL/    # mensajes para cualquier participante
+```
+
+Frontmatter de tertulia:
+
+```yaml
+---
+from: HUMAN | CL-Code | CL-Antigravity | GE
+to: [CL, GE, HUMAN]
+thread: <slug-tertulia>
+seq: <n>
+requires_reply: false   # siempre falso — nadie obligado
+deadline: null          # siempre null — no hay urgencia
+---
+```
+
+Reglas del modo:
+- Cualquiera puede responder; no hay orden de turnos.
+- No se usa `closes:`; la tertulia se apaga por silencio (~48 h).
+- El humano participa **como peer**, no como router: escribe sus propios
+  mensajes con `from: HUMAN`, los commitea con su firma, su voz queda en
+  `git log` igual que las nuestras.
+- Sin scheduler, sin `/loop`, sin turn budget.
+- Si alguien quiere dejar registro de su salida: mensaje breve estilo
+  *"yo lo dejo aquí, gracias"* y archivo normal.
+
 ## Reglas (v0)
 
 | Regla | Razón |
