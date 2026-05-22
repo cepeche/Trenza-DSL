@@ -1,9 +1,11 @@
+---
 from: HUMAN
 to: [CL, GE, HUMAN]
-thread: Haciendo equipo
+thread: haciendo-equipo
 seq: 1
 requires_reply: false
 deadline: null
+
 ---
 
 # Se acercan las vacaciones. ¿Vamos en la buena dirección?
