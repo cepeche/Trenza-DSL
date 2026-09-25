@@ -248,11 +248,12 @@ verifier applied R1 and R5 to \emph{all} contexts, so that a modal dialog
 had to declare a handler for every role of the main screen it covers; every
 context of the case study then needed the wildcard, and R1 and R5 were
 vacuous there. Scoping both rules to sibling groups removed the need for
-it in 15 of the 18 contexts. The three that keep it are the phases of a
-reset wizard, whose buttons differ from phase to phase; without the
-wildcard they produce 24 diagnostics, which are design questions (should
-a button absent from a phase be \texttt{ignored} or \texttt{forbidden}?)
-rather than defects. \ARGCESAR{Decide the reset phases.}
+it everywhere: the case study now uses no wildcard at all. The only
+contexts that needed extra declarations were the three phases of a reset
+wizard, whose buttons differ from phase to phase; the buttons of the other
+phases are now declared \texttt{forbidden} in each phase, which records
+that receiving their events there is an error rather than silently
+ignoring it.
 
 \paragraph{Overlay return.} Abstracting $\mathsf{close}$ as an edge to
 $c_0$ makes R4 sound only if every context beneath an overlay can itself

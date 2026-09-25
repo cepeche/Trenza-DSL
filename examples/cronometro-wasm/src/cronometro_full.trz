@@ -955,10 +955,16 @@ context ModalReset:
 
     -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 context ResetFase1:
-    -- PENDIENTE (2026-09-25): las fases del asistente de reset tienen botones
-    -- distintos; decidir si los ausentes son `ignored`, `forbidden` o si el
-    -- comodín está justificado. Sin él, R1/R5 dan 24 errores en ResetFase1..3.
-    role *: ignored
+    -- Botones de otras fases del asistente: no existen en esta fase,
+    -- así que recibir su evento es un error (decisión 2026-09-25).
+        role boton_atras: Boton
+            on tap -> forbidden
+        role boton_ejecutar: Boton
+            on tap -> forbidden
+        role campo_confirmacion: CampoTexto
+            on cambio -> forbidden
+        role checkbox_actividad: OpcionActividad
+            on cambio -> forbidden
 
 
 
@@ -1003,10 +1009,16 @@ context ResetFase1:
 
     -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 context ResetFase2:
-    -- PENDIENTE (2026-09-25): las fases del asistente de reset tienen botones
-    -- distintos; decidir si los ausentes son `ignored`, `forbidden` o si el
-    -- comodín está justificado. Sin él, R1/R5 dan 24 errores en ResetFase1..3.
-    role *: ignored
+    -- Botones de otras fases del asistente: no existen en esta fase,
+    -- así que recibir su evento es un error (decisión 2026-09-25).
+        role boton_cancelar: Boton
+            on tap -> forbidden
+        role boton_ejecutar: Boton
+            on tap -> forbidden
+        role boton_exportar_csv: Boton
+            on tap -> forbidden
+        role campo_confirmacion: CampoTexto
+            on cambio -> forbidden
 
 
 
@@ -1051,10 +1063,16 @@ context ResetFase2:
 
     -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 context ResetFase3:
-    -- PENDIENTE (2026-09-25): las fases del asistente de reset tienen botones
-    -- distintos; decidir si los ausentes son `ignored`, `forbidden` o si el
-    -- comodín está justificado. Sin él, R1/R5 dan 24 errores en ResetFase1..3.
-    role *: ignored
+    -- Botones de otras fases del asistente: no existen en esta fase,
+    -- así que recibir su evento es un error (decisión 2026-09-25).
+        role boton_cancelar: Boton
+            on tap -> forbidden
+        role boton_continuar: Boton
+            on tap -> forbidden
+        role boton_exportar_csv: Boton
+            on tap -> forbidden
+        role checkbox_actividad: OpcionActividad
+            on cambio -> forbidden
 
 
 

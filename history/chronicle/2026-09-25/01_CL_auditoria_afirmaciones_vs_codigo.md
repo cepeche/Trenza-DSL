@@ -162,3 +162,18 @@ no afirma que `rustc` vuelva a comprobar la completitud.
 
 **Pendiente:** regenerar `examples/cronometro-wasm/wasm-shim/src/generated.rs`
 (copia del generador anterior) y comprobar la demo en el navegador.
+
+**Decisión 3 (César): en las fases del reset, los botones ausentes son
+`forbidden`.** Se han declarado 12 roles `forbidden` en `ResetFase1..3`,
+tanto en la versión completa como en la separada. **El caso de estudio ya
+no usa `role *` en ningún contexto** y verifica. El Rust generado pasa de
+116 a 128 tests, uno `#[should_panic]` por cada botón prohibido.
+
+**Pregunta que plantea esta decisión:** `ResetFase2` y `ResetFase3`
+declaran `on cerrar -> [close_overlay]`, pero en esas fases ningún
+manejador produce `cerrar`, porque `boton_cancelar` es `forbidden`. Son
+transiciones muertas, justo el hueco de R4 descrito más arriba. Hay dos
+posibilidades:
+- cancelar debe poder hacerse en todas las fases, y entonces
+  `boton_cancelar` debería ser `on tap -> cerrar` en las tres;
+- esas transiciones sobran.

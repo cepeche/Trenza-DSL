@@ -352,19 +352,16 @@ fn hermanos_contextos_base_se_comparan() {
 }
 
 #[test]
-fn hermanos_el_caso_de_estudio_no_necesita_comodines_salvo_reset() {
-    // cronometro_full.trz conserva `role *` sólo en ResetFase1..3 (pendiente
-    // de decisión). Quitándolo también ahí, los únicos errores deben estar
-    // en esas tres fases.
+fn hermanos_el_caso_de_estudio_verifica_sin_comodines() {
+    // Desde el 2026-09-25 cronometro_full.trz no usa `role *` en ningún
+    // contexto: con R1/R5 por hermanos, cada contexto declara todos los
+    // roles de su grupo (los botones ausentes de una fase del asistente de
+    // reset, como `forbidden`).
     let src = std::fs::read_to_string(concat!(
         env!("CARGO_MANIFEST_DIR"),
         "/../examples/cronometro-wasm/src/cronometro_full.trz"
     ))
     .unwrap();
+    assert!(!src.contains("role *"));
     ok(&src);
-    let sin: String = src.lines().filter(|l| !l.contains("role *")).collect::<Vec<_>>().join("\n");
-    let program = parser::parse_file(&sin).unwrap();
-    let diags = validator::verify(&program).unwrap_err();
-    assert_eq!(diags.len(), 24);
-    assert!(diags.iter().all(|d| d.message.contains("'ResetFase")), "{:#?}", diags);
 }
