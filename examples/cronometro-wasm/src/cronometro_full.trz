@@ -1012,7 +1012,7 @@ context ResetFase2:
     -- Botones de otras fases del asistente: no existen en esta fase,
     -- así que recibir su evento es un error (decisión 2026-09-25).
         role boton_cancelar: Boton
-            on tap -> forbidden
+            on tap -> cerrar
         role boton_ejecutar: Boton
             on tap -> forbidden
         role boton_exportar_csv: Boton
@@ -1066,7 +1066,7 @@ context ResetFase3:
     -- Botones de otras fases del asistente: no existen en esta fase,
     -- así que recibir su evento es un error (decisión 2026-09-25).
         role boton_cancelar: Boton
-            on tap -> forbidden
+            on tap -> cerrar
         role boton_continuar: Boton
             on tap -> forbidden
         role boton_exportar_csv: Boton

@@ -177,3 +177,7 @@ posibilidades:
 - cancelar debe poder hacerse en todas las fases, y entonces
   `boton_cancelar` debería ser `on tap -> cerrar` en las tres;
 - esas transiciones sobran.
+
+**Decisión 4 (César): se puede cancelar en todas las fases.** En
+`ResetFase2` y `ResetFase3`, `boton_cancelar` pasa a `on tap -> cerrar`, así
+que las transiciones `on cerrar` dejan de estar muertas.
