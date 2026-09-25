@@ -1,0 +1,1 @@
+index.html: #reorderModal (modal-overlay) con #btnReorderClose → cerrarModalReordenar(). app.js: en el listener de Frecuentes, en modo edición abre el modal en vez de return; funciones mostrar/cerrarModalReordenar; cierre al clicar el overlay. Comprobación: runner.js 29/29 y tests/js/manual-reorder-check.js (5/5).

@@ -1,0 +1,16 @@
+diff -ruN history/inspirations/cronometro-psp-original/frontend/js/app.js T3-A-1/frontend/js/app.js
+--- history/inspirations/cronometro-psp-original/frontend/js/app.js	2026-09-25 10:20:08.480478387 +0000
++++ T3-A-1/frontend/js/app.js	2026-09-25 12:50:47.761166093 +0000
+@@ -283,10 +283,8 @@
+         tab.dataset.tab = act.id;
+         tab.textContent = act.nombre;
+         tab.addEventListener('click', () => {
+-            if (AppState.modoEdicion) {
+-                mostrarModalEditarActividad(act.id);
+-                return;
+-            }
++            // El editor de actividad se abrirá por otra vía (pendiente); aquí solo cambiamos de pestaña,
++            // también en modo edición.
+             AppState.pestanaActual = act.id;
+             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+             tab.classList.add('active');

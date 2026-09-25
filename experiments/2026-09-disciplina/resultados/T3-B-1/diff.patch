@@ -1,0 +1,58 @@
+--- examples/cronometro-wasm/src/cronometro_full.trz	2026-09-25 12:35:43.093702522 +0000
++++ T3-B-1/cronometro.trz	2026-09-25 12:51:43.097169382 +0000
+@@ -1225,7 +1225,8 @@
+ 
+     role pestana_actividad: Actividad
+ 
+-        on tap -> abrirEditarActividad(self.id)
++        on tap -> cambiarPestana(self.id)          -- cambia de pestaÃ±a, igual que en ModoNormal
++                                                     -- (editar actividad: otra vÃ­a, pendiente)
+ 
+ 
+ 
+@@ -1259,27 +1260,37 @@
+ 
+         on abrirEditarTarea       -> ModalEditarTarea
+ 
+-        on abrirEditarActividad   -> ModalEditarActividad
+-
+         on abrirCrearTarea        -> ModalCrearTarea
+ 
+         on abrirMenuConfiguracion -> MenuConfiguracion
+ 
++        on abrirEditarActividad   -> ModalEditarActividad
++
+ 
+ 
+-    -- NOTA: abrirEditarTarea y abrirEditarActividad necesitan
++    -- NOTA: abrirEditarTarea necesita pasar el ID del elemento a editar
+ 
+-    -- pasar el ID del elemento a editar al modal destino.
++    -- al modal destino. Ver GAP-1 en ANALISIS_GAPS.md.
+ 
+-    -- Ver GAP-1 en ANALISIS_GAPS.md.
++    --
+ 
++    -- pestana_actividad ya no produce abrirEditarActividad (decisiÃ³n
+ 
++    -- 2026-09-25): tocar una pestaÃ±a de actividad cambia de pestaÃ±a en
+ 
+-    effects:
++    -- modo ediciÃ³n igual que en modo normal. La transiciÃ³n
++
++    -- abrirEditarActividad -> ModalEditarActividad se deja declarada para
+ 
+-        -- No hay efectos directos en ModoEdicion.
++    -- la "otra vÃ­a" de ediciÃ³n de actividad que se aÃ±adirÃ¡ mÃ¡s adelante
++
++    -- (aÃºn sin rol que la dispare).
++
++
++
++    effects:
+ 
+-        -- Los efectos viven en los modales de ediciÃ³n.
++        cambiarPestana  -> actualizarGridVisible()
+ 
+ -- contexts/ModoNormal.trz
+ 

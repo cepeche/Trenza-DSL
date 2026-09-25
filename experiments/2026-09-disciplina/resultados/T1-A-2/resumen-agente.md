@@ -1,0 +1,1 @@
+index.html: #pauseButton → toggleModoPausa(). styles.css: .pause-mode-button; pointer-events:none en tarjetas y + durante la pausa. app.js: AppState.modoPausa; toggleModoPausa (no-op en edición); guardas en tarjetaClick, tarjetaTouchEnd, toggleModoEdicion, mostrarModalCrear e iniciarTarea. tests: 6 nuevos. Comprobación: runner.js 35/35.

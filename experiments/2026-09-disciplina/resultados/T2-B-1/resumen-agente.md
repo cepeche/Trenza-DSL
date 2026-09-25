@@ -1,0 +1,1 @@
+Único archivo: cronometro.trz. Overlay ModalReordenarFrecuentes añadido a overlays: y como contexto (boton_cerrar: on tap -> cerrar; on cerrar -> [close_overlay]). En ModoEdicion, pestana_frecuentes pasa de ignored a abrirReordenarFrecuentes con transición al overlay. ModoNormal intacto. Comprobación: trenza-cli check superado.
