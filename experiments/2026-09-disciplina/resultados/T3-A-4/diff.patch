@@ -1,0 +1,14 @@
+diff -ruN history/inspirations/cronometro-psp-original/frontend/js/app.js T3-A-4/frontend/js/app.js
+--- history/inspirations/cronometro-psp-original/frontend/js/app.js	2026-09-25 10:20:08.480478387 +0000
++++ T3-A-4/frontend/js/app.js	2026-09-25 12:59:25.633196877 +0000
+@@ -283,10 +283,6 @@
+         tab.dataset.tab = act.id;
+         tab.textContent = act.nombre;
+         tab.addEventListener('click', () => {
+-            if (AppState.modoEdicion) {
+-                mostrarModalEditarActividad(act.id);
+-                return;
+-            }
+             AppState.pestanaActual = act.id;
+             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+             tab.classList.add('active');

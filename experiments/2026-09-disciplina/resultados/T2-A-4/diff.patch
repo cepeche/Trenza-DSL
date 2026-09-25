@@ -1,0 +1,79 @@
+diff -ruN history/inspirations/cronometro-psp-original/frontend/index.html T2-A-4/frontend/index.html
+--- history/inspirations/cronometro-psp-original/frontend/index.html	2026-09-25 10:20:08.480219147 +0000
++++ T2-A-4/frontend/index.html	2026-09-25 12:59:43.637197947 +0000
+@@ -29,6 +29,7 @@
+     #editTaskModal        Editar tipo de tarea  → PATCH /api/tipos-tarea
+     #editActivityModal    Editar actividad      → PUT /api/actividades?id=
+     #historialModal       Historial 7/30 días   → GET /api/historial?dias=N
++    #reorderModal         Reordenar frecuentes  → modo edición + tap en pestaña Frecuentes
+     ══════════════════════════════════════════════════════════════
+     -->
+ 
+@@ -351,8 +352,21 @@
+         </div>
+     </div>
+ 
++    <!-- Modal Reordenar frecuentes -->
++    <div class="modal-overlay" id="reorderModal">
++        <div class="modal-content">
++            <div class="modal-header">
++                <div class="modal-task-name">Reordenar frecuentes</div>
++            </div>
++
++            <div class="form-buttons" style="margin-top:1.5rem">
++                <button class="btn-primary" id="btnReorderClose" onclick="cerrarModalReordenar()">Cerrar</button>
++            </div>
++        </div>
++    </div>
++
+     <!-- Scripts -->
+     <script src="js/api-client.js?v=7"></script>
+-    <script src="js/app.js?v=17"></script>
++    <script src="js/app.js?v=18"></script>
+ </body>
+ </html>
+diff -ruN history/inspirations/cronometro-psp-original/frontend/js/app.js T2-A-4/frontend/js/app.js
+--- history/inspirations/cronometro-psp-original/frontend/js/app.js	2026-09-25 10:20:08.480478387 +0000
++++ T2-A-4/frontend/js/app.js	2026-09-25 12:59:52.469198472 +0000
+@@ -320,7 +320,10 @@
+     const tabFrecuentesNuevo = tabFrecuentes.cloneNode(true);
+     tabFrecuentes.replaceWith(tabFrecuentesNuevo);
+     tabFrecuentesNuevo.addEventListener('click', () => {
+-        if (AppState.modoEdicion) return; // Frecuentes no tiene edición propia; ignorar en modo edición
++        if (AppState.modoEdicion) {
++            mostrarModalReordenar();
++            return;
++        }
+         AppState.pestanaActual = 'frecuentes';
+         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+         tabFrecuentesNuevo.classList.add('active');
+@@ -901,6 +904,10 @@
+         if (e.target === this) cerrarModalHistorial();
+     });
+ 
++    document.getElementById('reorderModal').addEventListener('click', function(e) {
++        if (e.target === this) cerrarModalReordenar();
++    });
++
+     // Cerrar settings menu al hacer click fuera
+     document.addEventListener('click', function(e) {
+         const menu = document.getElementById('settingsMenu');
+@@ -1253,6 +1260,18 @@
+     return html;
+ }
+ 
++// === MODAL REORDENAR FRECUENTES ===
++// HTML: #reorderModal | Trigger: modo edición + tap en pestaña Frecuentes
++// Por ahora sin contenido propio; solo se puede cerrar (queda en modo edición).
++
++function mostrarModalReordenar() {
++    document.getElementById('reorderModal').classList.add('active');
++}
++
++function cerrarModalReordenar() {
++    document.getElementById('reorderModal').classList.remove('active');
++}
++
+ // === INICIAR APP AL CARGAR ===
+ 
+ document.addEventListener('DOMContentLoaded', inicializarApp);

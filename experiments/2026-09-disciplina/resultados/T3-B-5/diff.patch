@@ -1,0 +1,11 @@
+--- examples/cronometro-wasm/src/cronometro_full.trz	2026-09-25 12:35:43.093702522 +0000
++++ T3-B-5/cronometro.trz	2026-09-25 12:59:34.213197387 +0000
+@@ -1225,7 +1225,7 @@
+ 
+     role pestana_actividad: Actividad
+ 
+-        on tap -> abrirEditarActividad(self.id)
++        on tap -> cambiarPestana(self.id)
+ 
+ 
+ 
