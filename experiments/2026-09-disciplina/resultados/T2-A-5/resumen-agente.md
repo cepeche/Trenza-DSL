@@ -1,0 +1,1 @@
+index.html: #reorderModal con #btnReorderClose → cerrarModalReordenar(). app.js: en modo edición, Frecuentes → mostrarModalReordenar(); nuevas funciones mostrar/cerrarModalReordenar; cierre al clicar el overlay. Comprobación: runner.js 29/29, script en memoria con DOM simulado y conteo estático.

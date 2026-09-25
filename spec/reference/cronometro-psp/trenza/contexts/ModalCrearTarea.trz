@@ -9,7 +9,6 @@
 
 
 context ModalCrearTarea:
-    role *: ignored
 
 
 
@@ -38,11 +37,11 @@ context ModalCrearTarea:
 
     -- role checkbox_actividad[]: Actividad
 
-    --     on cambio -> toggleActividadPermitida(self.id, self.marcado)
+    --     on cambio -> toggleActividadPermitida(self.ID, self.marcado)
 
     role checkbox_actividad: OpcionActividad
 
-        on cambio -> toggleActividadPermitida(self.id, self.marcado)
+        on cambio -> toggleActividadPermitida(self.ID, self.marcado)
 
 
 

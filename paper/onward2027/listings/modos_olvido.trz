@@ -1,0 +1,36 @@
+-- Listado 2 (paper Onward! 2027): el olvido original.
+-- Igual que modos.trz, pero ModoEdicion omite el manejador de
+-- pestana_frecuentes. DEBE fallar con exactamente un diagnóstico
+-- [completeness] (ver trenza-core/tests/paper_listings.rs).
+
+data Tarea:
+    tareaId: Id
+
+data Pestana:
+    id: Id
+
+system Cronometro:
+    initial: ModoNormal
+    events: tap
+    contexts:
+        ModoNormal
+        ModoEdicion
+
+context ModoNormal:
+    role tarjeta: Tarea
+        on tap -> iniciarTarea(self.tareaId)
+    role pestana_frecuentes: Pestana
+        on tap -> cambiarPestana(self.id)
+    role boton_edicion: Pestana
+        on tap -> activarEdicion
+    transitions:
+        on activarEdicion -> ModoEdicion
+
+context ModoEdicion:
+    role tarjeta: Tarea
+        on tap -> abrirEditarTarea(self.tareaId)
+    role pestana_frecuentes: Pestana
+    role boton_edicion: Pestana
+        on tap -> desactivarEdicion
+    transitions:
+        on desactivarEdicion -> ModoNormal

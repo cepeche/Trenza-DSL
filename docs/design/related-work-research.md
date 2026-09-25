@@ -443,7 +443,45 @@ described by LLMLIFT.
 
 ---
 
-## F. GDPR and Compliance by Design
+### Oviedo et al. 2024 — ISO/IEC Quality Standards for AI Engineering
+
+**Citation:** Oviedo, J., Rodriguez, M., Trenta, A., Cannas, D., Natale, D., and
+Piattini, M. (2024). ISO/IEC quality standards for AI engineering. *Computer
+Science Review*, 54, 100681.
+https://doi.org/10.1016/j.cosrev.2024.100681
+
+**Summary:** This review surveys ISO/IEC standards relevant to AI engineering,
+with focus on software process quality, product quality, and data quality. It
+covers the family of standards developed under ISO/IEC JTC 1/SC 42 (Artificial
+Intelligence) and situates them against parallel regulatory frameworks (EU AI
+Act, NIST AI RMF). The authors argue that ISO/IEC standards provide the most
+concrete basis for "AI engineering" as a quality-bearing discipline,
+distinguishing it from the recent literature on *Software Engineering for AI*
+(SE4AI) that addresses the engineering of AI systems primarily as practice.
+
+**Relation to Trenza:** Oviedo et al. survey the SE4AI paradigm — applying SE
+rigor to AI systems. Trenza inverts the dependency: it is an *AI for Software
+Engineering* (AI4SE) artefact in which LLMs cooperate with humans to crystallise
+verifiable `.trz` specifications, and the compiler — not an LLM — checks
+correctness. The contrast is methodologically interesting: SE4AI seeks to
+discipline AI through SE practices; Trenza enlists AI within an SE discipline
+whose semantics are decidable. Trenza's eight verification rules can be mapped
+against ISO/IEC 25010 quality criteria (see Section F and the dedicated mapping
+document [`docs/design/iso-iec-25000-mapping.md`](iso-iec-25000-mapping.md)),
+suggesting Trenza is interpretable not only as a DSL but as an instrument for
+satisfying SQuaRE quality requirements by construction.
+
+---
+
+## F. Compliance, Standards, and Regulatory Context
+
+This section consolidates references that frame Trenza's positioning relative
+to data-protection law (GDPR), AI-specific regulation (EU AI Act), risk
+management frameworks (NIST AI RMF), and software/data quality standards
+(ISO/IEC SC 42, SQuaRE family). The shared thread is that Trenza's eight
+verification rules and four-strand output are designed to produce evidence
+that organisations can use to demonstrate compliance and quality *by
+construction* rather than retrofitting it through later auditing.
 
 ### Privacy by Design — Cavoukian's Framework
 
@@ -529,6 +567,132 @@ subset.
 
 ---
 
+### Regulation (EU) 2024/1689 — Artificial Intelligence Act
+
+**Citation:** European Parliament and Council of the European Union. (2024).
+Regulation (EU) 2024/1689 of 13 June 2024 laying down harmonised rules on
+artificial intelligence (Artificial Intelligence Act). *Official Journal of the
+European Union*, OJ L, 2024/1689.
+https://eur-lex.europa.eu/eli/reg/2024/1689/oj
+
+**Summary:** The AI Act is the first comprehensive horizontal regulation of
+artificial-intelligence systems in the European Union, establishing a risk-based
+classification (unacceptable, high, limited, minimal) with corresponding
+obligations. High-risk AI systems are subject to requirements covering risk
+management, data governance, technical documentation, record-keeping,
+transparency, human oversight, and accuracy / robustness / cybersecurity.
+Article 11 specifically mandates technical documentation sufficient to
+demonstrate compliance; Article 12 requires automatic event logging throughout
+operation.
+
+**Relation to Trenza:** The AI Act's Articles 11 and 12 obligations align
+directly with Trenza's Strand 4 (audit report) and `@audit` annotation
+mechanism. While Trenza itself is not an AI system in the regulated sense, it
+is a tool used to specify systems that *use or interact with* AI components,
+producing the kind of machine-readable technical documentation that the Act
+requires. The compile-time guarantees on data handling (Rule 6) likewise
+support the data-governance requirements for high-risk systems.
+
+---
+
+### NIST AI Risk Management Framework 1.0
+
+**Citation:** National Institute of Standards and Technology. (2023).
+*Artificial Intelligence Risk Management Framework (AI RMF 1.0)*. NIST AI
+100-1. https://doi.org/10.6028/NIST.AI.100-1
+
+**Summary:** AI RMF 1.0 provides a voluntary framework structured around four
+functions — Govern, Map, Measure, Manage — to help organisations address AI
+risks throughout the lifecycle. It defines characteristics of trustworthy AI
+(valid and reliable; safe; secure and resilient; accountable and transparent;
+explainable and interpretable; privacy-enhanced; fair) that should be supported
+by technical and procedural means.
+
+**Relation to Trenza:** Trenza addresses several AI RMF *Measure* expectations
+through static guarantees rather than runtime monitoring: validity and
+reliability (Rules 1–4), accountability and transparency (Strand 4 audit), and
+a privacy-enhancement path through Rule 6. In an AI RMF assessment, the four
+strands of a Trenza compilation provide direct evidence artefacts: the
+`.mermaid` diagram supports the *Map* function (system-context understanding),
+and the audit report supports the *Govern* function (documentation of policy
+decisions).
+
+---
+
+### ISO/IEC 42001:2023 — AI Management Systems
+
+**Citation:** ISO/IEC. (2023). *Information technology — Artificial intelligence
+— Management system* (ISO/IEC 42001:2023). International Organization for
+Standardization, Geneva.
+https://www.iso.org/standard/81230.html
+
+**Summary:** ISO/IEC 42001 is the first international standard for an
+Artificial Intelligence Management System (AIMS), specifying requirements for
+establishing, implementing, maintaining, and continually improving such a
+system within an organisation. It follows the high-level structure common to
+ISO management-system standards (ISO 9001, 27001), with controls specific to
+AI risk, lifecycle, transparency, and data quality.
+
+**Relation to Trenza:** While 42001 governs *organisational* practice rather
+than technical artefacts, its implementation requires concrete technical
+evidence at the product level. Trenza's four-strand output (implementation,
+tests, diagram, audit) is the kind of artefact an organisation implementing
+42001 would use to demonstrate that specific controls — particularly those
+tied to data classification, traceability, and lifecycle documentation — are
+realised at the system level, not merely declared in policy.
+
+---
+
+### ISO/IEC TS 25059:2023 — Quality Model for AI Systems
+
+**Citation:** ISO/IEC. (2023). *Systems and software engineering — SQuaRE —
+Quality model for AI systems* (ISO/IEC TS 25059:2023). International
+Organization for Standardization, Geneva.
+https://www.iso.org/standard/80655.html
+
+**Summary:** ISO/IEC TS 25059 extends the SQuaRE quality model (ISO/IEC 25010)
+for AI systems, introducing AI-specific quality characteristics — functional
+adaptability, transparency, controllability, robustness — and adapting
+existing characteristics (functional correctness, reliability) for AI
+contexts. It is a Technical Specification, not a full standard, but represents
+the formal extension of SQuaRE to AI.
+
+**Relation to Trenza:** TS 25059's characteristics of *controllability* (the
+ability for human operators to intervene), *transparency*, and *robustness*
+are precisely the system-level properties that Trenza's verification rules and
+audit strand are designed to support. The mapping document
+[`docs/design/iso-iec-25000-mapping.md`](iso-iec-25000-mapping.md) makes the
+correspondence between Trenza's eight rules and SQuaRE / TS 25059 attributes
+explicit, supporting the claim that Trenza-generated systems satisfy SQuaRE
+quality characteristics *by construction* within the bounded domain of its
+formal semantics.
+
+---
+
+### Rodriguez, Gualo, Piattini 2021 — SQuaRE Evaluation in Practice
+
+**Citation:** Rodriguez, M., Gualo, F., and Piattini, M. (2021). Software and
+data quality evaluation with ISO/IEC 25000. *IEEE Software*, 38(3), 108–113.
+https://doi.org/10.1109/MS.2021.3055969
+
+**Summary:** This practitioner-oriented article from the ALARCOS group at the
+University of Castilla-La Mancha presents the methodology and lessons learned
+in applying the ISO/IEC 25000 (SQuaRE) family of standards to real software
+and data quality evaluations, including the role of accredited laboratories
+(AQCLab) in producing third-party assessments.
+
+**Relation to Trenza:** The article establishes the methodological bridge
+between SQuaRE *as a standard* and SQuaRE *as a practice*. For Trenza this is
+doubly relevant: first, it situates the rule-to-criterion mapping (see
+[`iso-iec-25000-mapping.md`](iso-iec-25000-mapping.md)) within an established
+evaluation tradition rather than as a novel rhetorical move; second, it points
+to AQCLab as a concrete accredited body whose criteria a Trenza-compiled
+system could in principle be evaluated against. This positions Trenza not
+only as a research artefact but as a candidate component within an industrial
+quality-assessment workflow.
+
+---
+
 ## Supplementary: Role-Based Access Control Foundations
 
 ### RBAC Models — Sandhu et al.
@@ -556,4 +720,7 @@ evaluation.
 ---
 
 *Document prepared for the Trenza-DSL ONWARD! 2026 submission.
-All citations verified against ACM DL, arXiv, and W3C sources as of 2026-03-25.*
+Original citations verified against ACM DL, arXiv, and W3C sources as of
+2026-03-25. Section F expanded with ISO/IEC, NIST and EU AI Act references on
+2026-05-22 following the Piattini suggestion of 2026-05-09 (thread
+`review/related-work-iso-iec` in `history/coordination/archive/2026-05-22/`).*

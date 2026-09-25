@@ -25,7 +25,7 @@
 
 
 context ModalHistorial:
-    role *: ignored
+    initial: Historial7Dias
 
 
 
@@ -44,7 +44,6 @@ context ModalHistorial:
 
     -- Sub-contexto: vista de 7 días (activo por defecto)
 context Historial7Dias:
-    role *: ignored
 
 
 
@@ -65,7 +64,7 @@ context Historial7Dias:
 
             on cambiarA30Dias -> Historial30Dias
 
-            on cerrar         -> ModalHistorial  -- sube al padre, que cierra el overlay
+            on cerrar         -> [close_overlay]  -- close the overlay group in one event
 
 
 
@@ -79,7 +78,6 @@ context Historial7Dias:
 
     -- Sub-contexto: vista de 30 días
 context Historial30Dias:
-    role *: ignored
 
 
 
@@ -100,7 +98,7 @@ context Historial30Dias:
 
             on cambiarA7Dias -> Historial7Dias
 
-            on cerrar        -> ModalHistorial
+            on cerrar        -> [close_overlay]
 
 
 

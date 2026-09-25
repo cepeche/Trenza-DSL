@@ -1,0 +1,1 @@
+index.html: #reorderModal con #btnReorderClose → cerrarModalReordenar(); cache-bust ?v=18. app.js: en modo edición, Frecuentes → mostrarModalReordenar(); nuevas funciones mostrar/cerrarModalReordenar; cierre al clicar el overlay. Comprobación: runner.js 29/29, script de inspección textual y revisión del diff.

@@ -1,0 +1,45 @@
+{
+  "_doc": "Ver PREREGISTRO.md §Oráculo. kind: state (campos exactos), nothing (sin cambio respecto al prefijo; en B se admite forbidden), like (igual que la observación del propio candidato con el prefijo like_pre, salvo los campos indicados).",
+  "base_elements": ["tarjeta_tipo", "tarjeta_tarea", "pestana_actividad", "pestana_frecuentes", "boton_edicion", "boton_nuevo", "boton_configuracion"],
+  "prefixes": {"normal": [], "edicion": ["boton_edicion"]},
+  "tasks": {
+    "T1": {
+      "extra_elements": ["boton_pausa"],
+      "extra_prefixes": {"pausa": ["boton_pausa"]},
+      "expect": [
+        {"pre": "normal", "tap": "boton_pausa", "kind": "state", "A": {"mode": "pausa", "overlays": []}, "B": {"base": "ModoPausa", "overlays": []}},
+        {"pre": "pausa", "tap": "boton_pausa", "kind": "state", "A": {"mode": "normal", "overlays": []}, "B": {"base": "ModoNormal", "overlays": []}},
+        {"pre": "pausa", "tap": "tarjeta_tipo", "kind": "nothing"},
+        {"pre": "pausa", "tap": "tarjeta_tarea", "kind": "nothing"},
+        {"pre": "pausa", "tap": "boton_edicion", "kind": "nothing"},
+        {"pre": "pausa", "tap": "boton_nuevo", "kind": "nothing"},
+        {"pre": "pausa", "tap": "pestana_actividad", "kind": "like", "like_pre": "normal", "A": {"mode": "pausa"}, "B": {"base": "ModoPausa"}},
+        {"pre": "pausa", "tap": "pestana_frecuentes", "kind": "like", "like_pre": "normal", "A": {"mode": "pausa"}, "B": {"base": "ModoPausa"}},
+        {"pre": "pausa", "tap": "boton_configuracion", "kind": "like", "like_pre": "normal", "A": {"mode": "pausa"}, "B": {"base": "ModoPausa"}},
+        {"pre": "edicion", "tap": "boton_pausa", "kind": "nothing"}
+      ]
+    },
+    "T2": {
+      "extra_elements": ["boton_cerrar"],
+      "extra_prefixes": {"reorden": ["boton_edicion", "pestana_frecuentes"]},
+      "expect": [
+        {"pre": "edicion", "tap": "pestana_frecuentes", "kind": "state", "A": {"mode": "edicion", "overlays": ["reorderModal"]}, "B": {"base": "ModoEdicion", "overlays": ["ModalReordenarFrecuentes"]}},
+        {"pre": "reorden", "tap": "boton_cerrar", "kind": "state", "A": {"mode": "edicion", "overlays": []}, "B": {"base": "ModoEdicion", "overlays": []}}
+      ]
+    },
+    "T3": {
+      "extra_elements": [],
+      "extra_prefixes": {},
+      "expect": [
+        {"pre": "edicion", "tap": "pestana_actividad", "kind": "like", "like_pre": "normal", "A": {"mode": "edicion"}, "B": {"base": "ModoEdicion"}}
+      ]
+    },
+    "T4": {
+      "extra_elements": [],
+      "extra_prefixes": {},
+      "expect": [
+        {"pre": "edicion", "tap": "boton_nuevo", "kind": "state", "A": {"mode": "edicion", "overlays": ["createActivityModal"]}, "B": {"base": "ModoEdicion", "overlays": ["ModalCrearActividad"]}}
+      ]
+    }
+  }
+}

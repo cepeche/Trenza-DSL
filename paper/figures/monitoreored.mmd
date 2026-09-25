@@ -1,0 +1,16 @@
+stateDiagram-v2
+    [*] --> KnownDevice
+    KnownDevice --> Absent : no_response
+    Absent --> KnownDevice : device_returns
+    Absent --> ActiveAlert : threshold_exceeded
+    ActiveAlert --> KnownDevice : alert_resolved
+
+    note right of KnownDevice
+        JSON ✓  Prometheus ✓  Ping ✓
+    end note
+    note right of Absent
+        JSON ✓  Prometheus ✓  Ping ✗
+    end note
+    note right of ActiveAlert
+        JSON ✗  Prometheus ✗  Ping ✗
+    end note

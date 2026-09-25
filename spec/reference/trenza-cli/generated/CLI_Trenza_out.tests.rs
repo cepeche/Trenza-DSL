@@ -12,7 +12,7 @@ mod algebraic_tests {
         let effects = NoOpEffects;
         let mut sys = System::new(Contexto::EsperandoComando, &effects);
         sys.handle_event("comandoGenerate");
-        assert_eq!(sys.state, Contexto::ParseandoArchivo);
+        assert_eq!(sys.current_state(), Contexto::ParseandoArchivo);
     }
 
     #[test]
@@ -20,7 +20,7 @@ mod algebraic_tests {
         let effects = NoOpEffects;
         let mut sys = System::new(Contexto::EsperandoComando, &effects);
         sys.handle_event("comandoInvalido");
-        assert_eq!(sys.state, Contexto::MostrarAyuda);
+        assert_eq!(sys.current_state(), Contexto::MostrarAyuda);
     }
 
     #[test]
@@ -28,7 +28,7 @@ mod algebraic_tests {
         let effects = NoOpEffects;
         let mut sys = System::new(Contexto::ParseandoArchivo, &effects);
         sys.handle_event("parseoExitoso");
-        assert_eq!(sys.state, Contexto::VerificandoReglas);
+        assert_eq!(sys.current_state(), Contexto::VerificandoReglas);
     }
 
     #[test]
@@ -36,7 +36,7 @@ mod algebraic_tests {
         let effects = NoOpEffects;
         let mut sys = System::new(Contexto::ParseandoArchivo, &effects);
         sys.handle_event("errorSintaxis");
-        assert_eq!(sys.state, Contexto::ErrorFatal);
+        assert_eq!(sys.current_state(), Contexto::ErrorFatal);
     }
 
     #[test]
@@ -44,7 +44,7 @@ mod algebraic_tests {
         let effects = NoOpEffects;
         let mut sys = System::new(Contexto::VerificandoReglas, &effects);
         sys.handle_event("validacionExitosa");
-        assert_eq!(sys.state, Contexto::GenerandoStrands);
+        assert_eq!(sys.current_state(), Contexto::GenerandoStrands);
     }
 
     #[test]
@@ -52,7 +52,7 @@ mod algebraic_tests {
         let effects = NoOpEffects;
         let mut sys = System::new(Contexto::VerificandoReglas, &effects);
         sys.handle_event("validacionFallida");
-        assert_eq!(sys.state, Contexto::ErrorFatal);
+        assert_eq!(sys.current_state(), Contexto::ErrorFatal);
     }
 
     #[test]
@@ -60,7 +60,7 @@ mod algebraic_tests {
         let effects = NoOpEffects;
         let mut sys = System::new(Contexto::GenerandoStrands, &effects);
         sys.handle_event("generacionCompleta");
-        assert_eq!(sys.state, Contexto::Exito);
+        assert_eq!(sys.current_state(), Contexto::Exito);
     }
 
     #[test]
@@ -68,7 +68,7 @@ mod algebraic_tests {
         let effects = NoOpEffects;
         let mut sys = System::new(Contexto::ErrorFatal, &effects);
         sys.handle_event("finalizar");
-        assert_eq!(sys.state, Contexto::EsperandoComando);
+        assert_eq!(sys.current_state(), Contexto::EsperandoComando);
     }
 
     #[test]
@@ -76,7 +76,7 @@ mod algebraic_tests {
         let effects = NoOpEffects;
         let mut sys = System::new(Contexto::Exito, &effects);
         sys.handle_event("finalizar");
-        assert_eq!(sys.state, Contexto::EsperandoComando);
+        assert_eq!(sys.current_state(), Contexto::EsperandoComando);
     }
 
     #[test]
@@ -84,7 +84,7 @@ mod algebraic_tests {
         let effects = NoOpEffects;
         let mut sys = System::new(Contexto::MostrarAyuda, &effects);
         sys.handle_event("finalizar");
-        assert_eq!(sys.state, Contexto::EsperandoComando);
+        assert_eq!(sys.current_state(), Contexto::EsperandoComando);
     }
 
     // === Handler Tests ===

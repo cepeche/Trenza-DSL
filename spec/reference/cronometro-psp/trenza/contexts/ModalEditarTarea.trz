@@ -15,7 +15,6 @@
 
 
 context ModalEditarTarea:
-    role *: ignored
 
 
 
@@ -24,7 +23,7 @@ context ModalEditarTarea:
 
     -- input:
 
-    --     tipoTareaId: Id
+    --     tipoTareaId: ID
 
 
 

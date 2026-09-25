@@ -9,7 +9,6 @@
 
 
 context ModalAcercaDe:
-    role *: ignored
 
 
 

@@ -1,0 +1,131 @@
+--- examples/cronometro-wasm/src/cronometro_full.trz	2026-09-25 12:35:43.093702522 +0000
++++ T1-B-5/cronometro.trz	2026-09-25 13:00:08.429199421 +0000
+@@ -256,6 +256,8 @@
+ 
+         ModoNormal          -- base por defecto
+ 
++        ModoPausa           -- modo pausa: bloquea inicio de tareas, ediciÃ³n y creaciÃ³n
++
+ 
+ 
+     -- (2) Contextos concurrentes â€” coexisten ortogonalmente con el base
+@@ -1253,6 +1255,12 @@
+ 
+ 
+ 
++    role boton_pausa: Boton
++
++        on tap -> ignored                           -- en modo ediciÃ³n, pausa no hace nada
++
++
++
+     transitions:
+ 
+         on desactivarEdicion      -> ModoNormal
+@@ -1338,6 +1346,12 @@
+ 
+ 
+ 
++    role boton_pausa: Boton
++
++        on tap -> entrarPausa
++
++
++
+     transitions:
+ 
+         on activarEdicion        -> ModoEdicion
+@@ -1346,6 +1360,8 @@
+ 
+         on abrirMenuConfiguracion -> MenuConfiguracion
+ 
++        on entrarPausa            -> ModoPausa
++
+ 
+ 
+         -- seleccionarTipoTarea puede ramificar:
+@@ -1382,6 +1398,84 @@
+ 
+         iniciarTarea    -> iniciar_sesion(tarea_id, notas, minutos_retroactivos, sustituir)
+ 
++-- contexts/ModoPausa.trz
++
++-- Modo pausa: se activa/desactiva con boton_pausa (âÂ¸).
++
++-- Bloquea inicio de tareas, entrada en modo ediciÃ³n y creaciÃ³n de tareas.
++
++-- SÃ­ permite cambiar de pestaÃ±a y abrir el menÃº de configuraciÃ³n,
++
++-- igual que ModoNormal.
++
++-- AÃ±adido: modo pausa (tarea T1-B-5, 25 septiembre 2026).
++
++
++
++context ModoPausa:
++
++
++
++    role tarjeta_tipo: TipoTarea
++
++        on tap -> ignored                           -- en pausa no se puede iniciar ninguna tarea
++
++
++
++    role tarjeta_tarea: Tarea
++
++        on tap -> ignored                           -- en pausa no se puede iniciar ninguna tarea
++
++
++
++    role pestana_actividad: Actividad
++
++        on tap -> cambiarPestana(self.id)
++
++
++
++    role pestana_frecuentes: Pestana
++
++        on tap -> cambiarPestana('frecuentes')
++
++
++
++    role boton_edicion: Boton
++
++        on tap -> ignored                           -- en pausa no se puede entrar en modo ediciÃ³n
++
++
++
++    role boton_nuevo: Boton
++
++        on tap -> ignored                           -- en pausa no se pueden crear tareas
++
++
++
++    role boton_configuracion: Boton
++
++        on tap -> abrirMenuConfiguracion
++
++
++
++    role boton_pausa: Boton
++
++        on tap -> salirPausa
++
++
++
++    transitions:
++
++        on salirPausa             -> ModoNormal
++
++        on abrirMenuConfiguracion -> MenuConfiguracion
++
++
++
++    effects:
++
++        cambiarPestana  -> actualizarGridVisible()
++
+ -- contexts/SesionActiva.trz
+ 
+ -- Contexto CONCURRENTE: coexiste con ModoNormal o ModoEdicion.

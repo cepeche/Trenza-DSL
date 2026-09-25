@@ -1,0 +1,1 @@
+Único archivo: cronometro.trz. Nuevo overlay ModalReordenarFrecuentes (boton_cerrar → cerrar → [close_overlay]); en ModoEdicion, pestana_frecuentes → abrirReordenarFrecuentes, con transición al overlay. Comprobación: trenza-cli check superado y grep.

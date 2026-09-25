@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Cronómetro PSP</title>
+    <link rel="stylesheet" href="css/styles.css?v=8">
+</head>
+<body>
+    <!--
+    ══════════════════════════════════════════════════════════════
+    ESTRUCTURA DEL DOCUMENTO
+    ──────────────────────────────────────────────────────────────
+    Header:    .active-timer (timer display), .settings-button, #settingsMenu
+    Pestañas:  #tabs (generadas dinámicamente por generarPestanasActividades en app.js)
+    Contenido: #tabsContent (generado dinámicamente por generarPestanasActividades)
+    Pie:       .bottom-bar → #bottomComment (notas sesión activa) + #totalToday
+    FABs:      #editModeButton ✏️ (modo edición), .fab-button + (nueva tarea)
+
+    MODALES — class="modal-overlay", se activan añadiendo class "active"
+    ──────────────────────────────────────────────────────────────
+    #activityModal        Selector de actividad al iniciar tarea con >1 actividad
+    #createTaskModal      Crear tipo de tarea   → POST /api/tipos-tarea
+    #createActivityModal  Crear actividad       → POST /api/actividades
+    #commentModal         Comentario + inicio retroactivo al arrancar tarea
+                          (incluye "ya llevo X min" y "sustituye tarea en curso")
+    #aboutModal           Acerca de: health check + tiempo acumulado
+    #resetModal           Puesta a cero (3 fases: aviso → conservar → confirmar BORRAR)
+    #editTaskModal        Editar tipo de tarea  → PATCH /api/tipos-tarea
+    #editActivityModal    Editar actividad      → PUT /api/actividades?id=
+    #historialModal       Historial 7/30 días   → GET /api/historial?dias=N
+    ══════════════════════════════════════════════════════════════
+    -->
+
+    <!-- Timer activo -->
+    <div class="active-timer">
+        <div class="timer-info">
+            <div>
+                <div class="timer-task" id="activeTaskName">Ninguna tarea activa</div>
+            </div>
+            <div class="timer-duration" id="timerDisplay">--:--</div>
+        </div>
+    </div>
+
+    <!-- Botón de settings -->
+    <button class="settings-button" onclick="toggleSettingsMenu()">⚙️</button>
+
+    <!-- Menú de settings -->
+    <div class="settings-menu" id="settingsMenu">
+        <div class="settings-item" onclick="mostrarModalCrearActividad(); toggleSettingsMenu();">
+            <span>📁</span>
+            <span>Nueva actividad</span>
+        </div>
+        <div class="settings-item" onclick="mostrarModalHistorial(); toggleSettingsMenu();">
+            <span>📊</span>
+            <span>Historial</span>
+        </div>
+        <div class="settings-item" onclick="exportarCsv(); toggleSettingsMenu();">
+            <span>📥</span>
+            <span>Exportar CSV</span>
+        </div>
+        <div class="settings-item" onclick="mostrarModalAcercaDe(); toggleSettingsMenu();">
+            <span>ℹ️</span>
+            <span>Acerca de</span>
+        </div>
+        <div class="settings-item settings-item-danger" onclick="mostrarModalReset(); toggleSettingsMenu();">
+            <span>🗑️</span>
+            <span>Puesta a cero</span>
+        </div>
+    </div>
+
+    <!-- Pestañas (las de actividades se generan dinámicamente) -->
+    <div class="tabs" id="tabs">
+        <button class="tab active" data-tab="frecuentes">⭐ Frecuentes</button>
+    </div>
+
+    <!-- Contenido de pestañas (las de actividades se generan dinámicamente) -->
+    <div id="tabsContent">
+        <div class="tab-content active" data-tab="frecuentes">
+            <div class="tasks-grid" id="gridFrecuentes"></div>
+        </div>
+    </div>
+
+    <!-- Barra inferior -->
+    <div class="bottom-bar">
+        <div class="bottom-comment" id="bottomComment"></div>
+        <div class="total-today" id="totalToday">Hoy: 0:00</div>
+    </div>
+
+    <!-- Botón modo edición -->
+    <button class="edit-mode-button" id="editModeButton" onclick="toggleModoEdicion()" title="Modo edición">✏️</button>
+
+    <!-- Botón flotante + -->
+    <button class="fab-button" onclick="mostrarModalCrear()" title="Nueva tarea">+</button>
+
+    <!-- Modal selector de actividad -->
+    <div class="modal-overlay" id="activityModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-icon" id="modalTaskIcon"></div>
+                <div class="modal-task-name" id="modalTaskName"></div>
+                <div class="modal-question">¿En qué actividad?</div>
+            </div>
+            <div class="activity-buttons" id="activityButtons"></div>
+            <button class="modal-cancel" onclick="cerrarModal()">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- Modal crear tarea -->
+    <div class="modal-overlay" id="createTaskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-name">Nueva tarea</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-input" id="newTaskName" placeholder="Ej: Codificar">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Icono</label>
+                <input type="text" class="icon-picker-search" id="iconSearchCreate"
+                       placeholder="Buscar icono (ej: coffee, book, run...)" oninput="filtrarIconos('create')">
+                <div class="icon-picker-selected-preview" id="iconPreviewCreate">
+                    <span class="material-symbols-outlined" id="iconPreviewSymbolCreate">draft</span>
+                    <span id="iconPreviewNameCreate">draft</span>
+                </div>
+                <div class="icon-picker-grid" id="iconPickerCreate"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Actividades donde se puede usar</label>
+                <div class="checkbox-group" id="actividadesCheckbox"></div>
+            </div>
+
+            <div class="form-buttons">
+                <button class="btn-secondary" onclick="cerrarModalCrearTarea()">Cancelar</button>
+                <button class="btn-primary" onclick="guardarNuevaTarea()" id="btnGuardarTarea">Crear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal crear actividad -->
+    <div class="modal-overlay" id="createActivityModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-name">Nueva actividad</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-input" id="newActivityName" placeholder="Ej: Proyecto Z">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Color</label>
+                <div class="color-picker" id="colorPicker"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="actividadPermanente">
+                    <span class="toggle-text">🔒 Conservar tras puesta a cero</span>
+                </label>
+            </div>
+
+            <div class="form-buttons">
+                <button class="btn-secondary" onclick="cerrarModalCrearActividad()">Cancelar</button>
+                <button class="btn-primary" onclick="guardarNuevaActividad()" id="btnGuardarActividad">Crear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal comentario al iniciar tarea -->
+    <div class="modal-overlay" id="commentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-icon" id="commentModalIcon"></div>
+                <div class="modal-task-name" id="commentModalName"></div>
+                <div class="modal-question">Comentario opcional</div>
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-input" id="commentInput"
+                       placeholder="¿En qué concretamente?" maxlength="120"
+                       onkeydown="if(event.key==='Enter') confirmarInicioConComentario()">
+            </div>
+            <div class="form-group retroactivo-group">
+                <label class="form-label retroactivo-label">⏪ Ya llevo</label>
+                <div class="retroactivo-row">
+                    <input type="number" class="form-input retroactivo-input" id="retroactivoInput"
+                           value="0" min="0" max="480" step="5">
+                    <span class="retroactivo-unit">min</span>
+                </div>
+            </div>
+            <div class="form-group sustituir-group" id="sustituirGroup" style="display:none">
+                <label class="toggle-label">
+                    <input type="checkbox" id="sustituirCheck">
+                    <span class="toggle-text">🔄 Sustituye a la tarea en curso</span>
+                </label>
+            </div>
+            <div class="form-buttons">
+                <button class="btn-secondary" onclick="cerrarModalComentario()">Cancelar</button>
+                <button class="btn-primary" onclick="confirmarInicioConComentario()">Iniciar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Acerca de -->
+    <div class="modal-overlay" id="aboutModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-name">Acerca de</div>
+            </div>
+            <div id="aboutContent">
+                <div class="about-loading">Comprobando conexión…</div>
+            </div>
+            <div class="form-buttons" style="margin-top:1.5rem">
+                <button class="btn-primary" onclick="cerrarModalAcercaDe()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Puesta a cero -->
+    <div class="modal-overlay" id="resetModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-icon">⚠️</div>
+                <div class="modal-task-name">Puesta a cero</div>
+                <div class="modal-question">Esta acción no se puede deshacer</div>
+            </div>
+
+            <!-- Fase 1: aviso -->
+            <div id="resetStep1">
+                <p class="reset-description">
+                    Se detendrá la tarea en curso, se exportará el historial a CSV
+                    y se borrarán todas las sesiones y contadores.
+                </p>
+                <p class="reset-description">
+                    A continuación podrás elegir qué actividades conservar.
+                </p>
+            </div>
+
+            <!-- Fase 2: selección de actividades -->
+            <div id="resetStep2" style="display:none">
+                <p class="reset-confirm-text" style="margin-bottom:0.75rem">
+                    Marca las actividades que quieres <strong>conservar</strong>:
+                </p>
+                <div class="reset-activities-list" id="resetActivitiesList"></div>
+            </div>
+
+            <!-- Fase 3: confirmación BORRAR -->
+            <div id="resetStep3" style="display:none">
+                <p class="reset-confirm-text">Escribe <strong>BORRAR</strong> para confirmar:</p>
+                <input type="text" class="form-input" id="resetConfirmInput"
+                       placeholder="BORRAR" autocomplete="off"
+                       onkeydown="if(event.key==='Enter') ejecutarReset()">
+            </div>
+
+            <div class="form-buttons" style="margin-top:1.5rem">
+                <button class="btn-secondary" id="btnResetCancel" onclick="retrocederReset()">Cancelar</button>
+                <button class="btn-danger" id="btnReset" onclick="avanzarReset()">Continuar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal editar tarea existente -->
+    <div class="modal-overlay" id="editTaskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-name">Editar tarea</div>
+            </div>
+
+            <input type="hidden" id="editTaskId">
+
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-input" id="editTaskName" placeholder="Nombre de la tarea">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Icono</label>
+                <input type="text" class="icon-picker-search" id="iconSearchEdit"
+                       placeholder="Buscar icono (ej: coffee, book, run...)" oninput="filtrarIconos('edit')">
+                <div class="icon-picker-selected-preview" id="iconPreviewEdit">
+                    <span class="material-symbols-outlined" id="iconPreviewSymbolEdit">draft</span>
+                    <span id="iconPreviewNameEdit">draft</span>
+                </div>
+                <div class="icon-picker-grid" id="iconPickerEdit"></div>
+            </div>
+
+            <div class="form-buttons">
+                <button class="btn-secondary" onclick="cerrarModalEditarTarea()">Cancelar</button>
+                <button class="btn-primary" onclick="guardarEdicionTarea()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal editar actividad -->
+    <div class="modal-overlay" id="editActivityModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-task-name">Editar actividad</div>
+            </div>
+
+            <input type="hidden" id="editActivityId">
+
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-input" id="editActivityName" placeholder="Nombre de la actividad">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Color</label>
+                <div class="color-picker" id="editColorPicker"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="toggle-label">
+                    <input type="checkbox" id="editActivityPermanente">
+                    <span class="toggle-text">🔒 Conservar tras puesta a cero</span>
+                </label>
+            </div>
+
+            <div class="form-buttons">
+                <button class="btn-secondary" onclick="cerrarModalEditarActividad()">Cancelar</button>
+                <button class="btn-primary" onclick="guardarEdicionActividad()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Historial -->
+    <div class="modal-overlay historial-overlay" id="historialModal">
+        <div class="modal-content historial-content">
+            <div class="modal-header">
+                <div class="modal-task-name">Historial</div>
+            </div>
+
+            <div class="historial-selector">
+                <button class="historial-btn-periodo active" data-dias="7" onclick="cambiarPeriodoHistorial(7)">7 días</button>
+                <button class="historial-btn-periodo" data-dias="30" onclick="cambiarPeriodoHistorial(30)">30 días</button>
+            </div>
+
+            <div id="historialContenido">
+                <div class="historial-loading">Cargando…</div>
+            </div>
+
+            <div class="form-buttons" style="margin-top:1rem">
+                <button class="btn-primary" onclick="cerrarModalHistorial()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api-client.js?v=7"></script>
+    <script src="js/app.js?v=17"></script>
+</body>
+</html>

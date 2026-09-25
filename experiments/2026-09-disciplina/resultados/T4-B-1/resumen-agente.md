@@ -1,0 +1,1 @@
+Único archivo: cronometro.trz. En ModoEdicion, boton_nuevo pasa de abrirCrearTarea a abrirCrearActividad; transición `on abrirCrearActividad -> ModalCrearActividad` (sustituye a `on abrirCrearTarea -> ModalCrearTarea` en ModoEdicion). ModoNormal intacto. Comprobación: trenza-cli check superado; grep de boton_nuevo.

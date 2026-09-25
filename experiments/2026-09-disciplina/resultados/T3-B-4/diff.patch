@@ -1,0 +1,23 @@
+--- examples/cronometro-wasm/src/cronometro_full.trz	2026-09-25 12:35:43.093702522 +0000
++++ T3-B-4/cronometro.trz	2026-09-25 12:59:58.953198858 +0000
+@@ -1225,7 +1225,7 @@
+ 
+     role pestana_actividad: Actividad
+ 
+-        on tap -> abrirEditarActividad(self.id)
++        on tap -> cambiarPestana(self.id)
+ 
+ 
+ 
+@@ -1277,9 +1277,9 @@
+ 
+     effects:
+ 
+-        -- No hay efectos directos en ModoEdicion.
++        cambiarPestana -> actualizarGridVisible()
+ 
+-        -- Los efectos viven en los modales de ediciÃ³n.
++        -- El resto de efectos vive en los modales de ediciÃ³n.
+ 
+ -- contexts/ModoNormal.trz
+ 

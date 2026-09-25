@@ -1,0 +1,16 @@
+flowchart LR
+    subgraph Dispersed["Dispersed Boolean Flag Pattern"]
+        A["Card-tap handler\nif (editMode)"]
+        B["Activity-tab handler\nif (editMode)"]
+        C["Frequent-tab handler\nif (editMode)"]
+        D["Secondary path\n⚠ Gap — missing guard"]
+    end
+
+    subgraph Trenza["Trenza Polymorphic Alternative"]
+        E["Factory"]
+        F["NormalMode\n(handles all events)"]
+        G["EditMode\n(handles all events)"]
+    end
+
+    E -->|"creates"| F
+    E -->|"creates"| G

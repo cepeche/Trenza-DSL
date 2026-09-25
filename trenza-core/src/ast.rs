@@ -143,6 +143,11 @@ pub struct ContextDef {
     pub fills: Vec<FillsDef>,
     pub ignore_rest: bool,
     pub is_anonymous: bool,
+    /// Overlay-only: name of the sub-context to auto-enter when this overlay
+    /// is pushed. Resolved statically at generation time (double push emitted
+    /// wherever the overlay is the transition target). `None` for non-overlays
+    /// and for overlays without sub-contexts.
+    pub initial_sub: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -291,6 +296,9 @@ impl ToTrz for ContextDef {
         if self.is_public { out.push_str("pub "); }
         if !self.name.is_empty() {
             out.push_str(&format!("context {}:\n", self.name));
+        }
+        if let Some(init) = &self.initial_sub {
+            out.push_str(&format!("  initial: {}\n", init));
         }
         if !self.inputs.is_empty() {
             out.push_str("  input:\n");

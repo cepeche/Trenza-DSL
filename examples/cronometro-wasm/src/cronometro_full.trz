@@ -303,7 +303,6 @@ system CronometroPSP:
 
 
 context MenuConfiguracion:
-    role *: ignored
 
 
 
@@ -371,7 +370,6 @@ context MenuConfiguracion:
 
 
 context ModalAcercaDe:
-    role *: ignored
 
 
 
@@ -425,7 +423,6 @@ context ModalAcercaDe:
 
 --       input: tipoTareaId: Id, tareaId: Id?
 context ModalComentario:
-    role *: ignored
 
 
 
@@ -513,7 +510,6 @@ context ModalComentario:
 
 
 context ModalCrearActividad:
-    role *: ignored
 
 
 
@@ -577,7 +573,6 @@ context ModalCrearActividad:
 
 
 context ModalCrearTarea:
-    role *: ignored
 
 
 
@@ -659,7 +654,6 @@ context ModalCrearTarea:
 
 
 context ModalEditarActividad:
-    role *: ignored
 
 
 
@@ -737,7 +731,6 @@ context ModalEditarActividad:
 
 
 context ModalEditarTarea:
-    role *: ignored
 
 
 
@@ -831,7 +824,7 @@ context ModalEditarTarea:
 
 
 context ModalHistorial:
-    role *: ignored
+    initial: Historial7Dias
 
 
 
@@ -850,7 +843,6 @@ context ModalHistorial:
 
     -- Sub-contexto: vista de 7 dÃ­as (activo por defecto)
 context Historial7Dias:
-    role *: ignored
 
 
 
@@ -871,7 +863,7 @@ context Historial7Dias:
 
             on cambiarA30Dias -> Historial30Dias
 
-            on cerrar         -> ModalHistorial  -- sube al padre, que cierra el overlay
+            on cerrar         -> [close_overlay]  -- close the overlay in one click
 
 
 
@@ -885,7 +877,6 @@ context Historial7Dias:
 
     -- Sub-contexto: vista de 30 dÃ­as
 context Historial30Dias:
-    role *: ignored
 
 
 
@@ -906,7 +897,7 @@ context Historial30Dias:
 
             on cambiarA7Dias -> Historial7Dias
 
-            on cerrar        -> ModalHistorial
+            on cerrar        -> [close_overlay]
 
 
 
@@ -941,7 +932,7 @@ context Historial30Dias:
 
 
 context ModalReset:
-    role *: ignored
+    initial: ResetFase1
 
 
 
@@ -964,7 +955,16 @@ context ModalReset:
 
     -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 context ResetFase1:
-    role *: ignored
+    -- Botones de otras fases del asistente: no existen en esta fase,
+    -- así que recibir su evento es un error (decisión 2026-09-25).
+        role boton_atras: Boton
+            on tap -> forbidden
+        role boton_ejecutar: Boton
+            on tap -> forbidden
+        role campo_confirmacion: CampoTexto
+            on cambio -> forbidden
+        role checkbox_actividad: OpcionActividad
+            on cambio -> forbidden
 
 
 
@@ -993,7 +993,7 @@ context ResetFase1:
 
             on avanzarAFase2 -> ResetFase2
 
-            on cerrar        -> ModalReset
+            on cerrar        -> [close_overlay]
 
 
 
@@ -1009,7 +1009,16 @@ context ResetFase1:
 
     -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 context ResetFase2:
-    role *: ignored
+    -- Botones de otras fases del asistente: no existen en esta fase,
+    -- así que recibir su evento es un error (decisión 2026-09-25).
+        role boton_cancelar: Boton
+            on tap -> cerrar
+        role boton_ejecutar: Boton
+            on tap -> forbidden
+        role boton_exportar_csv: Boton
+            on tap -> forbidden
+        role campo_confirmacion: CampoTexto
+            on cambio -> forbidden
 
 
 
@@ -1044,6 +1053,8 @@ context ResetFase2:
 
             on retrocederAFase1 -> ResetFase1
 
+            on cerrar          -> [close_overlay]
+
 
 
     -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1052,7 +1063,16 @@ context ResetFase2:
 
     -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 context ResetFase3:
-    role *: ignored
+    -- Botones de otras fases del asistente: no existen en esta fase,
+    -- así que recibir su evento es un error (decisión 2026-09-25).
+        role boton_cancelar: Boton
+            on tap -> cerrar
+        role boton_continuar: Boton
+            on tap -> forbidden
+        role boton_exportar_csv: Boton
+            on tap -> forbidden
+        role checkbox_actividad: OpcionActividad
+            on cambio -> forbidden
 
 
 
@@ -1086,6 +1106,8 @@ context ResetFase3:
             on ejecutarReset   -> [close_overlay]
 
             on retrocederAFase2 -> ResetFase2
+
+            on cerrar          -> [close_overlay]
 
 
 
@@ -1122,7 +1144,6 @@ context ResetFase3:
 
 
 context ModalSeleccionActividad:
-    role *: ignored
 
 
 
@@ -1186,7 +1207,6 @@ context ModalSeleccionActividad:
 
 
 context ModoEdicion:
-    role *: ignored
 
 
 
@@ -1272,7 +1292,6 @@ context ModoEdicion:
 
 
 context ModoNormal:
-    role *: ignored
 
 
 
@@ -1382,7 +1401,6 @@ context ModoNormal:
 
 
 context SesionActiva:
-    role *: ignored
 
 
 

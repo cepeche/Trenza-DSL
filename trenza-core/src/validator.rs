@@ -163,27 +163,51 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
                 };
                 targets.push(target);
             }
+            // `initial: Sub` en un overlay: al abrirlo se apila también Sub
+            // (mismo comportamiento que el generador), así que es una arista.
+            if let Some(sub) = &ctx.initial_sub {
+                targets.push(sub.clone());
+            }
             adjacency_list.insert(ctx.name.clone(), targets);
         }
     }
 
-    // Pass 2: Rule 1 (Completeness)
-    for ctx_name in &all_contexts {
-        if ignore_rest_contexts.contains(ctx_name) { continue; }
-        if let Some(ctx_re) = context_role_events.get(ctx_name) {
-            let context_span = context_spans.get(ctx_name).cloned().unwrap_or(Span { 
+    // Pass 2: Rule 1 (Completeness), por grupos de hermanos.
+    //
+    // Ámbito (decisión 2026-09-25): un par rol·evento manejado en un contexto
+    // debe estar manejado en todos sus HERMANOS (topology::SiblingGroup): los
+    // contextos base entre sí, los sub-contextos de un mismo overlay entre
+    // sí. Un overlay no hereda los roles del base que suspende. Los
+    // contextos con `role *` siguen exentos.
+    let topo = crate::topology::classify(program);
+    let group_of = |c: &String| topo.sibling_group(c);
+    let mut group_pairs: HashMap<crate::topology::SiblingGroup, HashSet<(String, String)>> = HashMap::new();
+    let mut group_roles: HashMap<crate::topology::SiblingGroup, HashSet<String>> = HashMap::new();
+    for (ctx_name, ctx_re) in &context_role_events {
+        group_pairs.entry(group_of(ctx_name)).or_default().extend(ctx_re.iter().cloned());
+    }
+    for (ctx_name, roles) in &context_roles {
+        group_roles.entry(group_of(ctx_name)).or_default().extend(roles.iter().cloned());
+    }
+    let mut sorted_contexts: Vec<&String> = all_contexts.iter().collect();
+    sorted_contexts.sort();
+    for ctx_name in &sorted_contexts {
+        if ignore_rest_contexts.contains(*ctx_name) { continue; }
+        if let Some(ctx_re) = context_role_events.get(*ctx_name) {
+            let context_span = context_spans.get(*ctx_name).cloned().unwrap_or(Span { 
                 start: Pos { line: 1, col: 1 }, 
                 end: Pos { line: 1, col: 10 } 
             });
-            for re in &role_events {
-                if !ctx_re.contains(re) {
-                    errors.push(Diagnostic {
-                        span: context_span.clone(),
-                        message: format!("La acción '{}.{}' no está declarada en el contexto '{}'", re.0, re.1, ctx_name),
-                        severity: "error".to_string(),
-                        code: "completeness".to_string(),
-                    });
-                }
+            let group = group_of(ctx_name);
+            let mut missing: Vec<&(String, String)> = group_pairs[&group].iter().filter(|re| !ctx_re.contains(*re)).collect();
+            missing.sort();
+            for re in missing {
+                errors.push(Diagnostic {
+                    span: context_span.clone(),
+                    message: format!("La acción '{}.{}' no está declarada en el contexto '{}' (se maneja en {})", re.0, re.1, ctx_name, group.describe()),
+                    severity: "error".to_string(),
+                    code: "completeness".to_string(),
+                });
             }
         }
     }
@@ -290,21 +314,23 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
         }
     }
 
-    // Pass 5: Rule 5 (Role Exhaustiveness)
-    for (ctx_name, roles) in &context_roles {
-        if ignore_rest_contexts.contains(ctx_name) { continue; }
-        for role_name in &all_roles {
-            if !roles.contains(role_name) {
-                errors.push(Diagnostic {
-                    span: context_spans.get(ctx_name).cloned().unwrap_or(Span { 
-                    start: Pos { line: 1, col: 1 }, 
-                    end: Pos { line: 1, col: 10 } 
-                }),
-                    message: format!("role '{}' appears in other contexts but is absent from context '{}'", role_name, ctx_name),
-                    severity: "error".to_string(),
-                    code: "exhaustiveness".to_string(),
-                });
-            }
+    // Pass 5: Rule 5 (Role Exhaustiveness), por grupos de hermanos (ver Pass 2).
+    for ctx_name in &sorted_contexts {
+        if ignore_rest_contexts.contains(*ctx_name) { continue; }
+        let Some(roles) = context_roles.get(*ctx_name) else { continue; };
+        let group = group_of(ctx_name);
+        let mut missing: Vec<&String> = group_roles[&group].iter().filter(|r| !roles.contains(*r)).collect();
+        missing.sort();
+        for role_name in missing {
+            errors.push(Diagnostic {
+                span: context_spans.get(*ctx_name).cloned().unwrap_or(Span { 
+                start: Pos { line: 1, col: 1 }, 
+                end: Pos { line: 1, col: 10 } 
+            }),
+                message: format!("role '{}' appears in {} but is absent from context '{}'", role_name, group.describe(), ctx_name),
+                severity: "error".to_string(),
+                code: "exhaustiveness".to_string(),
+            });
         }
     }
 
@@ -468,6 +494,71 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
                     ),
                     severity: "error".to_string(),
                     code: "import-mismatch".to_string(),
+                });
+            }
+        }
+    }
+
+    // Rule (Initial sub-context integrity): `initial: X` on an overlay context
+    // must name a sub-context whose transitions lead back to the overlay. The
+    // check mirrors `parent_of` inference used by the generator: a context is a
+    // sub-context of the overlay if any of its transitions target that overlay
+    // (directly or via a sibling sub-context).
+    //
+    // We only emit a diagnostic on the direct-parent case here; deeper graphs
+    // fall back to a soft check (existence-only) to avoid false negatives while
+    // the fixed-point inference lives only in the generator.
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            let Some(init) = ctx.initial_sub.as_ref() else { continue; };
+            // `initial:` only makes sense on overlays.
+            if !overlays.contains(&ctx.name) {
+                errors.push(Diagnostic {
+                    span: ctx.name_span.clone(),
+                    message: format!(
+                        "'initial:' declarado en '{}', que no es un overlay. Esta cláusula sólo se aplica a overlays con sub-contextos.",
+                        ctx.name
+                    ),
+                    severity: "error".to_string(),
+                    code: "initial-not-overlay".to_string(),
+                });
+                continue;
+            }
+            // The referenced context must exist.
+            if !all_contexts.contains(init) {
+                errors.push(Diagnostic {
+                    span: ctx.name_span.clone(),
+                    message: format!(
+                        "'initial: {}' referencia un contexto que no existe.",
+                        init
+                    ),
+                    severity: "error".to_string(),
+                    code: "initial-unknown".to_string(),
+                });
+                continue;
+            }
+            // The referenced context must be a sub-context — i.e. it cannot
+            // itself be a base, overlay, or concurrent (those have different
+            // stack semantics). The generator infers the parent_of relation
+            // via fixed-point on transitions to overlays / known sub-contexts;
+            // here we only check the structural exclusion, which is sufficient
+            // and tolerates `[close_overlay]`-style cerrar handlers (which do
+            // not name the parent explicitly).
+            let is_base = base_contexts.contains(init);
+            let is_overlay = overlays.contains(init);
+            let is_concurrent = concurrent_contexts.contains(init);
+            if is_base || is_overlay || is_concurrent {
+                errors.push(Diagnostic {
+                    span: ctx.name_span.clone(),
+                    message: format!(
+                        "'initial: {}' debe ser un sub-contexto (no un base, overlay o concurrent). '{}' está declarado como {}.",
+                        init, init,
+                        if is_base { "context base" }
+                        else if is_overlay { "overlay" }
+                        else { "concurrent" }
+                    ),
+                    severity: "error".to_string(),
+                    code: "initial-wrong-kind".to_string(),
                 });
             }
         }

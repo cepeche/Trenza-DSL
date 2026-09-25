@@ -19,6 +19,7 @@ Thumbs.db
 .idea/
 
 target/
+bin/
 *.pdb
 
 # Claude Code (configuración y temporales)
@@ -40,3 +41,32 @@ project_summary*
 # Coordination server runtime data
 locks.db
 trenza-coord/locks.db
+
+# Scratch dirs para regeneración del compilador (`--out-dir=tmp_*`)
+tmp_regen/
+tmp_audit/
+
+# LaTeX artefactos de compilación
+*.aux
+*.bbl
+*.blg
+*.out
+main_v2.log
+main_v3.log
+paper/main.pdf
+paper/main_v*.pdf
+paper/figures/*.pdf
+
+# Regenerado por scripts/generate_mailbox_ui.js via post-commit hook
+history/coordination/index.html
+
+# Artefactos de compilación LaTeX
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.log
+paper/*.out
+paper/*.synctex.gz
+paper/main2027.pdf

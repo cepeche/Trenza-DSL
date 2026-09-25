@@ -1,0 +1,164 @@
+diff -ruN history/inspirations/cronometro-psp-original/frontend/css/styles.css T1-A-3/frontend/css/styles.css
+--- history/inspirations/cronometro-psp-original/frontend/css/styles.css	2026-09-25 10:20:08.480219147 +0000
++++ T1-A-3/frontend/css/styles.css	2026-09-25 12:54:10.817178163 +0000
+@@ -15,6 +15,7 @@
+  * .activity-buttons / .activity-button    Botones de selección de actividad en modal
+  * .fab-button                             Botón flotante + (nueva tarea)
+  * .edit-mode-button                       Botón ✏️ (modo edición, junto al FAB)
++ * body.pause-mode / .pause-button         Modo pausa: fondo naranja + botón ⏸
+  * .settings-button / .settings-menu       Botón ⚙️ y su menú desplegable
+  * .form-group / .form-label / .form-input Formularios en modales (crear/editar)
+  * .icon-picker-*                          Selector de iconos Material Symbols
+@@ -391,6 +392,44 @@
+     transform: scale(0.95);
+ }
+ 
++/* Botón modo pausa (junto al botón de modo edición) */
++.pause-button {
++    position: fixed;
++    bottom: 90px;
++    right: 140px;
++    width: 48px;
++    height: 48px;
++    border-radius: 50%;
++    background: white;
++    color: #666;
++    border: 2px solid #e0e0e0;
++    font-size: 1.2rem;
++    cursor: pointer;
++    z-index: 90;
++    display: flex;
++    align-items: center;
++    justify-content: center;
++    transition: all 0.2s;
++    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
++}
++
++.pause-button.active {
++    background: #fff3e0;
++    border-color: #fb8c00;
++    color: #fb8c00;
++    box-shadow: 0 4px 12px rgba(251, 140, 0, 0.3);
++}
++
++.pause-button:active {
++    transform: scale(0.95);
++}
++
++/* Modo pausa: fondo del área de tareas para indicar que está desactivada */
++body.pause-mode .tab-content.active {
++    background: #fff3e0;
++    min-height: 100vh;
++}
++
+ /* Botón de settings */
+ .settings-button {
+     position: fixed;
+diff -ruN history/inspirations/cronometro-psp-original/frontend/index.html T1-A-3/frontend/index.html
+--- history/inspirations/cronometro-psp-original/frontend/index.html	2026-09-25 10:20:08.480219147 +0000
++++ T1-A-3/frontend/index.html	2026-09-25 12:54:39.569179872 +0000
+@@ -4,7 +4,7 @@
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Mi Cronómetro PSP</title>
+-    <link rel="stylesheet" href="css/styles.css?v=8">
++    <link rel="stylesheet" href="css/styles.css?v=9">
+ </head>
+ <body>
+     <!--
+@@ -15,7 +15,7 @@
+     Pestañas:  #tabs (generadas dinámicamente por generarPestanasActividades en app.js)
+     Contenido: #tabsContent (generado dinámicamente por generarPestanasActividades)
+     Pie:       .bottom-bar → #bottomComment (notas sesión activa) + #totalToday
+-    FABs:      #editModeButton ✏️ (modo edición), .fab-button + (nueva tarea)
++    FABs:      #editModeButton ✏️ (modo edición), #pauseButton ⏸ (modo pausa), .fab-button + (nueva tarea)
+ 
+     MODALES — class="modal-overlay", se activan añadiendo class "active"
+     ──────────────────────────────────────────────────────────────
+@@ -90,6 +90,9 @@
+     <!-- Botón modo edición -->
+     <button class="edit-mode-button" id="editModeButton" onclick="toggleModoEdicion()" title="Modo edición">✏️</button>
+ 
++    <!-- Botón modo pausa -->
++    <button class="pause-button" id="pauseButton" onclick="togglePausa()" title="Pausa">⏸</button>
++
+     <!-- Botón flotante + -->
+     <button class="fab-button" onclick="mostrarModalCrear()" title="Nueva tarea">+</button>
+ 
+@@ -353,6 +356,6 @@
+ 
+     <!-- Scripts -->
+     <script src="js/api-client.js?v=7"></script>
+-    <script src="js/app.js?v=17"></script>
++    <script src="js/app.js?v=18"></script>
+ </body>
+ </html>
+diff -ruN history/inspirations/cronometro-psp-original/frontend/js/app.js T1-A-3/frontend/js/app.js
+--- history/inspirations/cronometro-psp-original/frontend/js/app.js	2026-09-25 10:20:08.480478387 +0000
++++ T1-A-3/frontend/js/app.js	2026-09-25 12:54:37.421179745 +0000
+@@ -16,6 +16,7 @@
+  * § MODAL CREAR TAREA      #createTaskModal → POST /api/tipos-tarea
+  * § GESTIÓN TÁCTIL         umbral 10px para distinguir scroll de tap en móvil
+  * § MODO EDICIÓN           body.edit-mode, #editModeButton
++ * § MODO PAUSA             body.pause-mode, #pauseButton
+  * § MODAL EDITAR TAREA     #editTaskModal → PATCH /api/tipos-tarea
+  * § MODAL EDITAR ACTIV.    #editActivityModal → PUT /api/actividades?id=
+  * § MODAL CREAR ACTIV.     #createActivityModal → POST /api/actividades
+@@ -39,6 +40,7 @@
+     timerInterval: null,
+     pestanaActual: 'frecuentes',
+     modoEdicion: false,
++    modoPausa: false,
+     iconoSeleccionado: 'draft',
+     iconoEditSeleccionado: 'draft',
+     colorSeleccionado: '#667eea',
+@@ -513,6 +515,7 @@
+ }
+ 
+ function mostrarModalCrear() {
++    if (AppState.modoPausa) return; // en pausa, el botón + no hace nada
+     if (AppState.pestanaActual === 'frecuentes') {
+         mostrarModalCrearTarea();
+     } else {
+@@ -648,6 +651,7 @@
+ function tarjetaTouchEnd(e, tipoTareaId, esTipo, tareaId) {
+     if (_touchCancelled) return;
+     e.preventDefault(); // evitar que dispare también el onclick
++    if (AppState.modoPausa) return; // en pausa, las tarjetas no hacen nada
+     if (AppState.modoEdicion) {
+         mostrarModalEditarTarea(tipoTareaId);
+     } else if (esTipo) {
+@@ -659,6 +663,7 @@
+ 
+ function tarjetaClick(tipoTareaId, esTipo, tareaId) {
+     // Solo se ejecuta en ratón (en táctil, preventDefault en touchend lo evita)
++    if (AppState.modoPausa) return; // en pausa, las tarjetas no hacen nada
+     if (AppState.modoEdicion) {
+         mostrarModalEditarTarea(tipoTareaId);
+     } else if (esTipo) {
+@@ -673,12 +678,25 @@
+ // Activo: click en tarjeta → MODAL EDITAR TAREA | click en pestaña → MODAL EDITAR ACTIV.
+ 
+ function toggleModoEdicion() {
++    if (AppState.modoPausa) return; // en pausa, el botón ✏️ no hace nada
+     AppState.modoEdicion = !AppState.modoEdicion;
+     document.getElementById('editModeButton').classList.toggle('active', AppState.modoEdicion);
+     document.body.classList.toggle('edit-mode', AppState.modoEdicion);
+     actualizarUI();
+ }
+ 
++// === MODO PAUSA ===
++// HTML: #pauseButton | CSS: body.pause-mode (fondo naranja en área de tareas)
++// En pausa: tarjetas, ✏️ y + no hacen nada. Cambiar de pestaña y ⚙️ siguen funcionando.
++// Tocar ⏸ en modo edición no hace nada.
++
++function togglePausa() {
++    if (AppState.modoEdicion) return; // en modo edición, el botón ⏸ no hace nada
++    AppState.modoPausa = !AppState.modoPausa;
++    document.getElementById('pauseButton').classList.toggle('active', AppState.modoPausa);
++    document.body.classList.toggle('pause-mode', AppState.modoPausa);
++}
++
+ // === MODAL EDITAR TAREA ===
+ // HTML: #editTaskModal | API: PATCH /api/tipos-tarea
+ // Estado: iconoEditSeleccionado | Trigger: modo edición + click en tarjeta

@@ -18,13 +18,13 @@ external cronometro_api:
 
     iniciar_sesion(
 
-        tarea_id: Id,
+        tarea_id: ID,
 
-        notas: Texto?,
+        notas: String?,
 
-        minutos_retroactivos: Entero,
+        minutos_retroactivos: Int,
 
-        sustituir: Booleano
+        sustituir: Bool
 
     ) -> Sesion
 
@@ -34,7 +34,7 @@ external cronometro_api:
 
 
 
-    finalizar_sesion(sesion_id: Id) -> Sesion
+    finalizar_sesion(sesion_id: ID) -> Sesion
 
 
 
@@ -42,11 +42,11 @@ external cronometro_api:
 
     crear_tipo_tarea(
 
-        nombre: Texto,
+        nombre: String,
 
-        icono: Texto,
+        icono: String,
 
-        actividades_permitidas: Lista<Id>
+        actividades_permitidas: List<ID>
 
     ) -> TipoTarea
 
@@ -54,11 +54,11 @@ external cronometro_api:
 
     editar_tipo_tarea(
 
-        tipo_id: Id,
+        tipo_id: ID,
 
-        nombre: Texto,
+        nombre: String,
 
-        icono: Texto
+        icono: String
 
     ) -> TipoTarea
 
@@ -68,11 +68,11 @@ external cronometro_api:
 
     crear_actividad(
 
-        nombre: Texto,
+        nombre: String,
 
-        color: Color,
+        color: String,
 
-        permanente: Booleano
+        permanente: Bool
 
     ) -> Actividad
 
@@ -80,13 +80,13 @@ external cronometro_api:
 
     actualizar_actividad(
 
-        id: Id,
+        ID: ID,
 
-        nombre: Texto,
+        nombre: String,
 
-        color: Color,
+        color: String,
 
-        permanente: Booleano
+        permanente: Bool
 
     ) -> Actividad
 
@@ -94,7 +94,7 @@ external cronometro_api:
 
     -- Historial
 
-    cargar_historial(dias: Entero) -> Lista<DiaHistorial>
+    cargar_historial(dias: Int) -> List<DiaHistorial>
 
 
 
@@ -102,13 +102,13 @@ external cronometro_api:
 
     verificar_conexion() -> EstadoConexion
 
-    cargar_tiempo_acumulado() -> Lista<ResumenActividad>
+    cargar_tiempo_acumulado() -> List<ResumenActividad>
 
 
 
     -- Reset
 
-    reset_datos(actividades_conservar: Lista<Id>) -> Resultado
+    reset_datos(actividades_conservar: List<ID>) -> Resultado
 
     descargar_csv() -> Resultado
 
@@ -116,7 +116,7 @@ external cronometro_api:
 
     -- Utilidades UI
 
-    calcular_tiempo_transcurrido(inicio: Timestamp) -> Entero
+    calcular_tiempo_transcurrido(inicio: Timestamp) -> Int
 
     actualizar_grid_visible() -> Resultado
 

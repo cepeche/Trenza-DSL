@@ -25,9 +25,8 @@
 --   context ModalComentario:
 
 
---       input: tipoTareaId: Id, tareaId: Id?
+--       input: tipoTareaId: ID, tareaId: ID?
 context ModalComentario:
-    role *: ignored
 
 
 
@@ -36,9 +35,9 @@ context ModalComentario:
 
     -- input:
 
-    --     tipoTareaId: Id
+    --     tipoTareaId: ID
 
-    --     tareaId: Id?      -- opcional: si ya se eligió actividad
+    --     tareaId: ID?      -- opcional: si ya se eligió actividad
 
 
 

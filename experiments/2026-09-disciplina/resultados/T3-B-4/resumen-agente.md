@@ -1,0 +1,1 @@
+Único archivo: cronometro.trz (ModoEdicion). pestana_actividad pasa a cambiarPestana(self.id) y añade el effect; conserva deliberadamente la transición abrirEditarActividad → ModalEditarActividad, ya muerta, para pasar R3. Comprobación: trenza-cli check superado.

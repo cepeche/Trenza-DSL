@@ -1,0 +1,47 @@
+stateDiagram-v2
+
+    ConfigMenu --> CreateActivityModal : openCreateActivity
+    ConfigMenu --> HistoryModal : openHistory
+    ConfigMenu --> AboutModal : openAbout
+    ConfigMenu --> ResetModal : openReset
+    ConfigMenu --> close_overlay : close
+    AboutModal --> close_overlay : close
+    CommentModal --> close_overlay : confirmStart
+    CommentModal --> close_overlay : cancel
+    CreateActivityModal --> close_overlay : saveNewActivity
+    CreateActivityModal --> close_overlay : cancel
+    CreateTaskModal --> close_overlay : saveNewTask
+    CreateTaskModal --> close_overlay : cancel
+    EditActivityModal --> close_overlay : saveActivityEdit
+    EditActivityModal --> close_overlay : cancel
+    EditTaskModal --> close_overlay : saveEdit
+    EditTaskModal --> close_overlay : cancel
+    HistoryModal --> History7Days : start
+    HistoryModal --> close_overlay : close
+    History7Days --> History30Days : switchTo30Days
+    History7Days --> HistoryModal : close
+    History30Days --> History7Days : switchTo7Days
+    History30Days --> HistoryModal : close
+    ResetModal --> ResetPhase1 : start
+    ResetModal --> close_overlay : close
+    ResetPhase1 --> ResetPhase2 : advanceToPhase2
+    ResetPhase1 --> ResetModal : close
+    ResetPhase2 --> ResetPhase3 : advanceToPhase3
+    ResetPhase2 --> ResetPhase1 : backToPhase1
+    ResetPhase3 --> close_overlay : executeReset
+    ResetPhase3 --> ResetPhase2 : backToPhase2
+    SelectActivityModal --> CommentModal : chooseActivity
+    SelectActivityModal --> close_overlay : cancel
+    EditMode --> NormalMode : deactivateEdit
+    EditMode --> EditTaskModal : openEditTask
+    EditMode --> EditActivityModal : openEditActivity
+    EditMode --> CreateTaskModal : openCreateTask
+    EditMode --> ConfigMenu : openConfigMenu
+    NormalMode --> EditMode : activateEdit
+    NormalMode --> CreateTaskModal : openCreateTask
+    NormalMode --> ConfigMenu : openConfigMenu
+    NormalMode --> ActiveSession : startTask
+    NormalMode --> CommentModal : selectTaskType
+    NormalMode --> SelectActivityModal : chooseActivity
+    ActiveSession --> deactivate : sessionEnded
+    [*] --> NormalMode

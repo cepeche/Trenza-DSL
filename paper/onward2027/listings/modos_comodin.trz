@@ -1,0 +1,37 @@
+-- Listado 3 (paper Onward! 2027): la válvula de escape.
+-- Igual que modos_olvido.trz, pero ModoEdicion declara `role *: ignored`.
+-- Con el compilador actual VERIFICA sin diagnósticos: el comodín exime
+-- al contexto de las Reglas 1 y 5 y el olvido pasa inadvertido.
+
+data Tarea:
+    tareaId: Id
+
+data Pestana:
+    id: Id
+
+system Cronometro:
+    initial: ModoNormal
+    events: tap
+    contexts:
+        ModoNormal
+        ModoEdicion
+
+context ModoNormal:
+    role tarjeta: Tarea
+        on tap -> iniciarTarea(self.tareaId)
+    role pestana_frecuentes: Pestana
+        on tap -> cambiarPestana(self.id)
+    role boton_edicion: Pestana
+        on tap -> activarEdicion
+    transitions:
+        on activarEdicion -> ModoEdicion
+
+context ModoEdicion:
+    role *: ignored
+    role tarjeta: Tarea
+        on tap -> abrirEditarTarea(self.tareaId)
+    role pestana_frecuentes: Pestana
+    role boton_edicion: Pestana
+        on tap -> desactivarEdicion
+    transitions:
+        on desactivarEdicion -> ModoNormal

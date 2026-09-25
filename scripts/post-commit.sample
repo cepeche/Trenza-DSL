@@ -1,0 +1,8 @@
+#!/bin/sh
+# Regenera la UI del buzon inter-agente tras cada commit.
+# Copia este archivo a .git/hooks/post-commit y dale permisos de ejecucion.
+# Solo actua si cambio algo bajo history/coordination/.
+
+if git diff-tree --no-commit-id --name-only -r HEAD | grep -q '^history/coordination/'; then
+  node scripts/generate_mailbox_ui.js 2>&1 || echo "[post-commit] mailbox-ui generation failed (non-fatal)"
+fi

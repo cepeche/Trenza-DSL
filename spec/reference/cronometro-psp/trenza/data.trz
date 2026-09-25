@@ -12,53 +12,53 @@
 
 data TipoTarea:
 
-    tipoId: Id
+    tipoId: ID
 
-    nombre: Texto
+    nombre: String
 
-    icono: Texto
+    icono: String
 
-    mutable usos7d: Entero
+    mutable usos7d: Int
 
-    mutable actividades_permitidas: Lista<Id>
+    mutable actividades_permitidas: List<ID>
 
 
 
 data Tarea:
 
-    tareaId: Id           -- compuesto: "{tipoId}_{actividadId}"
+    tareaId: ID           -- compuesto: "{tipoId}_{actividadId}"
 
-    tipoId: Id
+    tipoId: ID
 
-    actividadId: Id
+    actividadId: ID
 
-    nombre: Texto
+    nombre: String
 
-    icono: Texto
+    icono: String
 
 
 
 data Actividad:
 
-    id: Id
+    ID: ID
 
-    nombre: Texto
+    nombre: String
 
-    color: Color
+    color: String
 
-    permanente: Booleano
+    permanente: Bool
 
 
 
 data Sesion:
 
-    sesionId: Id
+    sesionId: ID
 
-    tareaId: Id
+    tareaId: ID
 
     inicio: Timestamp
 
-    notas: Texto?          -- opcional: puede no haber comentario
+    notas: String?          -- opcional: puede no haber comentario
 
 
 
@@ -68,79 +68,79 @@ data Sesion:
 
 data CampoTexto:
 
-    id: Id
+    ID: ID
 
-    valor: Texto
+    valor: String
 
-    valido: Booleano
+    valido: Bool
 
 
 
 data CampoNumerico:
 
-    id: Id
+    ID: ID
 
-    valor: Entero
+    valor: Int
 
-    minimo: Entero
+    minimo: Int
 
 
 
 data Boton:
 
-    id: Id
+    ID: ID
 
-    etiqueta: Texto
+    etiqueta: String
 
-    mutable habilitado: Booleano
+    mutable habilitado: Bool
 
 
 
 data Checkbox:
 
-    id: Id
+    ID: ID
 
-    etiqueta: Texto
+    etiqueta: String
 
-    mutable marcado: Booleano
+    mutable marcado: Bool
 
 
 
 data SelectorColor:
 
-    id: Id
+    ID: ID
 
-    opciones: Lista<Color>
+    opciones: List<String>
 
-    mutable seleccionado: Color
+    mutable seleccionado: String
 
 
 
 data SelectorIcono:
 
-    id: Id
+    ID: ID
 
-    iconos: Lista<Texto>
+    iconos: List<String>
 
-    mutable seleccionado: Texto
+    mutable seleccionado: String
 
-    mutable filtro: Texto
+    mutable filtro: String
 
 
 
 data Pestana:
 
-    id: Id
+    ID: ID
 
-    etiqueta: Texto
+    etiqueta: String
 
 
 
 data ItemMenu:
 
-    id: Id
+    ID: ID
 
-    etiqueta: Texto
+    etiqueta: String
 
 
 
@@ -152,21 +152,21 @@ data DiaHistorial:
 
     timestamp: Timestamp
 
-    total: Entero           -- segundos totales
+    total: Int           -- segundos totales
 
-    por_actividad: Lista<ResumenActividad>
+    por_actividad: List<ResumenActividad>
 
 
 
 data ResumenActividad:
 
-    actividadId: Id
+    actividadId: ID
 
-    actividadNombre: Texto
+    actividadNombre: String
 
-    actividadColor: Color
+    actividadColor: String
 
-    tiempo: Entero          -- segundos
+    tiempo: Int          -- segundos
 
 
 
@@ -176,14 +176,14 @@ data ResumenActividad:
 
 data OpcionActividad:
 
-    id: Id
+    ID: ID
 
-    nombre: Texto
+    nombre: String
 
-    color: Color
+    color: String
 
-    permanente: Booleano
+    permanente: Bool
 
-    conservar: Booleano     -- checkbox en fase 2
+    conservar: Bool     -- checkbox en fase 2
 
-    mutable marcado: Booleano  -- estado UI del checkbox (transient)
+    mutable marcado: Bool  -- estado UI del checkbox (transient)

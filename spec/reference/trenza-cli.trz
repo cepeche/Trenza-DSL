@@ -3,18 +3,18 @@
 -- This file defines the internal state machine that orchestrates parsing, validation, and code generation.
 
 data ArgumentosUsuario:
-    comando: Texto
-    perfil: Texto
-    archivoTrz: Texto
-    lang: Texto
+    comando: String
+    perfil: String
+    archivoTrz: String
+    lang: String
 
 data AST:
-    pares: Lista
-    valido: Booleano
+    pares: List
+    valido: Bool
 
 data ErrorCompilacion [clasificacion: stderr]:
     linea: Numero
-    mensaje: Texto
+    mensaje: String
 
 system CLI_Trenza:
     initial: EsperandoComando

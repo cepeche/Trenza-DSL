@@ -2,7 +2,7 @@
 // Compiler Profile: pre
 // Concurrency Mode: composite
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum Contexto {
     EsperandoComando,
     ParseandoArchivo,
@@ -14,7 +14,8 @@ pub enum Contexto {
 }
 
 #[allow(non_snake_case)]
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ArgumentosUsuario {
     pub comando: String,
     pub perfil: String,
@@ -23,40 +24,42 @@ pub struct ArgumentosUsuario {
 }
 
 #[allow(non_snake_case)]
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AST {
     pub pares: Vec<String>,
     pub valido: bool,
 }
 
 #[allow(non_snake_case)]
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ErrorCompilacion {
     pub linea: i32,
     pub mensaje: String,
 }
 
 pub trait Effects {
-    fn comprobarIntegridad(&self, arg0: &str);
-    fn emitirCodigoRust(&self, arg0: &str);
-    fn emitirCodigoTS(&self, arg0: &str);
+    fn comprobarIntegridad(&self, arg0: &AST);
+    fn emitirCodigoRust(&self, arg0: &Vec<String>);
+    fn emitirCodigoTS(&self, arg0: &Vec<String>);
     fn imprimirAyudaCLI(&self, );
-    fn imprimirErrorFatal(&self, arg0: &str, arg1: &str);
-    fn imprimirMensajeExito(&self, arg0: &str);
-    fn leerYEvaluarArgumentos(&self, arg0: &str, arg1: &str);
-    fn leerYParsear(&self, arg0: &str);
+    fn imprimirErrorFatal(&self, arg0: &String, arg1: &i32);
+    fn imprimirMensajeExito(&self, arg0: &String);
+    fn leerYEvaluarArgumentos(&self, arg0: &String, arg1: &String);
+    fn leerYParsear(&self, arg0: &String);
 }
 
 pub struct NoOpEffects;
 impl Effects for NoOpEffects {
-    fn comprobarIntegridad(&self, arg0: &str) {}
-    fn emitirCodigoRust(&self, arg0: &str) {}
-    fn emitirCodigoTS(&self, arg0: &str) {}
+    fn comprobarIntegridad(&self, _arg0: &AST) {}
+    fn emitirCodigoRust(&self, _arg0: &Vec<String>) {}
+    fn emitirCodigoTS(&self, _arg0: &Vec<String>) {}
     fn imprimirAyudaCLI(&self, ) {}
-    fn imprimirErrorFatal(&self, arg0: &str, arg1: &str) {}
-    fn imprimirMensajeExito(&self, arg0: &str) {}
-    fn leerYEvaluarArgumentos(&self, arg0: &str, arg1: &str) {}
-    fn leerYParsear(&self, arg0: &str) {}
+    fn imprimirErrorFatal(&self, _arg0: &String, _arg1: &i32) {}
+    fn imprimirMensajeExito(&self, _arg0: &String) {}
+    fn leerYEvaluarArgumentos(&self, _arg0: &String, _arg1: &String) {}
+    fn leerYParsear(&self, _arg0: &String) {}
 }
 
 pub struct RecordingEffects {
@@ -71,100 +74,188 @@ impl RecordingEffects {
     }
 }
 impl Effects for RecordingEffects {
-    fn comprobarIntegridad(&self, arg0: &str) {
-        self.calls.borrow_mut().push(format!("comprobarIntegridad({})".to_string(), arg0));
+    fn comprobarIntegridad(&self, arg0: &AST) {
+        self.calls.borrow_mut().push(format!("comprobarIntegridad({:?})", arg0));
     }
-    fn emitirCodigoRust(&self, arg0: &str) {
-        self.calls.borrow_mut().push(format!("emitirCodigoRust({})".to_string(), arg0));
+    fn emitirCodigoRust(&self, arg0: &Vec<String>) {
+        self.calls.borrow_mut().push(format!("emitirCodigoRust({:?})", arg0));
     }
-    fn emitirCodigoTS(&self, arg0: &str) {
-        self.calls.borrow_mut().push(format!("emitirCodigoTS({})".to_string(), arg0));
+    fn emitirCodigoTS(&self, arg0: &Vec<String>) {
+        self.calls.borrow_mut().push(format!("emitirCodigoTS({:?})", arg0));
     }
     fn imprimirAyudaCLI(&self, ) {
         self.calls.borrow_mut().push("imprimirAyudaCLI".to_string());
     }
-    fn imprimirErrorFatal(&self, arg0: &str, arg1: &str) {
-        self.calls.borrow_mut().push(format!("imprimirErrorFatal({}, {})".to_string(), arg0, arg1));
+    fn imprimirErrorFatal(&self, arg0: &String, arg1: &i32) {
+        self.calls.borrow_mut().push(format!("imprimirErrorFatal({:?}, {:?})", arg0, arg1));
     }
-    fn imprimirMensajeExito(&self, arg0: &str) {
-        self.calls.borrow_mut().push(format!("imprimirMensajeExito({})".to_string(), arg0));
+    fn imprimirMensajeExito(&self, arg0: &String) {
+        self.calls.borrow_mut().push(format!("imprimirMensajeExito({:?})", arg0));
     }
-    fn leerYEvaluarArgumentos(&self, arg0: &str, arg1: &str) {
-        self.calls.borrow_mut().push(format!("leerYEvaluarArgumentos({}, {})".to_string(), arg0, arg1));
+    fn leerYEvaluarArgumentos(&self, arg0: &String, arg1: &String) {
+        self.calls.borrow_mut().push(format!("leerYEvaluarArgumentos({:?}, {:?})", arg0, arg1));
     }
-    fn leerYParsear(&self, arg0: &str) {
-        self.calls.borrow_mut().push(format!("leerYParsear({})".to_string(), arg0));
+    fn leerYParsear(&self, arg0: &String) {
+        self.calls.borrow_mut().push(format!("leerYParsear({:?})", arg0));
     }
 }
 
 use std::collections::HashSet as StdHashSet;
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct Snapshot {
+    pub base: Contexto,
+    pub overlay_stack: Vec<Contexto>,
+    pub concurrent: Vec<Contexto>,
+    pub current: Contexto,
+}
+
 pub struct System<'a> {
-    pub state: Contexto,
-    pub concurrent_states: StdHashSet<Contexto>,
+    pub base: Contexto,
+    pub overlay_stack: Vec<Contexto>,
+    pub concurrent: StdHashSet<Contexto>,
     pub effects: &'a dyn Effects,
+}
+
+fn payload_str<'a>(p: &'a serde_json::Value, key: &str) -> &'a str {
+    p.get(key).and_then(|v| v.as_str()).unwrap_or("")
 }
 
 impl<'a> System<'a> {
     pub fn new(initial: Contexto, effects: &'a dyn Effects) -> Self {
-        let mut concurrent_states = StdHashSet::new();
-        Self { state: initial, concurrent_states, effects }
+        Self {
+            base: initial,
+            overlay_stack: Vec::new(),
+            concurrent: StdHashSet::new(),
+            effects,
+        }
+    }
+
+    pub fn current_state(&self) -> Contexto {
+        self.overlay_stack.last().copied().unwrap_or(self.base)
+    }
+
+    pub fn snapshot(&self) -> Snapshot {
+        Snapshot {
+            base: self.base,
+            overlay_stack: self.overlay_stack.clone(),
+            concurrent: self.concurrent.iter().copied().collect(),
+            current: self.current_state(),
+        }
+    }
+
+    fn parent_overlay_of(c: Contexto) -> Option<Contexto> {
+        match c {
+            _ => None,
+        }
+    }
+
+    fn replace_top_or_push(&mut self, sub: Contexto) {
+        let parent = Self::parent_overlay_of(sub);
+        let same_parent = match (self.overlay_stack.last(), parent) {
+            (Some(top), Some(_)) => Some(*top) == parent || Self::parent_overlay_of(*top) == parent,
+            _ => false,
+        };
+        if same_parent {
+            *self.overlay_stack.last_mut().unwrap() = sub;
+        } else {
+            self.overlay_stack.push(sub);
+        }
     }
 
     pub fn handle_event(&mut self, event: &str) {
-        // Evaluate concurrent states sequentially (Composite Mode)
+        self.dispatch(event, &serde_json::Value::Null);
+    }
 
-        // Evaluate main state
-        match self.state {
+    pub fn dispatch(&mut self, event: &str, payload: &serde_json::Value) {
+        let prev = self.current_state();
+        self.dispatch_concurrent(event, payload);
+        self.dispatch_main(event, payload);
+        let new_current = self.current_state();
+        if new_current != prev {
+            self.run_on_entry(new_current, payload);
+        }
+    }
+
+    fn dispatch_concurrent(&mut self, event: &str, payload: &serde_json::Value) {
+        let _ = (event, payload);
+    }
+
+    fn dispatch_main(&mut self, event: &str, payload: &serde_json::Value) {
+        let _ = payload;
+        match self.current_state() {
             Contexto::EsperandoComando => {
                 match event {
-                    "comandoGenerate" => self.state = Contexto::ParseandoArchivo,
-                    "comandoInvalido" => self.state = Contexto::MostrarAyuda,
+                    "comandoGenerate" => {
+                        self.replace_top_or_push(Contexto::ParseandoArchivo);
+                    },
+                    "comandoInvalido" => {
+                        self.replace_top_or_push(Contexto::MostrarAyuda);
+                    },
                     _ => {},
                 }
             },
             Contexto::ParseandoArchivo => {
                 match event {
-                    "parseoExitoso" => self.state = Contexto::VerificandoReglas,
-                    "errorSintaxis" => self.state = Contexto::ErrorFatal,
+                    "parseoExitoso" => {
+                        self.replace_top_or_push(Contexto::VerificandoReglas);
+                    },
+                    "errorSintaxis" => {
+                        self.replace_top_or_push(Contexto::ErrorFatal);
+                    },
                     _ => {},
                 }
             },
             Contexto::VerificandoReglas => {
                 match event {
-                    "validacionExitosa" => self.state = Contexto::GenerandoStrands,
-                    "validacionFallida" => self.state = Contexto::ErrorFatal,
+                    "validacionExitosa" => {
+                        self.replace_top_or_push(Contexto::GenerandoStrands);
+                    },
+                    "validacionFallida" => {
+                        self.replace_top_or_push(Contexto::ErrorFatal);
+                    },
                     _ => {},
                 }
             },
             Contexto::GenerandoStrands => {
                 match event {
-                    "generacionCompleta" => self.state = Contexto::Exito,
+                    "generacionCompleta" => {
+                        self.replace_top_or_push(Contexto::Exito);
+                    },
                     _ => {},
                 }
             },
             Contexto::ErrorFatal => {
                 match event {
-                    "finalizar" => self.state = Contexto::EsperandoComando,
+                    "finalizar" => {
+                        self.replace_top_or_push(Contexto::EsperandoComando);
+                    },
                     _ => {},
                 }
             },
             Contexto::Exito => {
                 match event {
-                    "finalizar" => self.state = Contexto::EsperandoComando,
+                    "finalizar" => {
+                        self.replace_top_or_push(Contexto::EsperandoComando);
+                    },
                     _ => {},
                 }
             },
             Contexto::MostrarAyuda => {
                 match event {
-                    "finalizar" => self.state = Contexto::EsperandoComando,
+                    "finalizar" => {
+                        self.replace_top_or_push(Contexto::EsperandoComando);
+                    },
                     _ => {},
                 }
             },
+            _ => {},
         }
+    }
 
-        // Evaluate on_entry effects
-        match self.state {
+    fn run_on_entry(&self, state: Contexto, payload: &serde_json::Value) {
+        let _ = payload;
+        match state {
             _ => {},
         }
     }

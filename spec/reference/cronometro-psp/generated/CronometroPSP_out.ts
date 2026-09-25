@@ -38,7 +38,7 @@ export interface Tarea {
 }
 
 export interface Actividad {
-    id: string;
+    ID: string;
     nombre: string;
     color: string;
     permanente: boolean;
@@ -52,49 +52,49 @@ export interface Sesion {
 }
 
 export interface CampoTexto {
-    id: string;
+    ID: string;
     valor: string;
     valido: boolean;
 }
 
 export interface CampoNumerico {
-    id: string;
+    ID: string;
     valor: number;
     minimo: number;
 }
 
 export interface Boton {
-    id: string;
+    ID: string;
     etiqueta: string;
     habilitado: boolean;
 }
 
 export interface Checkbox {
-    id: string;
+    ID: string;
     etiqueta: string;
     marcado: boolean;
 }
 
 export interface SelectorColor {
-    id: string;
+    ID: string;
     opciones: string[];
     seleccionado: string;
 }
 
 export interface SelectorIcono {
-    id: string;
+    ID: string;
     iconos: string[];
     seleccionado: string;
     filtro: string;
 }
 
 export interface Pestana {
-    id: string;
+    ID: string;
     etiqueta: string;
 }
 
 export interface ItemMenu {
-    id: string;
+    ID: string;
     etiqueta: string;
 }
 
@@ -112,7 +112,7 @@ export interface ResumenActividad {
 }
 
 export interface OpcionActividad {
-    id: string;
+    ID: string;
     nombre: string;
     color: string;
     permanente: boolean;
@@ -124,7 +124,7 @@ export interface Effects {
     abrirAcercaDe(): void;
     abrirCrearActividad(): void;
     abrirCrearTarea(): void;
-    abrirEditarActividad(id: string): void;
+    abrirEditarActividad(ID: string): void;
     abrirEditarTarea(tipoId: string): void;
     abrirHistorial(): void;
     abrirMenuConfiguracion(): void;
@@ -138,14 +138,14 @@ export interface Effects {
     actualizarNombreNuevaActividad(valor: string): void;
     actualizarNuevoNombre(valor: string): void;
     actualizarRetroactivo(valor: number): void;
-    actualizar_actividad(id: string, nombre: string, color: string, permanente: boolean): void;
+    actualizar_actividad(ID: string, nombre: string, color: string, permanente: boolean): void;
     actualizar_grid_visible(): void;
     avanzarAFase2(): void;
     avanzarAFase3(): void;
     calcular_tiempo_transcurrido(inicio: number): void;
     cambiarA30Dias(): void;
     cambiarA7Dias(): void;
-    cambiarPestana(id: string): void;
+    cambiarPestana(ID: string): void;
     cancelar(): void;
     cargar_historial(dias: number): void;
     cargar_tiempo_acumulado(): void;
@@ -157,7 +157,7 @@ export interface Effects {
     descargar_csv(): void;
     editar_tipo_tarea(tipo_id: string, nombre: string, icono: string): void;
     ejecutarReset(): void;
-    elegirActividad(id: string): void;
+    elegirActividad(ID: string): void;
     exportarCSV(): void;
     filtrarIconos(valor: string): void;
     filtrarIconosCrear(valor: string): void;
@@ -180,8 +180,8 @@ export interface Effects {
     seleccionarIcono(seleccionado: string): void;
     seleccionarIconoNuevo(seleccionado: string): void;
     seleccionarTipoTarea(tipoId: string): void;
-    toggleActividadPermitida(id: string, marcado: boolean): void;
-    toggleConservar(id: string, marcado: boolean): void;
+    toggleActividadPermitida(ID: string, marcado: boolean): void;
+    toggleConservar(ID: string, marcado: boolean): void;
     verificar_conexion(): void;
 }
 
@@ -633,7 +633,7 @@ export function handle_boton_actividad_tap(ctx: Contexto, boton_actividad: Activ
     switch (ctx) {
         case Contexto.ModalSeleccionActividad:
             console.log(`[telemetry] context=${ctx}, role=boton_actividad, event=tap`);
-            effects.elegirActividad(boton_actividad.id);
+            effects.elegirActividad(boton_actividad.ID);
             return "elegirActividad";
     }
     return null;
@@ -883,11 +883,11 @@ export function handle_checkbox_actividad_cambio(ctx: Contexto, checkbox_activid
     switch (ctx) {
         case Contexto.ModalCrearTarea:
             console.log(`[telemetry] context=${ctx}, role=checkbox_actividad, event=cambio`);
-            effects.toggleActividadPermitida(checkbox_actividad.id, checkbox_actividad.marcado);
+            effects.toggleActividadPermitida(checkbox_actividad.ID, checkbox_actividad.marcado);
             return "toggleActividadPermitida";
         case Contexto.ResetFase2:
             console.log(`[telemetry] context=${ctx}, role=checkbox_actividad, event=cambio`);
-            effects.toggleConservar(checkbox_actividad.id, checkbox_actividad.marcado);
+            effects.toggleConservar(checkbox_actividad.ID, checkbox_actividad.marcado);
             return "toggleConservar";
     }
     return null;
@@ -980,11 +980,11 @@ export function handle_pestana_actividad_tap(ctx: Contexto, pestana_actividad: A
     switch (ctx) {
         case Contexto.ModoEdicion:
             console.log(`[telemetry] context=${ctx}, role=pestana_actividad, event=tap`);
-            effects.abrirEditarActividad(pestana_actividad.id);
+            effects.abrirEditarActividad(pestana_actividad.ID);
             return "abrirEditarActividad";
         case Contexto.ModoNormal:
             console.log(`[telemetry] context=${ctx}, role=pestana_actividad, event=tap`);
-            effects.cambiarPestana(pestana_actividad.id);
+            effects.cambiarPestana(pestana_actividad.ID);
             return "cambiarPestana";
     }
     return null;

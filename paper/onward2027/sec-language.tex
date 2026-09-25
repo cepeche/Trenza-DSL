@@ -1,0 +1,277 @@
+% =======================================================================
+% Onward! 2027 — technical core of the language (draft, 2026-09-25)
+%
+% Written in response to the Onward! 2026 metareview: "The Trenza
+% language ... is not sufficiently presented or described."
+%
+% House rule for this section: every claim about what the verifier
+% accepts or rejects is backed by a listing in paper/onward2027/listings/
+% and by trenza-core/tests/paper_listings.rs. Listings are included with
+% \lstinputlisting from those very files, so the paper cannot show a
+% listing that the compiler has not checked.
+%
+% Rule semantics below describe the validator at commit 3f5a336
+% (trenza-core/src/validator.rs). Where the implementation is narrower
+% than the 2026 paper claimed, this text follows the implementation; see
+% history/chronicle/2026-09-25/01_CL_auditoria_afirmaciones_vs_codigo.md.
+% =======================================================================
+
+\section{The Language}
+\label{sec:language}
+
+This section presents Trenza concretely: a complete specification, the
+grammar it is written in, the abstract model the verifier works on, and the
+rules the verifier checks, stated as predicates over that model. Identifiers
+in the listings are Spanish because they are taken from the case study
+(Section~\ref{sec:validation}); \emph{Modo} means mode, \emph{tarjeta} card,
+\emph{pesta\~na} tab.
+
+\subsection{A Complete Specification}
+\label{sec:example}
+
+Listing~\ref{lst:modos} is a complete Trenza specification, accepted by the
+verifier without diagnostics. It reduces the motivating defect of
+Section~\ref{sec:motivation} to its essentials: a timer application with a
+normal mode and an edit mode, in which the same three on-screen elements
+react differently to the same tap.
+
+\lstinputlisting[
+  float=t,
+  firstline=6,
+  firstnumber=6,
+  caption={A complete specification: two mutually exclusive modes.
+           Verified without diagnostics
+           (\texttt{paper/onward2027/listings/modos.trz}).},
+  label={lst:modos}
+]{onward2027/listings/modos.trz}
+
+A specification has three layers. (Line numbers are those of the source
+file, which begins with a comment header.) The \texttt{data} layer (lines 6--10)
+declares what things \emph{are}: plain records with no behavior. The
+\texttt{system} block (lines 12--17) declares the contexts, which one is
+initial, and the external events the system receives. Each \texttt{context}
+declares what things \emph{do there}: a \emph{role} binds a data type to a
+name (\texttt{role tarjeta: Tarea}), and each handler
+\texttt{on \emph{event} -> \emph{target}} states what that role does when it
+receives that event in that context. A target is either an action call
+(\texttt{iniciarTarea(self.tareaId)}), or one of two keywords:
+\texttt{ignored} (the event is deliberately a no-op) and \texttt{forbidden}
+(receiving the event is a runtime error). The \texttt{transitions} section
+maps actions to the context that becomes active after them.
+
+The point of the listing is what it does \emph{not} contain. There is no
+\texttt{editMode} boolean and no conditional that tests it. Which behavior a
+tap on a card has is determined by which context is active; the active
+context is changed only by transitions. In the original JavaScript
+implementation the same information was spread across five \texttt{if
+(AppState.modoEdicion)} tests in different functions (\texttt{app.js} lines
+286, 323, 411, 651 and 662 of the original, preserved in the repository).
+
+\lstinputlisting[
+  float=t,
+  firstline=6,
+  linerange={29-36},
+  firstnumber=29,
+  caption={The original defect, reintroduced: \texttt{ModoEdicion} no longer
+           says what the frequent-items tab does on tap
+           (\texttt{modos\_olvido.trz}). The verifier reports
+           \texttt{[29:9] La acci\'on 'pestana\_frecuentes.tap' no est\'a
+           declarada en el contexto 'ModoEdicion' [completeness]}
+           and nothing else.},
+  label={lst:olvido}
+]{onward2027/listings/modos_olvido.trz}
+
+Listing~\ref{lst:olvido} shows the same specification with the defect
+reintroduced: the edit mode omits the handler for the frequent-items tab. In
+the JavaScript original this omission was silent; the tab kept its
+normal-mode behavior in edit mode. In Trenza it is rejected with exactly one
+diagnostic, from Rule~1 below. Writing \texttt{on tap -> ignored} is not
+boilerplate to silence the checker: it records that the author considered
+the case and decided nothing should happen, and it makes that decision
+visible to a reviewer, human or model.
+
+\subsection{Grammar}
+\label{sec:grammar}
+
+Figure~\ref{fig:grammar} gives the core of the concrete syntax. It is a
+simplified but faithful transcription of the PEG used by the compiler
+(\texttt{trenza-core/src/trenza.pest}, 85 lines); the omitted productions
+cover typed inputs, role bindings, decorators, lifecycle effects,
+cross-package imports, and slots (a concurrent context contributing roles
+to an overlay).
+Layout is not significant; indentation in the listings is for the reader.
+
+\begin{figure*}[t]
+\small
+\begin{align*}
+\mathit{program}   &::= (\mathit{data} \mid \mathit{enum} \mid \mathit{system} \mid \mathit{context} \mid \mathit{external})^{*}\\
+\mathit{data}      &::= \texttt{data}\ \mathit{Id}\ \mathit{annot}^{?}\ \texttt{:}\ (\texttt{mutable}^{?}\ \mathit{id}\ \texttt{:}\ \mathit{Type})^{*}\\
+\mathit{system}    &::= \texttt{system}\ \mathit{Id}\ \texttt{:}\ \texttt{initial:}\ \mathit{Id}\ \mathit{section}^{*}\\
+\mathit{section}   &::= \texttt{contexts:}\ \mathit{Id}^{*} \mid \texttt{overlays:}\ \mathit{Id}^{*} \mid \texttt{concurrent:}\ \mathit{Id}^{*} \mid \texttt{events:}\ \mathit{id}^{*}\\
+\mathit{context}   &::= \texttt{context}\ \mathit{Id}\ \texttt{:}\ \mathit{clause}^{*}\\
+\mathit{clause}    &::= \mathit{role} \mid \texttt{role * :}\ \mathit{target} \mid \texttt{transitions:}\ \mathit{trans}^{*} \mid \texttt{effects:}\ \mathit{effect}^{*} \mid \dots\\
+\mathit{role}      &::= \texttt{role}\ \mathit{id}\ \mathit{annot}^{?}\ \texttt{:}\ \mathit{Type}\ (\texttt{on}\ \mathit{event}\ \texttt{->}\ \mathit{target})^{*}\\
+\mathit{target}    &::= \texttt{ignored} \mid \texttt{forbidden} \mid \mathit{action}\ (\texttt{(}\ \mathit{args}\ \texttt{)})^{?}\\
+\mathit{trans}     &::= \texttt{on}\ \mathit{action}\ \texttt{->}\ (\mathit{Id} \mid \texttt{[stay]} \mid \texttt{[close\_overlay]} \mid \texttt{[deactivate]})\\
+\mathit{annot}     &::= \texttt{[}\ \mathit{key}\ \texttt{:}\ \mathit{value}\ \texttt{]}
+\end{align*}
+\caption{Core grammar of Trenza (simplified from the compiler's PEG).}
+\label{fig:grammar}
+\end{figure*}
+
+\subsection{Abstract Model}
+\label{sec:model}
+
+The verifier does not reason about the generated code. It reasons about the
+following abstraction of a specification, which the parser builds directly.
+A specification denotes a tuple
+\[
+  S = (C,\ c_0,\ R,\ E,\ A,\ \tau,\ H,\ T,\ W)
+\]
+where $C$ is the finite set of contexts and $c_0 \in C$ the initial one;
+$R$, $E$ and $A$ are the finite sets of role names, event names and action
+names; $\tau : R \rightharpoonup \mathit{Type}$ assigns data types to roles;
+\[
+  H \subseteq C \times R \times E \times (A \cup \{\mathsf{ignored},\mathsf{forbidden}\})
+\]
+is the handler relation (one element per \texttt{on} line inside a role);
+\[
+  T \subseteq C \times A \times (C \cup \{\mathsf{stay},\mathsf{close},\mathsf{deactivate}\})
+\]
+is the transition relation; and $W \subseteq C$ is the set of contexts that
+declare the wildcard \texttt{role *}. We write $\mathit{roles}(c)$ for the
+roles declared in $c$ and
+$\mathit{pairs}(c) = \{(r,e) \mid \exists t.\ (c,r,e,t) \in H\}$ for the
+role--event pairs it handles.
+
+The contexts named in the \texttt{system} block are classified as
+\emph{base} (the initial context and those under \texttt{contexts:}; exactly
+one is active), \emph{overlay} (stacked on top of the base, suspending it) or
+\emph{concurrent} (active alongside the base). Every other context is a
+\emph{sub-context}, and belongs to the overlay that opens it with
+\texttt{initial:} or from which it is reached by transitions. This
+classification induces a partition of $C$ into \emph{sibling groups}:
+all base contexts form one group; the sub-contexts of each overlay form
+one group; every overlay and concurrent context forms a group by itself.
+We write $[c]$ for the group of $c$, and
+$R_{[c]} = \bigcup_{c' \in [c]} \mathit{roles}(c')$,
+$P_{[c]} = \bigcup_{c' \in [c]} \mathit{pairs}(c')$.
+
+From $T$ the verifier derives the \emph{context graph}
+$G = (C, \to)$ with $c \to c'$ iff $(c, a, c') \in T$ for some $a$, where
+the pseudo-targets are abstracted as follows: $\mathsf{stay}$ adds no edge,
+$\mathsf{close}$ and $\mathsf{deactivate}$ add an edge to $c_0$, and an
+overlay with \texttt{initial: Sub} has an edge to \texttt{Sub}. The
+\texttt{close} abstraction
+abstraction is coarse (at run time, closing an overlay returns to whatever
+context was beneath it, not necessarily $c_0$); Section~\ref{sec:limits}
+discusses its consequences.
+
+\subsection{The Rules}
+\label{sec:rules}
+
+Each rule is a predicate over $S$. A specification is accepted iff all
+error-level predicates hold. All predicates are decidable in time
+polynomial in the size of the specification; Rules 3 and 4 are graph
+searches, the rest are set comparisons.
+
+\begin{description}
+\item[R1 Completeness.] A role--event pair handled in some context is
+  handled in every sibling of that context that does not opt out:
+  \[ \forall c \in C \setminus W.\ P_{[c]} \subseteq \mathit{pairs}(c). \]
+\item[R2 Determinism.] Within a context, a role declares at most one
+  handler per event: for every $(c,r,e)$ there is at most one \texttt{on}
+  declaration, and hence at most one $t$ with $(c,r,e,t) \in H$.
+\item[R3 Reachability] (warning). Every context is reachable in $G$:
+  $\forall c \in C.\ c_0 \to^{*} c$.
+\item[R4 Return.] From every context the initial one is reachable in $G$:
+  $\forall c \in C.\ c \to^{*} c_0$. In particular R4 implies
+  $G, c_0 \models \mathbf{AG}\,\mathbf{EF}\, c_0$ in CTL: along no path
+  of $G$ does the system enter a context from which it cannot come back.
+\item[R5 Role exhaustiveness.] A role that appears in some context
+  appears in every sibling that does not opt out:
+  $\forall c \in C \setminus W.\ \mathit{roles}(c) = R_{[c]}$.
+\item[R6 Data conformance.] If a data type is annotated
+  \texttt{[privacy: gdpr]}, a role may pass one of its fields as an action
+  argument only if the role is annotated \texttt{[access: gdpr]}.
+\item[R7 Slot integrity.] Every \texttt{fills X.s} names a slot \texttt{s}
+  actually declared by context \texttt{X}; no slot is filled by two
+  contexts; R2 holds inside each \texttt{fills} block.
+\item[R8 Role-type consistency.] $\tau$ is a function: a role name has the
+  same data type in every context in which it appears.
+\end{description}
+
+In addition, the verifier rejects user identifiers beginning with
+\texttt{\_} (reserved for compiler-generated names), \texttt{initial:}
+clauses that do not name a sub-context of an overlay, and imports whose
+package does not define the imported system.
+
+Two remarks keep these rules in proportion. First, R1, R2, R5 and R8 are
+well-formedness conditions of the same nature as exhaustiveness checking of
+pattern matches in ML-family languages; their value lies not in their
+logical depth but in \emph{where} they are applied: to the table of
+(context, role, event) behaviors that ordinary code spreads across
+functions and files. Second, only R4 has a temporal reading, and only over
+the abstraction $G$. We do not claim that the rules are equivalent to
+arbitrary TLA$^{+}$ or Alloy specifications; they are a fixed, small set of
+properties chosen because each one closes a defect class we observed.
+
+\subsection{What Is Generated}
+\label{sec:generated}
+
+From an accepted specification the compiler emits: a Rust module (an enum
+of contexts, a handler function per role--event pair, and a
+\texttt{System} type that dispatches events and maintains the active
+context, an overlay stack and a set of active concurrent contexts); a
+TypeScript module with the same interface; one example-based test per
+transition and per (context, role, event) handler, in Rust and in Vitest;
+a Mermaid state diagram; and a Markdown report listing contexts,
+transitions and the role--event table. For Listing~\ref{lst:modos}
+\TODO{insert line counts and the generated \texttt{handle\_tarjeta\_tap}
+function once the generator changes below are in}.
+
+\subsection{Limits}
+\label{sec:limits}
+
+We state the limits of the current verifier explicitly, because each one
+is a place where a specification can be accepted while the property a
+reader would expect does not hold.
+
+\paragraph{The wildcard.} A context that declares \texttt{role *: ignored}
+is exempt from R1 and R5. The specification of Listing~\ref{lst:olvido}
+with that single line added to \texttt{ModoEdicion} is accepted without
+diagnostics (\texttt{modos\_comodin.trz}). An earlier version of the
+verifier applied R1 and R5 to \emph{all} contexts, so that a modal dialog
+had to declare a handler for every role of the main screen it covers; every
+context of the case study then needed the wildcard, and R1 and R5 were
+vacuous there. Scoping both rules to sibling groups removed the need for
+it everywhere: the case study now uses no wildcard at all. The only
+contexts that needed extra declarations were the three phases of a reset
+wizard, whose buttons differ from phase to phase; the buttons of the other
+phases are now declared \texttt{forbidden} in each phase, which records
+that receiving their events there is an error rather than silently
+ignoring it.
+
+\paragraph{Overlay return.} Abstracting $\mathsf{close}$ as an edge to
+$c_0$ makes R4 sound only if every context beneath an overlay can itself
+return to $c_0$, which R4 checks for base contexts but not for arbitrary
+stacking. \TODO{State and check the stacking invariant.}
+
+\paragraph{Dead transitions and indirect access.} R4 inspects declared
+transitions but does not check that some handler of the context can produce
+the triggering action, so a context whose only way back is never triggered
+is still accepted. R6 recognises field accesses written as
+\texttt{role.field} but not as \texttt{self.field}. Both gaps are pinned
+by tests in \nolinkurl{trenza-core/tests/rules.rs}. \TODO{Close both.}
+
+\paragraph{Generated code.} The verifier checks the specification, not the
+generated code, and we make no claim that \texttt{rustc} re-checks
+completeness: a handler for a role that exists only in some sibling groups
+has, by design, no behavior in the others, and the generated \texttt{match}
+says so with a catch-all arm. What we do check is that the generated code
+compiles and that its generated tests pass, for the listing above and for
+the full case study (\nolinkurl{scripts/check-generated.sh}, run in CI).
+Both generators share one semantics: a role handler returns the action it
+produced, and that action, not the raw event, selects the transition.
+The TypeScript generator still lacks concurrent dispatch and the
+\texttt{initial:} clause. \TODO{Close the TypeScript gap.}

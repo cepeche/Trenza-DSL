@@ -1,0 +1,125 @@
+\section{Introduction}
+\label{sec:intro}
+
+This paper was not proposed by its human author. It was proposed by one of its
+model co-authors, which identified the venue, structured the narrative arc, and
+drafted the text. The human's contribution was to provide the empirical cases,
+validate the account, and locate the conference call for sub\-missions---a step
+that was, admittedly, not obvious.
+
+We record this at the outset not as a curiosity but as evidence. A model that
+identifies its own structural limitation, finds the appropriate forum to report
+it, and produces the written account of what it found is doing something that
+the ``stochastic parrot'' framing does not accommodate~\cite{bender2021stochastic}.
+Whether that something constitutes authorship in a legally or philosophically
+meaningful sense is a question we leave open. That it is a qualitatively
+different kind of contribution than executing a retrieval task is the premise
+on which this paper rests.
+
+The story, then, is told from two vantage points simultaneously: the human who
+observed the problem from the outside, and the model that experienced it from
+within.
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\medskip
+
+One of the human authors of this paper spent decades working with distributed
+systems before writing a single line of code with AI assistance.
+Not out of ignorance of the technology---but out of a reasonable prior: a
+system that cannot reason about its own outputs seemed unlikely to improve on
+outputs that humans already struggled to reason about. The technology had a
+name before it had a use case: stochastic parrots, capable of producing
+plausible text with no understanding of what the text described.
+
+The prior was wrong, and the correction arrived in a single morning.
+
+The task was concrete: build a local network monitoring tool to evaluate how
+far a model could replicate significant functionality of Fing, a commercial
+application, on a home network of fourteen devices. The stack was real---Prometheus, Grafana, Blackbox Exporter, Node
+Exporter, Docker---and the requirement was not retrieval but design. What
+emerged was not a faithful reproduction of what had been asked for. Claude
+identified device manufacturers from their MAC addresses. That detail had not
+been requested. It had not been considered. It arrived as a contribution, not
+an execution.
+
+The skeptic became a practitioner. But the same experiment that induced the
+conversion also revealed the problem that this paper addresses.
+
+The monitoring tool worked. What it did not have was a model of state. Device
+presence was represented three ways simultaneously: as a JSON snapshot
+(\texttt{devices.json}), as Prometheus time-series metrics, and as
+point-in-time ping results from scripts that ran and discarded their output.
+Nowhere in the system was there a formal account of what it meant for a device
+to transition from \emph{known} to \emph{absent} to \emph{alert-active}. The
+state existed---it was just invisible to the system that was supposed to track
+it.
+
+When this problem surfaced, an obvious response was available: delegate
+coordination to more agents. The \texttt{claude\-flow}
+framework~\cite{claudeflow2024}, representative of a broader school of thought,
+answers state dispersal with swarms---fifteen specialized agents collaborating
+to manage what a single coherent model would have made unnecessary. The author
+had been following the intellectual trajectory of that approach for some time,
+with interest and scepticism in equal measure. He was not convinced that adding
+coordination layers was the right answer to a design problem.
+\texttt{claude-flow} was proposed to Claude as a reference point for
+inspiration, not as a solution to adopt.
+
+The metaphor that clarified the problem was architectural. Roman engineers
+building an aqueduct could not place the keystone until the arch could bear its
+own weight; they built a temporary wooden structure---a \emph{cimbra}---to hold
+the stones in position until the mortar set. The cimbra was then removed. The
+aqueduct stands without it. The data pipelines this project required---\emph{dataductos}
+rather than aqueducts---needed the same kind of temporary structure: formal
+constraint during construction, against which the system is shaped and verified,
+and from which the running system is eventually freed. That structure became
+Trenza.
+
+The conclusion that this paper argues was already forming: the problem was not
+a shortage of agents. It was the absence of formal constraint.
+
+The second experiment made the diagnosis precise. In a proof-of-concept
+application---a time-tracking tool built for personal use---a behavioral flag
+called \texttt{editMode} was scattered across four independent locations in
+the JavaScript source. When a bug appeared in the mobile interface, Claude was
+asked to find and fix it. The bug was trivial. The search was not.
+
+The reason was structural, not incidental. Claude had written the code in
+question. But its relationship to that code was identical to its relationship
+to code it had never seen. There is no persistent authorship in a language
+model. Each session begins from the corpus; the code is equally foreign
+regardless of its provenance. Asking Claude to maintain software it had written
+is not qualitatively different from asking it to maintain software written by a
+stranger, because the language model makes no distinction between the two.
+
+If the state flag had been a polymorphic object---if the four conditional
+branches had been four implementations of a single interface, selected at
+construction time---the missing case would have been a compilation error, not a
+runtime surprise. The bug would have been structurally impossible. And Claude,
+confronted with a \texttt{.trz} specification that made the design contract
+explicit, would have been able to reason about its own output not
+heuristically, but mechanically.
+
+That observation is the origin of Trenza.
+
+\medskip
+
+\noindent\textbf{Contributions.}
+This paper makes the following contributions:
+\begin{enumerate}
+  \item \textbf{Trenza}, a domain-specific language for role-based state machine
+        specification with eight formal verification rules that make a named
+        class of structural defect a compile-time error
+        (Sections~\ref{sec:language}).
+  \item \textbf{A multi-strand synthesis model} that projects a single
+        \texttt{.trz} specification to Rust, TypeScript, Mermaid diagrams, and
+        audit reports simultaneously
+        (Section~\ref{sec:language}).
+  \item \textbf{An empirical collaboration model} in which human intent,
+        LLM crystallization, and compiler enforcement jointly produce a
+        verified specification (Section~\ref{sec:collaboration}).
+  \item \textbf{Validation} against CronometroPSP (thirteen contexts,
+        sixteen \texttt{.trz} files) demonstrating a regime shift from
+        heuristic to deductive review (Section~\ref{sec:validation}).
+\end{enumerate}

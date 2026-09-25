@@ -1,0 +1,146 @@
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Statecharts and State-Machine Notations}
+
+Harel's statecharts~\cite{harel1987statecharts} introduced hierarchical,
+concurrent finite state machines as a visual formalism for reactive systems,
+providing the first notation expressive enough to describe realistic
+event-driven behavior without combinatorial explosion. The influence on Trenza
+is direct: contexts and transitions are semantically grounded in the same
+intuition that state topology is the right primitive for behavioral
+specification. The departure is equally direct. Statecharts are a diagrammatic
+notation; their primary artifact is a drawing, not a text file---incompatible
+with version control, diff-based review, and consumption by language models.
+Trenza inverts the artifact hierarchy: the \texttt{.trz} specification is the
+source of truth stored as plain text under Git, and the Mermaid statechart is a
+derived projection synthesized at compile time.
+
+SCXML~\cite{scxml2015} and XState~\cite{xstate2019} bring statecharts to
+software environments as XML vocabularies and JavaScript libraries
+respectively. Both remain implementation-level formalisms: they specify how a
+runtime should behave, not what behavioral contracts hold across all contexts.
+Neither enforces role exhaustiveness, data-scope least privilege, or
+multi-target synthesis.
+
+\subsection{Conceptual Antecedents}
+
+Reenskaug and Coplien's Data-Context-Interaction architecture~\cite{reenskaug2009dci}
+elevated roles to first-class citizens by separating the stable structure of
+domain objects (Data) from situational use-case logic (Context) and dynamic
+execution paths (Interaction). Trenza inherits DCI's core insight directly: a
+datum is inert until it assumes a transient role within a named context; outside
+that context, the role and its permissions do not exist. Where Trenza departs
+from DCI is in formalizing this insight as a set of mechanically enforced rules.
+DCI is an architectural philosophy; it imposes no compiler-checkable constraints
+on which roles must appear in which contexts. Trenza does: Rule~1 (Completeness)
+requires every role-event pair to be handled in every context; Rule~6 (Data
+conformance) enforces access-scope least privilege structurally.
+
+Pawson's Naked Objects~\cite{pawson2002nakedobj} argues that domain behavior
+should be exposed directly through the user interface, without intermediate
+presentation layers. The underlying commitment is shared: behavior should be
+visible at the level where decisions are taken. In Naked Objects, the UI exposes
+what the domain object does; in Trenza, the \texttt{.trz} exposes what every
+(role, event) pair does in every context. Both proposals attack the same
+defect---behavior hidden behind a layer of indirection---at different points in
+the stack.
+
+NetKernel~\cite{rodgers2006netkernel} introduced Resource-Oriented Computing,
+in which computation is described as a sequence of named, addressable,
+side-effect-bounded transformations. Trenza shares the intuition that naming is
+the right lever for making systems tractable---specifically, naming contexts as
+the addressable unit of behavioral specification. The lineage is indirect and is
+declared as such.
+
+\subsection{Formal Specification Languages}
+
+TLA+~\cite{lamport2002tla} and Alloy~\cite{jackson2006alloy} are the most
+capable lightweight formal methods for software specification. TLA+ can express
+and model-check liveness and safety properties of distributed systems; Alloy
+can find counterexamples to relational invariants across bounded domains. The
+power of both tools is not in question. The constraint is access. Writing a
+TLA+ specification requires comfort with temporal logic; writing an Alloy model
+requires fluency with relational algebra. Neither was designed with LLM
+consumption as a design goal. Trenza occupies a different point in the design
+space: it sacrifices the expressive power of full temporal logic in exchange for
+a constraint set that is simultaneously enforceable by a fast compiler and
+traversable by an LLM as a finite truth table. The verification question in
+Trenza is not ``does this system satisfy a temporal property under all
+interleavings?'' but ``does this implementation correspond, entry by entry, to
+what the specification declares?''---a weaker question that a language model
+answers deductively rather than probabilistically.
+
+\subsection{Model-Driven Engineering}
+
+Executable UML~\cite{mellor2002xuml} and the broader MDA tradition pursued the
+same fundamental goal as Trenza: elevate specification above implementation and
+generate code from formal models. This project failed in practice for
+compounding reasons~\cite{mernik2005when}: modeling notations grew to
+accommodate every possible use case; artifacts lived in proprietary binary
+formats incompatible with version control; code generation was partial, breaking
+the round-trip guarantee and leaving models perpetually out of sync with
+production code. Most consequentially for the present work, these models were
+designed to be read by humans pointing at a GUI, not parsed or critiqued by a
+language model. Trenza is designed for the opposite constraints: a single
+plain-text file per specification, stored in Git, structured so that every
+semantic contract appears exactly once, and processable by a compiler and an LLM
+with equal facility.
+
+\subsection{Language Design for Non-Expert Readers}
+
+Hermans documents~\cite{hermans2021brain} that the design of programming
+languages is a problem of working memory and chunking: languages that minimize
+the number of unrelated concepts a reader must hold in mind simultaneously are
+easier to learn and easier to review. Trenza's eight rules are deliberately
+phrased so that each rule corresponds to a single chunk a reader can hold
+(\emph{``every role handles every event in every context''}); the verifier's
+diagnostics report violations in the same vocabulary. The design pressure that
+produced this---the LLM must be able to read the rule and reason about it
+without unpacking a definition---is the same pressure Hermans documents for
+human readers.
+
+Hedy~\cite{hermans2020hedy} demonstrates that a programming language's syntactic
+surface can be designed to grow with the learner, with each level complete in
+itself and each transition small enough to avoid overwhelming the reader.
+Trenza's design takes a related stance for an LLM audience: the surface is
+intentionally small and self-describing, so that a model with a \texttt{.trz}
+file in context can reason about modifications without consulting external
+documentation.
+
+\subsection{DSLs for Reactive and State-Managed Systems}
+
+The Elm architecture~\cite{czaplicki2012elm} and its descendants---including
+typed reactive frameworks for other functional ecosystems---demonstrate that a
+sufficiently restrictive type system, combined with a canonical state management
+pattern, can eliminate entire classes of runtime errors. The design philosophy
+is shared with Trenza: the right constraints imposed early reduce defect surface
+area more effectively than post-hoc testing applied to an unconstrained language.
+The difference lies in scope and synthesis target. Elm and similar systems are
+single-paradigm, single-target: specification and implementation are the same
+artifact. Trenza separates them explicitly. The same \texttt{.trz} specification
+currently produces four coherent artifacts---Rust, TypeScript, Mermaid
+schematics, and audit reports---from a single source. The completeness,
+determinism, and reachability guarantees are enforced once, at specification
+level, and hold across all targets simultaneously.
+
+\subsection{Contemporary Systems}
+
+Multi-agent coordination frameworks such as \texttt{claude-flow}
+\cite{claudeflow2024} address a legitimate problem: distributing independent
+workstreams across
+specialized agents when no single model session can hold the full context.
+That problem is real. The state dispersal problem described in
+Section~\ref{sec:motivation} is different in kind. It is not a question of
+cognitive capacity; it is the absence of a shared, formal account of what the
+system's state is. Adding agents without adding a state model produces a system
+that is more complex without being more coherent. The two approaches address
+different failure modes and are not in competition for the same problem space.
+
+The Model Context Protocol~\cite{anthropic2024mcp} standardizes the protocol
+layer by which an LLM session communicates with external tools and resources.
+Trenza occupies a different layer: it specifies \emph{what the system does},
+not how the model invokes external capabilities. The two compose naturally---a
+\texttt{.trz} file can declare \texttt{external:} modules whose runtime binding
+is provided by MCP servers---but Trenza adds no constraints on the protocol
+itself.
