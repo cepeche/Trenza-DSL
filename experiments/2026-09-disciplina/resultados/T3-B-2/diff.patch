@@ -1,0 +1,64 @@
+--- examples/cronometro-wasm/src/cronometro_full.trz	2026-09-25 12:35:43.093702522 +0000
++++ T3-B-2/cronometro.trz	2026-09-25 12:54:50.329180512 +0000
+@@ -651,6 +651,20 @@
+ 
+ -- PROPUESTA GAP-1: necesita recibir el actividadId para cargar datos actuales.
+ 
++--
++
++-- NOTA (25 sep 2026): tras el cambio de pestaÃ±as de actividad en modo ediciÃ³n
++
++-- (ahora cambian de pestaÃ±a en vez de abrir este modal, ver ModoEdicion),
++
++-- este contexto queda temporalmente inalcanzable. Se conserva porque la
++
++-- ediciÃ³n de actividades se reconectarÃ¡ por otra vÃ­a mÃ¡s adelante (fuera
++
++-- del alcance de este cambio). `trenza-cli check` seÃ±alarÃ¡ [reachability]
++
++-- para este contexto hasta entonces; es esperado.
++
+ 
+ 
+ context ModalEditarActividad:
+@@ -1225,7 +1239,8 @@
+ 
+     role pestana_actividad: Actividad
+ 
+-        on tap -> abrirEditarActividad(self.id)
++        on tap -> cambiarPestana(self.id)          -- cambia de pestaÃ±a, igual que en ModoNormal
++                                                     -- (editar la actividad se harÃ¡ por otra vÃ­a)
+ 
+ 
+ 
+@@ -1259,27 +1274,21 @@
+ 
+         on abrirEditarTarea       -> ModalEditarTarea
+ 
+-        on abrirEditarActividad   -> ModalEditarActividad
+-
+         on abrirCrearTarea        -> ModalCrearTarea
+ 
+         on abrirMenuConfiguracion -> MenuConfiguracion
+ 
+ 
+ 
+-    -- NOTA: abrirEditarTarea y abrirEditarActividad necesitan
++    -- NOTA: abrirEditarTarea necesita pasar el ID del elemento a editar
+ 
+-    -- pasar el ID del elemento a editar al modal destino.
+-
+-    -- Ver GAP-1 en ANALISIS_GAPS.md.
++    -- al modal destino. Ver GAP-1 en ANALISIS_GAPS.md.
+ 
+ 
+ 
+     effects:
+ 
+-        -- No hay efectos directos en ModoEdicion.
+-
+-        -- Los efectos viven en los modales de ediciÃ³n.
++        cambiarPestana -> actualizarGridVisible()
+ 
+ -- contexts/ModoNormal.trz
+ 

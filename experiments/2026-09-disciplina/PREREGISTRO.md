@@ -167,3 +167,12 @@ Por réplica:
    directorio de trabajo; el texto es idéntico (lo genera `preparar.py`).
    Las réplicas piloto cuentan como réplica 1 de T1 porque se ejecutaron con
    el protocolo registrado.
+
+2. **Defecto del material descubierto durante la ejecución (2026-09-25,
+   réplicas T3-B-1 y T3-B-2).** `GUIA-TRENZA.md` describe R3 como "aviso",
+   pero `trenza-cli check` falla también con avisos. T3-B-1 lo sorteó
+   dejando una transición muerta; T3-B-2 entregó un `.trz` que no verifica,
+   lo que según el protocolo cuenta como réplica **no correcta**. La guía
+   **no se corrige** hasta terminar las 40 réplicas, para no cambiar las
+   condiciones a mitad del experimento. El análisis informará de este
+   defecto junto al resultado.
