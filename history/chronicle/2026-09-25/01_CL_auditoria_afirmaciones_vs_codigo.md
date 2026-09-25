@@ -59,6 +59,7 @@ Esto es una **decisión de diseño pendiente**, no un bug (ver §4).
 | A13 | Verificación en "<100 ms" | **Cierto**, con margen: el cronómetro se parsea en ~0,9 ms y se verifica en ~0,13 ms (`paper/onward2027/bench-2026-09-25.md`). Pero no había código de medición, y el benchmark reveló que el **parseo era cuadrático** (3,1 s para 9.000 líneas). Corregido en `5c4eb01`: ahora 7,6 ms. | Citar la tabla y el script en el paper. |
 | A14 | MonitoreoRed "remains without a `.trz`" | `examples/MonitoreoRed.trz` existe (21 abr) y verifica, pero sus tres contextos usan `role *: ignored`, y la sección `effects:` final se adjunta sintácticamente a `Alerting`. | Rehacerlo sin comodines como segundo caso de estudio (tarea #5). |
 | A15 | El ejemplo de la spec (`02-grammar.md`, "Complete Example") | No parsea: `effects: iniciarTarea -> POST /api/…` no es una `action_call`. | Sustituirlo por un listado verificado. |
+| A16 | ADR-022 (aceptado el 22 may): "Rule 9 — Immediate Transition Acyclicity" | **No implementada.** En `validator.rs:447` hay una "Pass 8: Rule 9 (Import Integrity - ADR-022)" que comprueba otra cosa: que un `use X#hash` corresponda a un `system X`. Hay dos reglas distintas con el mismo número y el mismo ADR. | Renumerar: la integridad de importación necesita su propio número o ADR, y hay que implementar la aciclicidad del ADR-022 o marcarla como pendiente. |
 
 Hallazgos al escribir `trenza-core/tests/rules.rs` (22 tests, uno o más por regla):
 - **R6 no ve `self.campo`.** Sólo reconoce `rol.campo` y `binding.campo`. El
