@@ -63,12 +63,9 @@ The point of the listing is what it does \emph{not} contain. There is no
 \texttt{editMode} boolean and no conditional that tests it. Which behavior a
 tap on a card has is determined by which context is active; the active
 context is changed only by transitions. In the original JavaScript
-implementation the same information was spread across several \texttt{if
-(modoEdicion)} tests in different functions, and the defect was a place
-that should have tested it and did not.
-\ARGCESAR{Exact count: the 2026 paper says four places, the language spec
-says five (app.js lines 286, 323, 411, 651, 662). Which one is right, and
-was the defect the tab handler?}
+implementation the same information was spread across five \texttt{if
+(AppState.modoEdicion)} tests in different functions (\texttt{app.js} lines
+286, 323, 411, 651 and 662 of the original, preserved in the repository).
 
 \lstinputlisting[
   float=t,
