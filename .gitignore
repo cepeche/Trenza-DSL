@@ -59,3 +59,14 @@ paper/figures/*.pdf
 
 # Regenerado por scripts/generate_mailbox_ui.js via post-commit hook
 history/coordination/index.html
+
+# Artefactos de compilación LaTeX
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.log
+paper/*.out
+paper/*.synctex.gz
+paper/main2027.pdf

@@ -5,12 +5,43 @@ use pest::Parser;
  
 fn get_span(pair: &pest::iterators::Pair<Rule>) -> Span {
     let span = pair.as_span();
-    let (line_start, col_start) = span.start_pos().line_col();
-    let (line_end, col_end) = span.end_pos().line_col();
+    let input = span.get_input();
+    let (line_start, col_start) = line_col(input, span.start());
+    let (line_end, col_end) = line_col(input, span.end());
     Span {
         start: Pos { line: line_start, col: col_start },
         end: Pos { line: line_end, col: col_end },
     }
+}
+
+thread_local! {
+    /// Índice de inicios de línea de la última entrada parseada, identificada
+    /// por (puntero, longitud). `pest::Position::line_col` recorre la entrada
+    /// desde el principio en cada llamada, lo que hacía el parseo cuadrático
+    /// en el tamaño del archivo (ver scripts/bench-verify.sh).
+    static LINE_INDEX: std::cell::RefCell<(usize, usize, Vec<usize>)> =
+        std::cell::RefCell::new((0, 0, Vec::new()));
+}
+
+/// (línea, columna) 1-based de un offset en bytes, con la misma convención
+/// que `pest::Position::line_col` (la columna cuenta caracteres, no bytes).
+fn line_col(input: &str, offset: usize) -> (usize, usize) {
+    LINE_INDEX.with(|cell| {
+        let mut idx = cell.borrow_mut();
+        let key = (input.as_ptr() as usize, input.len());
+        if (idx.0, idx.1) != key {
+            let mut starts = vec![0];
+            starts.extend(input.match_indices('\n').map(|(i, _)| i + 1));
+            *idx = (key.0, key.1, starts);
+        }
+        let starts = &idx.2;
+        let line = match starts.binary_search(&offset) {
+            Ok(i) => i,
+            Err(i) => i - 1,
+        };
+        let col = input[starts[line]..offset].chars().count() + 1;
+        (line + 1, col)
+    })
 }
 
 pub fn parse_file(content: &str) -> std::result::Result<Program, pest::error::Error<Rule>> {
@@ -597,5 +628,22 @@ context C:
         
         let reparsed = parse_file(&serialized).unwrap();
         assert_eq!(reparsed.to_trz(), serialized);
+    }
+}
+
+#[cfg(test)]
+mod line_col_tests {
+    use super::line_col;
+
+    #[test]
+    fn coincide_con_pest_en_entrada_multibyte() {
+        let input = "data Pestaña:\n    año: Entero\r\n\n  é\tx\nfin";
+        for offset in 0..=input.len() {
+            if !input.is_char_boundary(offset) {
+                continue;
+            }
+            let expected = pest::Position::new(input, offset).unwrap().line_col();
+            assert_eq!(line_col(input, offset), expected, "offset {offset}");
+        }
     }
 }

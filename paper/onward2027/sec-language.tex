@@ -38,15 +38,17 @@ react differently to the same tap.
 \lstinputlisting[
   float=t,
   firstline=6,
+  firstnumber=6,
   caption={A complete specification: two mutually exclusive modes.
            Verified without diagnostics
            (\texttt{paper/onward2027/listings/modos.trz}).},
   label={lst:modos}
 ]{onward2027/listings/modos.trz}
 
-A specification has three layers. The \texttt{data} layer (lines 1--5)
+A specification has three layers. (Line numbers are those of the source
+file, which begins with a comment header.) The \texttt{data} layer (lines 6--10)
 declares what things \emph{are}: plain records with no behavior. The
-\texttt{system} block (lines 7--12) declares the contexts, which one is
+\texttt{system} block (lines 12--17) declares the contexts, which one is
 initial, and the external events the system receives. Each \texttt{context}
 declares what things \emph{do there}: a \emph{role} binds a data type to a
 name (\texttt{role tarjeta: Tarea}), and each handler
@@ -72,6 +74,7 @@ was the defect the tab handler?}
   float=t,
   firstline=6,
   linerange={29-36},
+  firstnumber=29,
   caption={The original defect, reintroduced: \texttt{ModoEdicion} no longer
            says what the frequent-items tab does on tap
            (\texttt{modos\_olvido.trz}). The verifier reports
@@ -97,10 +100,11 @@ Figure~\ref{fig:grammar} gives the core of the concrete syntax. It is a
 simplified but faithful transcription of the PEG used by the compiler
 (\texttt{trenza-core/src/trenza.pest}, 85 lines); the omitted productions
 cover typed inputs, role bindings, decorators, lifecycle effects,
-cross-package imports, and the slot mechanism of Section~\ref{sec:composition}.
+cross-package imports, and slots (a concurrent context contributing roles
+to an overlay).
 Layout is not significant; indentation in the listings is for the reader.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \small
 \begin{align*}
 \mathit{program}   &::= (\mathit{data} \mid \mathit{enum} \mid \mathit{system} \mid \mathit{context} \mid \mathit{external})^{*}\\
@@ -116,7 +120,7 @@ Layout is not significant; indentation in the listings is for the reader.
 \end{align*}
 \caption{Core grammar of Trenza (simplified from the compiler's PEG).}
 \label{fig:grammar}
-\end{figure}
+\end{figure*}
 
 \subsection{Abstract Model}
 \label{sec:model}
@@ -243,7 +247,7 @@ transitions but does not check that some handler of the context can produce
 the triggering action, so a context whose only way back is never triggered
 is still accepted. R6 recognises field accesses written as
 \texttt{role.field} but not as \texttt{self.field}. Both gaps are pinned
-by tests in \texttt{trenza-core/tests/rules.rs}. \TODO{Close both.}
+by tests in \nolinkurl{trenza-core/tests/rules.rs}. \TODO{Close both.}
 
 \paragraph{Generated code.} The verifier checks the specification, not the
 generated code. The generated Rust currently ends every \texttt{match} with
