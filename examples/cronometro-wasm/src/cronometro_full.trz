@@ -303,7 +303,6 @@ system CronometroPSP:
 
 
 context MenuConfiguracion:
-    role *: ignored
 
 
 
@@ -371,7 +370,6 @@ context MenuConfiguracion:
 
 
 context ModalAcercaDe:
-    role *: ignored
 
 
 
@@ -425,7 +423,6 @@ context ModalAcercaDe:
 
 --       input: tipoTareaId: Id, tareaId: Id?
 context ModalComentario:
-    role *: ignored
 
 
 
@@ -513,7 +510,6 @@ context ModalComentario:
 
 
 context ModalCrearActividad:
-    role *: ignored
 
 
 
@@ -577,7 +573,6 @@ context ModalCrearActividad:
 
 
 context ModalCrearTarea:
-    role *: ignored
 
 
 
@@ -659,7 +654,6 @@ context ModalCrearTarea:
 
 
 context ModalEditarActividad:
-    role *: ignored
 
 
 
@@ -737,7 +731,6 @@ context ModalEditarActividad:
 
 
 context ModalEditarTarea:
-    role *: ignored
 
 
 
@@ -832,7 +825,6 @@ context ModalEditarTarea:
 
 context ModalHistorial:
     initial: Historial7Dias
-    role *: ignored
 
 
 
@@ -851,7 +843,6 @@ context ModalHistorial:
 
     -- Sub-contexto: vista de 7 dÃ­as (activo por defecto)
 context Historial7Dias:
-    role *: ignored
 
 
 
@@ -886,7 +877,6 @@ context Historial7Dias:
 
     -- Sub-contexto: vista de 30 dÃ­as
 context Historial30Dias:
-    role *: ignored
 
 
 
@@ -943,7 +933,6 @@ context Historial30Dias:
 
 context ModalReset:
     initial: ResetFase1
-    role *: ignored
 
 
 
@@ -966,6 +955,9 @@ context ModalReset:
 
     -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 context ResetFase1:
+    -- PENDIENTE (2026-09-25): las fases del asistente de reset tienen botones
+    -- distintos; decidir si los ausentes son `ignored`, `forbidden` o si el
+    -- comodín está justificado. Sin él, R1/R5 dan 24 errores en ResetFase1..3.
     role *: ignored
 
 
@@ -1011,6 +1003,9 @@ context ResetFase1:
 
     -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 context ResetFase2:
+    -- PENDIENTE (2026-09-25): las fases del asistente de reset tienen botones
+    -- distintos; decidir si los ausentes son `ignored`, `forbidden` o si el
+    -- comodín está justificado. Sin él, R1/R5 dan 24 errores en ResetFase1..3.
     role *: ignored
 
 
@@ -1056,6 +1051,9 @@ context ResetFase2:
 
     -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 context ResetFase3:
+    -- PENDIENTE (2026-09-25): las fases del asistente de reset tienen botones
+    -- distintos; decidir si los ausentes son `ignored`, `forbidden` o si el
+    -- comodín está justificado. Sin él, R1/R5 dan 24 errores en ResetFase1..3.
     role *: ignored
 
 
@@ -1128,7 +1126,6 @@ context ResetFase3:
 
 
 context ModalSeleccionActividad:
-    role *: ignored
 
 
 
@@ -1192,7 +1189,6 @@ context ModalSeleccionActividad:
 
 
 context ModoEdicion:
-    role *: ignored
 
 
 
@@ -1278,7 +1274,6 @@ context ModoEdicion:
 
 
 context ModoNormal:
-    role *: ignored
 
 
 
@@ -1388,7 +1383,6 @@ context ModoNormal:
 
 
 context SesionActiva:
-    role *: ignored
 
 
 

@@ -275,3 +275,96 @@ fn initial_en_contexto_que_no_es_overlay_es_error() {
     let src = BASE.replace("context A:\n", "context A:\n    initial: B\n");
     only(&src, &["initial-not-overlay"]);
 }
+
+// ------------------------------------ ámbito de R1/R5: grupos de hermanos
+//
+// Decisión 2026-09-25: R1 y R5 se aplican entre contextos hermanos (los
+// base entre sí; los sub-contextos de un mismo overlay entre sí). Un
+// overlay no hereda los roles del base que suspende.
+
+const HERMANOS: &str = "
+data D:
+    x: Id
+
+system S:
+    initial: A
+    contexts:
+        A
+        B
+    overlays:
+        M
+
+context A:
+    role r: D
+        on e -> go
+    role abrir: D
+        on e -> abrirM
+    transitions:
+        on go -> B
+        on abrirM -> M
+
+context B:
+    role r: D
+        on e -> back
+    role abrir: D
+        on e -> ignored
+    transitions:
+        on back -> A
+
+context M:
+    initial: M1
+
+context M1:
+    role siguiente: D
+        on e -> paso2
+    role cerrar: D
+        on e -> cerrarM
+    transitions:
+        on paso2 -> M2
+        on cerrarM -> [close_overlay]
+
+context M2:
+    role siguiente: D
+        on e -> ignored
+    role cerrar: D
+        on e -> cerrarM
+    transitions:
+        on cerrarM -> [close_overlay]
+";
+
+#[test]
+fn hermanos_overlay_no_hereda_roles_del_base() {
+    // M, M1 y M2 no declaran `r` ni `abrir`, y A/B no declaran `siguiente`
+    // ni `cerrar`: con el ámbito global esto daría errores; por hermanos no.
+    ok(HERMANOS);
+}
+
+#[test]
+fn hermanos_subcontextos_del_mismo_overlay_se_comparan() {
+    let src = HERMANOS.replace("    role siguiente: D\n        on e -> ignored\n", "");
+    only(&src, &["completeness", "exhaustiveness"]);
+}
+
+#[test]
+fn hermanos_contextos_base_se_comparan() {
+    let src = HERMANOS.replace("    role abrir: D\n        on e -> ignored\n", "");
+    only(&src, &["completeness", "exhaustiveness"]);
+}
+
+#[test]
+fn hermanos_el_caso_de_estudio_no_necesita_comodines_salvo_reset() {
+    // cronometro_full.trz conserva `role *` sólo en ResetFase1..3 (pendiente
+    // de decisión). Quitándolo también ahí, los únicos errores deben estar
+    // en esas tres fases.
+    let src = std::fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../examples/cronometro-wasm/src/cronometro_full.trz"
+    ))
+    .unwrap();
+    ok(&src);
+    let sin: String = src.lines().filter(|l| !l.contains("role *")).collect::<Vec<_>>().join("\n");
+    let program = parser::parse_file(&sin).unwrap();
+    let diags = validator::verify(&program).unwrap_err();
+    assert_eq!(diags.len(), 24);
+    assert!(diags.iter().all(|d| d.message.contains("'ResetFase")), "{:#?}", diags);
+}

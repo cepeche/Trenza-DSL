@@ -13,7 +13,6 @@
 
 
 context ModalEditarActividad:
-    role *: ignored
 
 
 

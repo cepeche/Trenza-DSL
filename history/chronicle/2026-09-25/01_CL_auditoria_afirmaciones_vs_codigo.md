@@ -102,3 +102,39 @@ La sección está en `paper/onward2027/sec-language.tex`.
 **Recomendación:** la opción 1. Es la más cercana al modelo mental de DCI y no añade sintaxis. Además convierte el comodín en algo raro en lugar de universal. **Decide César.**
 
 Sea cual sea la decisión, el paper de 2027 no debe presentar el cronómetro como verificado por R1 y R5 mientras sus contextos lleven `role *: ignored`.
+
+---
+
+## 5. Decisiones de César (25 sep, tarde) y resultado
+
+**Decisión 1: las Reglas 1 y 5 se aplican entre hermanos** (opción 1 de §4).
+Los grupos de hermanos se definen en el nuevo `trenza-core/src/topology.rs`,
+que es ahora la fuente única de la clasificación para validador y generador:
+- los contextos base forman un grupo;
+- los sub-contextos de cada overlay forman otro;
+- cada overlay y cada contexto concurrente forma un grupo por sí solo.
+
+**Resultado en el caso de estudio:** se quitó `role *: ignored` de 15 de
+los 18 contextos, tanto en `cronometro_full.trz` como en la versión separada
+de `spec/reference/cronometro-psp/`. La especificación verifica y el código
+generado es idéntico byte a byte, porque el comodín no afecta al generador.
+Solo lo conservan `ResetFase1..3`, con una nota PENDIENTE. Sin el comodín
+dan 24 diagnósticos: son botones que existen en unas fases del asistente y
+no en otras. **Falta decidir** si esos botones son `ignored`, `forbidden` o
+si el comodín está justificado.
+
+MonitoreoRed sin comodines da 18 diagnósticos. Son preguntas legítimas de
+especificación, por ejemplo qué hace `admin.start_scan` durante `Scanning`.
+Se abordarán en la tarea #5.
+
+**Cambios colaterales en `topology.rs`:**
+- El `initial:` del sistema se clasifica siempre como base. Antes, el
+  generador lo trataba como sub-contexto si no aparecía en `contexts:`.
+  Solo cambia el Rust generado de `spec/reference/trenza-cli.trz`
+  (`replace_top_or_push` → cambio de base), que ahora es correcto.
+- `parent_of` también se infiere hacia delante: un sub-contexto al que se
+  llega desde el overlay o desde un hermano pertenece a ese overlay.
+- R3 y R4 cuentan `initial: Sub` como arista overlay → Sub.
+
+**Decisión 2: las transiciones las dispara la acción**, no el evento
+(semántica del generador TS). El generador Rust está pendiente de alinear.

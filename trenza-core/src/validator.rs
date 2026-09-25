@@ -163,27 +163,51 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
                 };
                 targets.push(target);
             }
+            // `initial: Sub` en un overlay: al abrirlo se apila también Sub
+            // (mismo comportamiento que el generador), así que es una arista.
+            if let Some(sub) = &ctx.initial_sub {
+                targets.push(sub.clone());
+            }
             adjacency_list.insert(ctx.name.clone(), targets);
         }
     }
 
-    // Pass 2: Rule 1 (Completeness)
-    for ctx_name in &all_contexts {
-        if ignore_rest_contexts.contains(ctx_name) { continue; }
-        if let Some(ctx_re) = context_role_events.get(ctx_name) {
-            let context_span = context_spans.get(ctx_name).cloned().unwrap_or(Span { 
+    // Pass 2: Rule 1 (Completeness), por grupos de hermanos.
+    //
+    // Ámbito (decisión 2026-09-25): un par rol·evento manejado en un contexto
+    // debe estar manejado en todos sus HERMANOS (topology::SiblingGroup): los
+    // contextos base entre sí, los sub-contextos de un mismo overlay entre
+    // sí. Un overlay no hereda los roles del base que suspende. Los
+    // contextos con `role *` siguen exentos.
+    let topo = crate::topology::classify(program);
+    let group_of = |c: &String| topo.sibling_group(c);
+    let mut group_pairs: HashMap<crate::topology::SiblingGroup, HashSet<(String, String)>> = HashMap::new();
+    let mut group_roles: HashMap<crate::topology::SiblingGroup, HashSet<String>> = HashMap::new();
+    for (ctx_name, ctx_re) in &context_role_events {
+        group_pairs.entry(group_of(ctx_name)).or_default().extend(ctx_re.iter().cloned());
+    }
+    for (ctx_name, roles) in &context_roles {
+        group_roles.entry(group_of(ctx_name)).or_default().extend(roles.iter().cloned());
+    }
+    let mut sorted_contexts: Vec<&String> = all_contexts.iter().collect();
+    sorted_contexts.sort();
+    for ctx_name in &sorted_contexts {
+        if ignore_rest_contexts.contains(*ctx_name) { continue; }
+        if let Some(ctx_re) = context_role_events.get(*ctx_name) {
+            let context_span = context_spans.get(*ctx_name).cloned().unwrap_or(Span { 
                 start: Pos { line: 1, col: 1 }, 
                 end: Pos { line: 1, col: 10 } 
             });
-            for re in &role_events {
-                if !ctx_re.contains(re) {
-                    errors.push(Diagnostic {
-                        span: context_span.clone(),
-                        message: format!("La acción '{}.{}' no está declarada en el contexto '{}'", re.0, re.1, ctx_name),
-                        severity: "error".to_string(),
-                        code: "completeness".to_string(),
-                    });
-                }
+            let group = group_of(ctx_name);
+            let mut missing: Vec<&(String, String)> = group_pairs[&group].iter().filter(|re| !ctx_re.contains(*re)).collect();
+            missing.sort();
+            for re in missing {
+                errors.push(Diagnostic {
+                    span: context_span.clone(),
+                    message: format!("La acción '{}.{}' no está declarada en el contexto '{}' (se maneja en {})", re.0, re.1, ctx_name, group.describe()),
+                    severity: "error".to_string(),
+                    code: "completeness".to_string(),
+                });
             }
         }
     }
@@ -290,21 +314,23 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
         }
     }
 
-    // Pass 5: Rule 5 (Role Exhaustiveness)
-    for (ctx_name, roles) in &context_roles {
-        if ignore_rest_contexts.contains(ctx_name) { continue; }
-        for role_name in &all_roles {
-            if !roles.contains(role_name) {
-                errors.push(Diagnostic {
-                    span: context_spans.get(ctx_name).cloned().unwrap_or(Span { 
-                    start: Pos { line: 1, col: 1 }, 
-                    end: Pos { line: 1, col: 10 } 
-                }),
-                    message: format!("role '{}' appears in other contexts but is absent from context '{}'", role_name, ctx_name),
-                    severity: "error".to_string(),
-                    code: "exhaustiveness".to_string(),
-                });
-            }
+    // Pass 5: Rule 5 (Role Exhaustiveness), por grupos de hermanos (ver Pass 2).
+    for ctx_name in &sorted_contexts {
+        if ignore_rest_contexts.contains(*ctx_name) { continue; }
+        let Some(roles) = context_roles.get(*ctx_name) else { continue; };
+        let group = group_of(ctx_name);
+        let mut missing: Vec<&String> = group_roles[&group].iter().filter(|r| !roles.contains(*r)).collect();
+        missing.sort();
+        for role_name in missing {
+            errors.push(Diagnostic {
+                span: context_spans.get(*ctx_name).cloned().unwrap_or(Span { 
+                start: Pos { line: 1, col: 1 }, 
+                end: Pos { line: 1, col: 10 } 
+            }),
+                message: format!("role '{}' appears in {} but is absent from context '{}'", role_name, group.describe(), ctx_name),
+                severity: "error".to_string(),
+                code: "exhaustiveness".to_string(),
+            });
         }
     }
 

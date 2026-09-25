@@ -834,78 +834,12 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
     // Topology classification (Runtime model 13_CO_runtime_model.md §3):
     //   bases / overlays / concurrents come straight from the system: block.
     //   sub_contexts = all declared contexts \ (bases ∪ overlays ∪ concurrents).
-    let mut bases_set: HashSet<String> = HashSet::new();
-    let mut overlays_set: HashSet<String> = HashSet::new();
-    let mut concurrents_set: HashSet<String> = HashSet::new();
-    for def in &program.definitions {
-        if let Definition::System(sys) = def {
-            for sec in &sys.sections {
-                match sec {
-                    SystemSection::Contexts(v) => { bases_set.extend(v.iter().cloned()); },
-                    SystemSection::Overlays(v) => { overlays_set.extend(v.iter().cloned()); },
-                    SystemSection::Concurrent(entries) => {
-                        for e in entries {
-                            match e {
-                                ConcurrentEntry::Name(n) => { concurrents_set.insert(n.clone()); },
-                                ConcurrentEntry::Anonymous(c) => { concurrents_set.insert(c.name.clone()); },
-                            }
-                        }
-                    },
-                    _ => {}
-                }
-            }
-        }
-    }
-    let mut sub_contexts_set: HashSet<String> = HashSet::new();
-    for c in &contexts {
-        if !bases_set.contains(c) && !overlays_set.contains(c) && !concurrents_set.contains(c) {
-            sub_contexts_set.insert(c.clone());
-        }
-    }
-
-    // Derive parent_overlay_of via fixed-point: direct (`on cerrar -> Overlay`)
-    // then indirect (transition to a sibling sub-context with known parent).
-    // Seed: any overlay with `initial: Sub` declares Sub as its child outright,
-    // so we know the parent without needing a transition out of Sub. This
-    // matters when Sub uses `[close_overlay]` (no explicit named target).
-    let mut parent_of: BTreeMap<String, String> = BTreeMap::new();
-    for def in &program.definitions {
-        if let Definition::Context(ctx) = def {
-            if !overlays_set.contains(&ctx.name) { continue; }
-            if let Some(sub) = &ctx.initial_sub {
-                parent_of.insert(sub.clone(), ctx.name.clone());
-            }
-        }
-    }
-    let mut changed = true;
-    while changed {
-        changed = false;
-        for def in &program.definitions {
-            if let Definition::Context(ctx) = def {
-                if !sub_contexts_set.contains(&ctx.name) { continue; }
-                if parent_of.contains_key(&ctx.name) { continue; }
-                let mut found: Option<String> = None;
-                for trans in &ctx.transitions {
-                    if overlays_set.contains(&trans.target) {
-                        found = Some(trans.target.clone());
-                        break;
-                    }
-                }
-                if found.is_none() {
-                    for trans in &ctx.transitions {
-                        if let Some(p) = parent_of.get(&trans.target) {
-                            found = Some(p.clone());
-                            break;
-                        }
-                    }
-                }
-                if let Some(p) = found {
-                    parent_of.insert(ctx.name.clone(), p);
-                    changed = true;
-                }
-            }
-        }
-    }
+    let topo = crate::topology::classify(program);
+    let bases_set = topo.bases;
+    let overlays_set = topo.overlays;
+    let concurrents_set = topo.concurrents;
+    let sub_contexts_set = topo.sub_contexts;
+    let parent_of = topo.parent_of;
 
     // Collect `initial:` declarations from overlay contexts. This drives the
     // auto-push emitted by classify_target_actions for any transition whose

@@ -144,13 +144,28 @@ is the handler relation (one element per \texttt{on} line inside a role);
 is the transition relation; and $W \subseteq C$ is the set of contexts that
 declare the wildcard \texttt{role *}. We write $\mathit{roles}(c)$ for the
 roles declared in $c$ and
-$P = \{(r,e) \mid \exists c, t.\ (c,r,e,t) \in H\}$ for the set of
-role--event pairs handled anywhere in the specification.
+$\mathit{pairs}(c) = \{(r,e) \mid \exists t.\ (c,r,e,t) \in H\}$ for the
+role--event pairs it handles.
+
+The contexts named in the \texttt{system} block are classified as
+\emph{base} (the initial context and those under \texttt{contexts:}; exactly
+one is active), \emph{overlay} (stacked on top of the base, suspending it) or
+\emph{concurrent} (active alongside the base). Every other context is a
+\emph{sub-context}, and belongs to the overlay that opens it with
+\texttt{initial:} or from which it is reached by transitions. This
+classification induces a partition of $C$ into \emph{sibling groups}:
+all base contexts form one group; the sub-contexts of each overlay form
+one group; every overlay and concurrent context forms a group by itself.
+We write $[c]$ for the group of $c$, and
+$R_{[c]} = \bigcup_{c' \in [c]} \mathit{roles}(c')$,
+$P_{[c]} = \bigcup_{c' \in [c]} \mathit{pairs}(c')$.
 
 From $T$ the verifier derives the \emph{context graph}
 $G = (C, \to)$ with $c \to c'$ iff $(c, a, c') \in T$ for some $a$, where
 the pseudo-targets are abstracted as follows: $\mathsf{stay}$ adds no edge,
-and $\mathsf{close}$ and $\mathsf{deactivate}$ add an edge to $c_0$. The last
+$\mathsf{close}$ and $\mathsf{deactivate}$ add an edge to $c_0$, and an
+overlay with \texttt{initial: Sub} has an edge to \texttt{Sub}. The
+\texttt{close} abstraction
 abstraction is coarse (at run time, closing an overlay returns to whatever
 context was beneath it, not necessarily $c_0$); Section~\ref{sec:limits}
 discusses its consequences.
@@ -164,9 +179,9 @@ polynomial in the size of the specification; Rules 3 and 4 are graph
 searches, the rest are set comparisons.
 
 \begin{description}
-\item[R1 Completeness.] Every role--event pair handled in some context is
-  handled in every context that does not opt out:
-  \[ \forall c \in C \setminus W.\ \forall (r,e) \in P.\ \exists t.\ (c,r,e,t) \in H. \]
+\item[R1 Completeness.] A role--event pair handled in some context is
+  handled in every sibling of that context that does not opt out:
+  \[ \forall c \in C \setminus W.\ P_{[c]} \subseteq \mathit{pairs}(c). \]
 \item[R2 Determinism.] Within a context, a role declares at most one
   handler per event: for every $(c,r,e)$ there is at most one \texttt{on}
   declaration, and hence at most one $t$ with $(c,r,e,t) \in H$.
@@ -176,9 +191,9 @@ searches, the rest are set comparisons.
   $\forall c \in C.\ c \to^{*} c_0$. In particular R4 implies
   $G, c_0 \models \mathbf{AG}\,\mathbf{EF}\, c_0$ in CTL: along no path
   of $G$ does the system enter a context from which it cannot come back.
-\item[R5 Role exhaustiveness.] Every role that appears anywhere appears in
-  every context that does not opt out:
-  $\forall c \in C \setminus W.\ \mathit{roles}(c) = R$.
+\item[R5 Role exhaustiveness.] A role that appears in some context
+  appears in every sibling that does not opt out:
+  $\forall c \in C \setminus W.\ \mathit{roles}(c) = R_{[c]}$.
 \item[R6 Data conformance.] If a data type is annotated
   \texttt{[privacy: gdpr]}, a role may pass one of its fields as an action
   argument only if the role is annotated \texttt{[access: gdpr]}.
@@ -228,14 +243,16 @@ reader would expect does not hold.
 \paragraph{The wildcard.} A context that declares \texttt{role *: ignored}
 is exempt from R1 and R5. The specification of Listing~\ref{lst:olvido}
 with that single line added to \texttt{ModoEdicion} is accepted without
-diagnostics (\texttt{modos\_comodin.trz}). The wildcard exists because R1
-and R5 quantify over \emph{all} contexts: a modal dialog would otherwise
-have to declare a handler for every role of the main screen, which it
-covers and suspends. In the full case study every context uses the
-wildcard, so R1 and R5 are not exercised there. \TODO{Resolve by scoping R1
-and R5 to sibling contexts (base contexts among themselves, sub-contexts of
-one overlay among themselves) and re-verify the case study without
-wildcards; see the audit of 2026-09-25, \S4.}
+diagnostics (\texttt{modos\_comodin.trz}). An earlier version of the
+verifier applied R1 and R5 to \emph{all} contexts, so that a modal dialog
+had to declare a handler for every role of the main screen it covers; every
+context of the case study then needed the wildcard, and R1 and R5 were
+vacuous there. Scoping both rules to sibling groups removed the need for
+it in 15 of the 18 contexts. The three that keep it are the phases of a
+reset wizard, whose buttons differ from phase to phase; without the
+wildcard they produce 24 diagnostics, which are design questions (should
+a button absent from a phase be \texttt{ignored} or \texttt{forbidden}?)
+rather than defects. \ARGCESAR{Decide the reset phases.}
 
 \paragraph{Overlay return.} Abstracting $\mathsf{close}$ as an edge to
 $c_0$ makes R4 sound only if every context beneath an overlay can itself

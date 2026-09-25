@@ -26,7 +26,6 @@
 
 context ModalHistorial:
     initial: Historial7Dias
-    role *: ignored
 
 
 
@@ -45,7 +44,6 @@ context ModalHistorial:
 
     -- Sub-contexto: vista de 7 días (activo por defecto)
 context Historial7Dias:
-    role *: ignored
 
 
 
@@ -80,7 +78,6 @@ context Historial7Dias:
 
     -- Sub-contexto: vista de 30 días
 context Historial30Dias:
-    role *: ignored
 
 
 

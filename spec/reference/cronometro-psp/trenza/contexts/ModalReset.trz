@@ -24,7 +24,6 @@
 
 context ModalReset:
     initial: ResetFase1
-    role *: ignored
 
 
 
@@ -47,6 +46,9 @@ context ModalReset:
 
     -- ─────────────────────────────────────────────────────────────
 context ResetFase1:
+    -- PENDIENTE (2026-09-25): las fases del asistente de reset tienen botones
+    -- distintos; decidir si los ausentes son `ignored`, `forbidden` o si el
+    -- comodín está justificado. Sin él, R1/R5 dan 24 errores en ResetFase1..3.
     role *: ignored
 
 
@@ -92,6 +94,9 @@ context ResetFase1:
 
     -- ─────────────────────────────────────────────────────────────
 context ResetFase2:
+    -- PENDIENTE (2026-09-25): las fases del asistente de reset tienen botones
+    -- distintos; decidir si los ausentes son `ignored`, `forbidden` o si el
+    -- comodín está justificado. Sin él, R1/R5 dan 24 errores en ResetFase1..3.
     role *: ignored
 
 
@@ -137,6 +142,9 @@ context ResetFase2:
 
     -- ─────────────────────────────────────────────────────────────
 context ResetFase3:
+    -- PENDIENTE (2026-09-25): las fases del asistente de reset tienen botones
+    -- distintos; decidir si los ausentes son `ignored`, `forbidden` o si el
+    -- comodín está justificado. Sin él, R1/R5 dan 24 errores en ResetFase1..3.
     role *: ignored
 
 
