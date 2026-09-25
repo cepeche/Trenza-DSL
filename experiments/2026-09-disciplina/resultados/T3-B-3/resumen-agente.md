@@ -1,0 +1,1 @@
+Único archivo: cronometro.trz (ModoEdicion). pestana_actividad pasa a cambiarPestana(self.id); añade el effect actualizarGridVisible. Al principio borró `on abrirEditarActividad -> ModalEditarActividad` y check falló por R3; después la restauró como transición muerta (ningún rol la produce) para pasar el verificador. Comentario fechado. Comprobación: trenza-cli check superado.
