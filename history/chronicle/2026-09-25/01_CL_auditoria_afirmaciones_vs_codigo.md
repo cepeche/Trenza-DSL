@@ -138,3 +138,27 @@ Se abordarán en la tarea #5.
 
 **Decisión 2: las transiciones las dispara la acción**, no el evento
 (semántica del generador TS). El generador Rust está pendiente de alinear.
+
+**Decisión 2 aplicada al generador Rust:**
+- `handle_<rol>_<evento>` devuelve ahora `Option<&'static str>`, que es la
+  acción producida (`None` para `ignored`).
+- `System::dispatch_<rol>_<evento>` ejecuta el manejador del contexto
+  activo y despacha la acción resultante.
+- `dispatch(acción, payload)` sigue existiendo. Es la entrada que usa la
+  demo WASM, cuyo JavaScript ya enviaba nombres de acción.
+
+**Otros cambios en el Rust generado:**
+- Se corrigieron 2 tests generados que fallaban en el cronómetro, porque
+  esperaban el overlay en lugar de su sub-contexto `initial:`.
+- `scripts/check-generated.sh` compila el Rust generado y ejecuta sus tests
+  (10 para el listado, 116 para el cronómetro) más un test de
+  comportamiento escrito a mano. Forma parte de la CI.
+- La cabecera de los tests generados ya no dice "algebraic" (A9).
+
+**A8 queda como retirada de la afirmación, no como cambio de código.** Con
+el ámbito por hermanos, que un rol no tenga manejador en otro grupo es
+correcto por diseño, así que el brazo `_ => None` es legítimo. El paper ya
+no afirma que `rustc` vuelva a comprobar la completitud.
+
+**Pendiente:** regenerar `examples/cronometro-wasm/wasm-shim/src/generated.rs`
+(copia del generador anterior) y comprobar la demo en el navegador.

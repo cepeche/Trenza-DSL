@@ -267,9 +267,13 @@ is still accepted. R6 recognises field accesses written as
 by tests in \nolinkurl{trenza-core/tests/rules.rs}. \TODO{Close both.}
 
 \paragraph{Generated code.} The verifier checks the specification, not the
-generated code. The generated Rust currently ends every \texttt{match} with
-a catch-all arm, so \texttt{rustc} does not independently re-check
-completeness, and the Rust and TypeScript generators do not yet agree on
-whether transitions are triggered by actions or by raw events.
-\TODO{Remove the catch-all arms and align the two generators; then this
-paragraph can be shortened.}
+generated code, and we make no claim that \texttt{rustc} re-checks
+completeness: a handler for a role that exists only in some sibling groups
+has, by design, no behavior in the others, and the generated \texttt{match}
+says so with a catch-all arm. What we do check is that the generated code
+compiles and that its generated tests pass, for the listing above and for
+the full case study (\nolinkurl{scripts/check-generated.sh}, run in CI).
+Both generators share one semantics: a role handler returns the action it
+produced, and that action, not the raw event, selects the transition.
+The TypeScript generator still lacks concurrent dispatch and the
+\texttt{initial:} clause. \TODO{Close the TypeScript gap.}

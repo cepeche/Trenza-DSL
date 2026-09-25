@@ -1089,6 +1089,7 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
         }
     }
 
+    let mut role_dispatchers: Vec<(String, String, String)> = Vec::new();
     for ((role_name, event_name), handlers) in grouped_actions {
         // Encontrar el tipo de dato del rol (asumimos consistencia por Regla 8)
         let mut role_type = "String".to_string();
@@ -1111,7 +1112,11 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
             }
         }
 
-        output.push_str(&format!("pub fn handle_{}_{}(ctx: &Contexto, {}: &{}, effects: &dyn Effects) {{\n", role_name, event_name.replace(".", "_"), role_name, role_type));
+        role_dispatchers.push((role_name.clone(), event_name.replace(".", "_"), role_type.clone()));
+        // Devuelve la acción producida (si la hay): es la acción, no el
+        // evento, la que dispara transiciones (decisión 2026-09-25; misma
+        // semántica que el generador TypeScript).
+        output.push_str(&format!("pub fn handle_{}_{}(ctx: &Contexto, {}: &{}, effects: &dyn Effects) -> Option<&'static str> {{\n", role_name, event_name.replace(".", "_"), role_name, role_type));
         output.push_str("    match ctx {\n");
         for (ctx_name, action) in handlers {
             output.push_str(&format!("        Contexto::{} => {{\n", ctx_name));
@@ -1131,9 +1136,10 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
                         }
                     }
                     output.push_str(&format!("            effects.{}({});\n", call.function.replace(".", "_"), args.join(", ")));
+                    output.push_str(&format!("            Some(\"{}\")\n", call.function.replace(".", "_")));
                 },
                 ActionTarget::Ignored => {
-                    output.push_str("            // ignored\n");
+                    output.push_str("            None // ignored\n");
                 },
                 ActionTarget::Forbidden => {
                     output.push_str(&format!("            panic!(\"Forbidden action called in context {}\");\n", ctx_name));
@@ -1141,8 +1147,27 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
             }
             output.push_str("        },\n");
         }
-        output.push_str("        _ => {},\n");
+        // Contextos donde el rol no maneja el evento (p. ej. otro grupo de
+        // hermanos, ver topology.rs): no se produce acción.
+        output.push_str("        _ => None,\n");
         output.push_str("    }\n");
+        output.push_str("}\n\n");
+    }
+
+    // Entrada por rol·evento: ejecuta el manejador del contexto activo y, si
+    // produce una acción, la despacha (transiciones + efectos). `dispatch`
+    // sigue disponible como entrada por acción.
+    if !role_dispatchers.is_empty() {
+        output.push_str("impl<'a> System<'a> {\n");
+        for (role, event, ty) in &role_dispatchers {
+            output.push_str(&format!("    pub fn dispatch_{r}_{e}(&mut self, {r}: &{t}) -> Option<&'static str> {{\n", r = role, e = event, t = ty));
+            output.push_str(&format!("        let action = handle_{r}_{e}(&self.current_state(), {r}, self.effects);\n", r = role, e = event));
+            output.push_str("        if let Some(a) = action {\n");
+            output.push_str("            self.dispatch(a, &serde_json::Value::Null);\n");
+            output.push_str("        }\n");
+            output.push_str("        action\n");
+            output.push_str("    }\n");
+        }
         output.push_str("}\n\n");
     }
 
@@ -1395,7 +1420,7 @@ pub fn generate_tests(program: &Program) -> String {
     let mut output = String::new();
     let metadata = extract_system_metadata(program);
 
-    output.push_str("// Auto-generated algebraic tests by Trenza DSL Compiler (Strand 2)\n");
+    output.push_str("// Auto-generated example-based tests by Trenza DSL Compiler (Strand 2):\n// one per transition and per (context, role, event) handler.\n");
     output.push_str("// DO NOT EDIT — regenerate from .trz source\n\n");
     output.push_str("#[cfg(test)]\nmod algebraic_tests {\n");
     output.push_str("    use super::*;\n\n");
@@ -1480,7 +1505,14 @@ fn generate_transition_tests(program: &Program, meta: &SystemMetadata, out: &mut
                     // changing current_state.
                     out.push_str(&format!("        assert!(sys.concurrent.contains(&Contexto::{}));\n", target));
                 } else {
-                    out.push_str(&format!("        assert_eq!(sys.current_state(), Contexto::{});\n", target));
+                    // Un overlay con `initial: Sub` apila también Sub, que pasa
+                    // a ser el estado actual.
+                    let initial_sub = program.definitions.iter().find_map(|d| match d {
+                        Definition::Context(c) if &c.name == target => c.initial_sub.clone(),
+                        _ => None,
+                    });
+                    let expected = initial_sub.as_ref().unwrap_or(target);
+                    out.push_str(&format!("        assert_eq!(sys.current_state(), Contexto::{});\n", expected));
                 }
                 out.push_str("    }\n\n");
             }

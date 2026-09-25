@@ -15,3 +15,5 @@ jobs:
         run: cargo build --workspace --locked
       - name: Test (incluye los listados del paper)
         run: cargo test --workspace --locked
+      - name: Rust generado (compila y pasan sus tests)
+        run: scripts/check-generated.sh
