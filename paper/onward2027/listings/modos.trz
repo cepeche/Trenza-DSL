@@ -1,0 +1,37 @@
+-- Listado 1 (paper Onward! 2027): ejemplo conductor.
+-- Dos modos mutuamente excluyentes del CronometroPSP, reducidos a lo
+-- esencial. Este archivo DEBE verificar sin diagnósticos: lo comprueba
+-- trenza-core/tests/paper_listings.rs.
+
+data Tarea:
+    tareaId: Id
+
+data Pestana:
+    id: Id
+
+system Cronometro:
+    initial: ModoNormal
+    events: tap
+    contexts:
+        ModoNormal
+        ModoEdicion
+
+context ModoNormal:
+    role tarjeta: Tarea
+        on tap -> iniciarTarea(self.tareaId)
+    role pestana_frecuentes: Pestana
+        on tap -> cambiarPestana(self.id)
+    role boton_edicion: Pestana
+        on tap -> activarEdicion
+    transitions:
+        on activarEdicion -> ModoEdicion
+
+context ModoEdicion:
+    role tarjeta: Tarea
+        on tap -> abrirEditarTarea(self.tareaId)
+    role pestana_frecuentes: Pestana
+        on tap -> ignored
+    role boton_edicion: Pestana
+        on tap -> desactivarEdicion
+    transitions:
+        on desactivarEdicion -> ModoNormal

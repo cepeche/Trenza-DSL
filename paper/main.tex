@@ -35,12 +35,14 @@
 % Code listing style for .trz snippets
 % -----------------------------------------------------------------------
 \lstdefinelanguage{trenza}{
-  keywords={context, role, event, transition, effects, when, on_entry, on_exit,
-            external, input, bind, mutable, slot, fills, overlay, concurrent,
-            ok, error},
+  keywords={data, type, system, context, role, on, transitions, effects,
+            initial, events, contexts, concurrent, overlays, ignored,
+            forbidden, with, on_entry, on_exit, external, input, bind,
+            mutable, slot, fills, pub, use},
   keywordstyle=\color{blue}\bfseries,
   sensitive=true,
-  comment=[l]{//},
+  comment=[l]{--},
+  morestring=[b]',
   commentstyle=\color{gray}\itshape,
   stringstyle=\color{brown},
   morestring=[b]"
