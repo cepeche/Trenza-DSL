@@ -146,9 +146,6 @@ Por réplica:
 6. **Mismo modelo, dos papeles.** El modelo que diseña (Claude) pertenece a
    la misma familia que el que ejecuta las réplicas.
 
-## Desviaciones
-
-*(Vacío en el momento del registro.)*
 
 ## Validación del oráculo (antes del registro)
 
@@ -161,3 +158,12 @@ Por réplica:
   botón + en modo pausa, en A y en B. El oráculo informa exactamente del
   defecto `(pausa, boton_nuevo)` en las dos condiciones, sin regresiones
   espurias.
+
+## Desviaciones
+
+1. **Entrega del prompt (2026-09-25, tras el piloto T1-A-1 y T1-B-1).** En
+   las dos réplicas piloto el prompt se pasó literalmente en la llamada al
+   subagente. En el resto se le pide leerlo de `prompt.txt` en su
+   directorio de trabajo; el texto es idéntico (lo genera `preparar.py`).
+   Las réplicas piloto cuentan como réplica 1 de T1 porque se ejecutaron con
+   el protocolo registrado.
