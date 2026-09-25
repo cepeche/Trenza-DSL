@@ -238,6 +238,13 @@ $c_0$ makes R4 sound only if every context beneath an overlay can itself
 return to $c_0$, which R4 checks for base contexts but not for arbitrary
 stacking. \TODO{State and check the stacking invariant.}
 
+\paragraph{Dead transitions and indirect access.} R4 inspects declared
+transitions but does not check that some handler of the context can produce
+the triggering action, so a context whose only way back is never triggered
+is still accepted. R6 recognises field accesses written as
+\texttt{role.field} but not as \texttt{self.field}. Both gaps are pinned
+by tests in \texttt{trenza-core/tests/rules.rs}. \TODO{Close both.}
+
 \paragraph{Generated code.} The verifier checks the specification, not the
 generated code. The generated Rust currently ends every \texttt{match} with
 a catch-all arm, so \texttt{rustc} does not independently re-check

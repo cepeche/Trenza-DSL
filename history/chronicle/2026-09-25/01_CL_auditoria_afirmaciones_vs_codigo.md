@@ -60,6 +60,17 @@ Esto es una **decisión de diseño pendiente**, no un bug (ver §4).
 | A14 | MonitoreoRed "remains without a `.trz`" | `examples/MonitoreoRed.trz` existe (21 abr) y verifica, pero sus tres contextos usan `role *: ignored`, y la sección `effects:` final se adjunta sintácticamente a `Alerting`. | Rehacerlo sin comodines como segundo caso de estudio (tarea #5). |
 | A15 | El ejemplo de la spec (`02-grammar.md`, "Complete Example") | No parsea: `effects: iniciarTarea -> POST /api/…` no es una `action_call`. | Sustituirlo por un listado verificado. |
 
+Hallazgos al escribir `trenza-core/tests/rules.rs` (22 tests, uno o más por regla):
+- **R6 no ve `self.campo`.** Sólo reconoce `rol.campo` y `binding.campo`. El
+  mismo acceso a un dato `[privacy: gdpr]` escrito como `self.nombre` pasa
+  sin diagnóstico. Como `self.` es la forma habitual en los ejemplos, el
+  hueco es serio. Queda documentado con un test marcado LIMITACIÓN.
+- **Transiciones muertas.** R4 mira las transiciones declaradas, pero no
+  comprueba que algún manejador del contexto produzca la acción que las
+  dispara. Un contexto cuyo único `on back -> A` nunca se activa (porque
+  ningún rol produce `back`) se acepta como "capaz de volver".
+- **Slot sin `fills`**: no se detecta (confirma A5).
+
 Otros hallazgos menores:
 - `trenza-cli --help` entra en pánico porque intenta leer `--help` como archivo.
 - `examples/autenticacion-rgpd.trz` y `carrito-checkout.trz` no parsean: usan `action …:` dentro de `external`, algo que la gramática no admite.
