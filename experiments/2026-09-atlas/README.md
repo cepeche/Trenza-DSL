@@ -36,3 +36,13 @@ digest del modelo (`ollama show gpt-oss-120b:latest` en ATLAS, o
 python experiments/2026-09-atlas/ejecutar.py --bprima          # 20 réplicas B′
 python experiments/2026-09-atlas/ejecutar.py --bprima --resumen  # RESUMEN-BPRIMA.md
 ```
+
+## B″ (edición estructurada, solo T1)
+
+Ver `PREREGISTRO-ESTRUCTURADA.md`. Anota antes el digest del modelo en su
+sección de amenazas o de desviaciones. Después:
+
+```bash
+python experiments/2026-09-atlas/ejecutar.py --estructurada            # 10 réplicas de T1-B
+python experiments/2026-09-atlas/ejecutar.py --estructurada --resumen  # RESUMEN-ESTRUCTURADA.md
+```

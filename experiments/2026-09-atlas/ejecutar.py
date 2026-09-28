@@ -29,6 +29,7 @@ COMMIT = "2689bcb"                      # sello del pre-registro del primer expe
 FROZEN = ROOT / ".exp-congelado"        # worktree en ese commit (ignorado por git)
 EXP = FROZEN / "experiments/2026-09-disciplina"
 RES = HERE / "resultados"
+ESTRUCTURADA = False                    # B″: edición por operaciones (ver PREREGISTRO-ESTRUCTURADA.md)
 BASE_TRZ = None                         # B′: material/cronometro_limpio.trz (ver PREREGISTRO-BPRIMA.md)
 
 
@@ -93,13 +94,23 @@ def tarea(task, cond):
 def prompt(task, cond, files):
     comun = re.sub(r"<!--.*?-->\n", "", (EXP / "tareas/comun.md").read_text(encoding="utf-8"), flags=re.S)
     partes = [comun, (HERE / f"tareas/condicion-{cond}.md").read_text(encoding="utf-8"),
-              tarea(task, cond), (HERE / "tareas/formato.md").read_text(encoding="utf-8")]
+              tarea(task, cond), (HERE / ("tareas/formato-estructurado.md" if ESTRUCTURADA else "tareas/formato.md")).read_text(encoding="utf-8")]
     for ruta, texto in files.items():
         partes.append(f'<archivo ruta="{ruta}">\n{texto}\n</archivo>')
     return "\n\n".join(partes)
 
 
 def aplicar(texto, work, cond):
+    if ESTRUCTURADA:
+        import ops_trz
+        f = work / "cronometro.trz"
+        nuevo, n, informe = ops_trz.aplicar_ops(texto, f.read_text(encoding="utf-8"))
+        f.write_text(nuevo, encoding="utf-8")
+        buscar = len(re.findall(r"^<{7} BUSCAR", texto, re.M))
+        if buscar:
+            n += buscar
+            informe.append(f"{buscar} bloque(s) BUSCAR/REEMPLAZAR ignorados: en esta tarea solo se aceptan operaciones.")
+        return n, informe
     permitidos = FILES_A if cond == "A" else ["cronometro.trz"]
     informe, n = [], 0
     for ruta, buscar, reemplazo in BLOCK.findall(texto):
@@ -227,7 +238,7 @@ def resumen():
         if sel:
             lineas.append(f"\n**{c}:** {sum(bool(e.get('correcta')) for e in sel)}/{len(sel)} correctas.")
     texto = "\n".join(lineas)
-    (RES.parent / ("RESUMEN-BPRIMA.md" if RES.name.endswith("bprima") else "RESUMEN.md")).write_text("# Resumen automático\n\n" + texto + "\n", encoding="utf-8")
+    (RES.parent / {"resultados-bprima": "RESUMEN-BPRIMA.md", "resultados-estructurada": "RESUMEN-ESTRUCTURADA.md"}.get(RES.name, "RESUMEN.md")).write_text("# Resumen automático\n\n" + texto + "\n", encoding="utf-8")
     print(texto)
 
 
@@ -235,6 +246,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--preparar", action="store_true")
     ap.add_argument("--resumen", action="store_true")
+    ap.add_argument("--estructurada", action="store_true",
+                    help="B″: solo T1-B con material limpio y edición por operaciones; resultados en resultados-estructurada/")
     ap.add_argument("--bprima", action="store_true",
                     help="B′: solo condición B, con material/cronometro_limpio.trz; resultados en resultados-bprima/")
     ap.add_argument("--solo", help="una réplica, p. ej. T1-B-1")
@@ -244,9 +257,14 @@ def main():
     ap.add_argument("--url", default=os.environ.get("ATLAS_URL", "http://ATLAS-A9:11434").removesuffix("/v1").rstrip("/"))
     ap.add_argument("--model", default=os.environ.get("ATLAS_MODEL", "gpt-oss-120b:latest"))
     a = ap.parse_args()
-    global RES, BASE_TRZ
+    global RES, BASE_TRZ, ESTRUCTURADA
+    if a.estructurada:
+        a.bprima = True
+        if a.reps == 5:            # pre-registrado: 10 réplicas de T1
+            a.reps = 10
     if a.bprima:
-        RES = HERE / "resultados-bprima"
+        RES = HERE / ("resultados-estructurada" if a.estructurada else "resultados-bprima")
+        ESTRUCTURADA = a.estructurada
         BASE_TRZ = HERE / "material/cronometro_limpio.trz"
     if a.preparar:
         return preparar()
@@ -259,7 +277,7 @@ def main():
         return replica(t, c, r, a)
     # Mismo orden que el primer experimento: por réplica y tarea, alternando la condición inicial.
     for rep in range(1, a.reps + 1):
-        for i, task in enumerate(TASKS):
+        for i, task in enumerate(["T1"] if a.estructurada else TASKS):
             conds = "AB" if (rep + i) % 2 else "BA"
             for cond in ("B" if a.bprima else conds):
                 replica(task, cond, str(rep), a)
