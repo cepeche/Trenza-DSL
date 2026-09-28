@@ -137,7 +137,23 @@ export class TrenzaSystem {
     this.overlay_stack     = snap.overlay_stack as Contexto[];
     this.concurrent_states = new Set(snap.concurrent as Contexto[]);
 
-    for (const callStr of snap.triggered_effects ?? []) {
+    // La UI despacha nombres de ACCIÓN (lo que produciría el manejador de
+    // rol: `on tap -> guardarNuevaTarea`), y el motor ejecuta la transición
+    // y los efectos declarados en `effects:` para esa acción. El efecto de
+    // la propia acción, que en el Rust generado invoca handle_<rol>_<evento>,
+    // no pasa por dispatch(); lo ejecutamos aquí, con los valores del payload
+    // como argumentos, salvo que el motor ya lo haya emitido. Sin esto,
+    // p. ej. crear una tarea no hacía nada (sólo se emitía crear_tipo_tarea).
+    const triggered = snap.triggered_effects ?? [];
+    const actionFn = this.effects[event];
+    const alreadyTriggered = triggered.some(c => parseEffectCall(c).name === event);
+    if (typeof actionFn === 'function' && !alreadyTriggered) {
+      const args = payload && typeof payload === 'object' ? Object.values(payload as object) : [];
+      try { actionFn(...args); }
+      catch (e) { console.error(`[bridge] action ${event} threw`, e); }
+    }
+
+    for (const callStr of triggered) {
       const { name, args } = parseEffectCall(callStr);
       const fn = this.effects[name];
       if (typeof fn !== 'function') {

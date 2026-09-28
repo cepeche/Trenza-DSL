@@ -63,3 +63,29 @@ TrenzaSystem.dispatch(event, payload)
 ```bash
 npm test   # vitest: 10 tests, storage adapter
 ```
+
+## Estado verificado (2026-09-28)
+
+`e2e/golden-path.mjs` recorre la demo en Chromium con Playwright. Con
+`generated.rs` regenerado desde el `cronometro_full.trz` actual, pasan:
+
+- activar y salir del modo edición;
+- crear una tarea;
+- tocar la tarjeta, que inicia la sesión directamente, como dice la spec;
+- parar la sesión;
+- abrir y cerrar el historial;
+- reset en 3 fases, incluida la cancelación en la fase 2 (decisión del
+  25 sep) y la ejecución con `BORRAR`.
+
+**Fallo conocido, anterior a esta regeneración.** Al abrir un diálogo desde
+el menú ⚙️, el menú se queda en la pila de overlays, porque la spec apila el
+modal sobre `MenuConfiguracion` en lugar de sustituirlo. Al cerrar el
+diálogo, el menú sigue abierto y el siguiente clic fuera de él solo lo
+cierra: por eso "modo edición tras usar el menú" falla. Si hay que
+corregirlo en la spec o en la demo está pendiente de decidir.
+
+**Corrección en `snapshot-bridge.ts`.** La UI despacha nombres de acción,
+pero el efecto de la propia acción no pasaba por `dispatch()`. Por eso
+crear tareas no funcionaba: solo se emitía `crear_tipo_tarea`, que es un
+stub. Ahora el puente ejecuta la acción con los valores del payload, salvo
+que el motor ya la haya emitido.

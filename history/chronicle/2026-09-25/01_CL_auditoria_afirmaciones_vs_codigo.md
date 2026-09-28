@@ -160,8 +160,12 @@ el ámbito por hermanos, que un rol no tenga manejador en otro grupo es
 correcto por diseño, así que el brazo `_ => None` es legítimo. El paper ya
 no afirma que `rustc` vuelva a comprobar la completitud.
 
-**Pendiente:** regenerar `examples/cronometro-wasm/wasm-shim/src/generated.rs`
-(copia del generador anterior) y comprobar la demo en el navegador.
+**Hecho el 2026-09-28: demo regenerada y comprobada en el navegador.**
+`generated.rs` se ha regenerado, y `dispatch()` no cambia respecto a la
+versión anterior. Se ha corregido el puente JS, que no ejecutaba el efecto
+de la acción despachada. El recorrido en Chromium está en
+`examples/cronometro-wasm/e2e/golden-path.mjs`. Queda un fallo anterior a
+la regeneración: el menú ⚙️ sigue apilado bajo los diálogos que abre.
 
 **Decisión 3 (César): en las fases del reset, los botones ausentes son
 `forbidden`.** Se han declarado 12 roles `forbidden` en `ResetFase1..3`,

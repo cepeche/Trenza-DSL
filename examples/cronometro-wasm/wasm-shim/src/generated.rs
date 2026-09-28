@@ -859,463 +859,814 @@ impl<'a> System<'a> {
     }
 }
 
-pub fn handle_boton_30dias_tap(ctx: &Contexto, boton_30dias: &Boton, effects: &dyn Effects) {
+pub fn handle_boton_30dias_tap(ctx: &Contexto, boton_30dias: &Boton, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::Historial7Dias => {
             println!("[telemetry] context=Historial7Dias, role=boton_30dias, event=tap");
             effects.cambiarA30Dias();
+            Some("cambiarA30Dias")
         },
         Contexto::Historial30Dias => {
             println!("[telemetry] context=Historial30Dias, role=boton_30dias, event=tap");
-            // ignored
+            None // ignored
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_boton_7dias_tap(ctx: &Contexto, boton_7dias: &Boton, effects: &dyn Effects) {
+pub fn handle_boton_7dias_tap(ctx: &Contexto, boton_7dias: &Boton, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::Historial7Dias => {
             println!("[telemetry] context=Historial7Dias, role=boton_7dias, event=tap");
-            // ignored
+            None // ignored
         },
         Contexto::Historial30Dias => {
             println!("[telemetry] context=Historial30Dias, role=boton_7dias, event=tap");
             effects.cambiarA7Dias();
+            Some("cambiarA7Dias")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_boton_actividad_tap(ctx: &Contexto, boton_actividad: &Actividad, effects: &dyn Effects) {
+pub fn handle_boton_actividad_tap(ctx: &Contexto, boton_actividad: &Actividad, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModalSeleccionActividad => {
             println!("[telemetry] context=ModalSeleccionActividad, role=boton_actividad, event=tap");
             effects.elegirActividad(&boton_actividad.id);
+            Some("elegirActividad")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_boton_atras_tap(ctx: &Contexto, boton_atras: &Boton, effects: &dyn Effects) {
+pub fn handle_boton_atras_tap(ctx: &Contexto, boton_atras: &Boton, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
+        Contexto::ResetFase1 => {
+            println!("[telemetry] context=ResetFase1, role=boton_atras, event=tap");
+            panic!("Forbidden action called in context ResetFase1");
+        },
         Contexto::ResetFase2 => {
             println!("[telemetry] context=ResetFase2, role=boton_atras, event=tap");
             effects.retrocederAFase1();
+            Some("retrocederAFase1")
         },
         Contexto::ResetFase3 => {
             println!("[telemetry] context=ResetFase3, role=boton_atras, event=tap");
             effects.retrocederAFase2();
+            Some("retrocederAFase2")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_boton_cancelar_tap(ctx: &Contexto, boton_cancelar: &Boton, effects: &dyn Effects) {
+pub fn handle_boton_cancelar_tap(ctx: &Contexto, boton_cancelar: &Boton, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModalComentario => {
             println!("[telemetry] context=ModalComentario, role=boton_cancelar, event=tap");
             effects.cancelar();
+            Some("cancelar")
         },
         Contexto::ModalCrearActividad => {
             println!("[telemetry] context=ModalCrearActividad, role=boton_cancelar, event=tap");
             effects.cancelar();
+            Some("cancelar")
         },
         Contexto::ModalCrearTarea => {
             println!("[telemetry] context=ModalCrearTarea, role=boton_cancelar, event=tap");
             effects.cancelar();
+            Some("cancelar")
         },
         Contexto::ModalEditarActividad => {
             println!("[telemetry] context=ModalEditarActividad, role=boton_cancelar, event=tap");
             effects.cancelar();
+            Some("cancelar")
         },
         Contexto::ModalEditarTarea => {
             println!("[telemetry] context=ModalEditarTarea, role=boton_cancelar, event=tap");
             effects.cancelar();
+            Some("cancelar")
         },
         Contexto::ModalReset => {
             println!("[telemetry] context=ModalReset, role=boton_cancelar, event=tap");
             effects.cerrar();
+            Some("cerrar")
         },
         Contexto::ResetFase1 => {
             println!("[telemetry] context=ResetFase1, role=boton_cancelar, event=tap");
             effects.cerrar();
+            Some("cerrar")
+        },
+        Contexto::ResetFase2 => {
+            println!("[telemetry] context=ResetFase2, role=boton_cancelar, event=tap");
+            effects.cerrar();
+            Some("cerrar")
+        },
+        Contexto::ResetFase3 => {
+            println!("[telemetry] context=ResetFase3, role=boton_cancelar, event=tap");
+            effects.cerrar();
+            Some("cerrar")
         },
         Contexto::ModalSeleccionActividad => {
             println!("[telemetry] context=ModalSeleccionActividad, role=boton_cancelar, event=tap");
             effects.cancelar();
+            Some("cancelar")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_boton_cerrar_tap(ctx: &Contexto, boton_cerrar: &Boton, effects: &dyn Effects) {
+pub fn handle_boton_cerrar_tap(ctx: &Contexto, boton_cerrar: &Boton, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModalAcercaDe => {
             println!("[telemetry] context=ModalAcercaDe, role=boton_cerrar, event=tap");
             effects.cerrar();
+            Some("cerrar")
         },
         Contexto::ModalHistorial => {
             println!("[telemetry] context=ModalHistorial, role=boton_cerrar, event=tap");
             effects.cerrar();
+            Some("cerrar")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_boton_configuracion_tap(ctx: &Contexto, boton_configuracion: &Boton, effects: &dyn Effects) {
+pub fn handle_boton_configuracion_tap(ctx: &Contexto, boton_configuracion: &Boton, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModoEdicion => {
             println!("[telemetry] context=ModoEdicion, role=boton_configuracion, event=tap");
             effects.abrirMenuConfiguracion();
+            Some("abrirMenuConfiguracion")
         },
         Contexto::ModoNormal => {
             println!("[telemetry] context=ModoNormal, role=boton_configuracion, event=tap");
             effects.abrirMenuConfiguracion();
+            Some("abrirMenuConfiguracion")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_boton_confirmar_tap(ctx: &Contexto, boton_confirmar: &Boton, effects: &dyn Effects) {
+pub fn handle_boton_confirmar_tap(ctx: &Contexto, boton_confirmar: &Boton, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModalComentario => {
             println!("[telemetry] context=ModalComentario, role=boton_confirmar, event=tap");
             effects.confirmarInicio();
+            Some("confirmarInicio")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_boton_continuar_tap(ctx: &Contexto, boton_continuar: &Boton, effects: &dyn Effects) {
+pub fn handle_boton_continuar_tap(ctx: &Contexto, boton_continuar: &Boton, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ResetFase1 => {
             println!("[telemetry] context=ResetFase1, role=boton_continuar, event=tap");
             effects.avanzarAFase2();
+            Some("avanzarAFase2")
         },
         Contexto::ResetFase2 => {
             println!("[telemetry] context=ResetFase2, role=boton_continuar, event=tap");
             effects.avanzarAFase3();
+            Some("avanzarAFase3")
         },
-        _ => {},
+        Contexto::ResetFase3 => {
+            println!("[telemetry] context=ResetFase3, role=boton_continuar, event=tap");
+            panic!("Forbidden action called in context ResetFase3");
+        },
+        _ => None,
     }
 }
 
-pub fn handle_boton_edicion_tap(ctx: &Contexto, boton_edicion: &Boton, effects: &dyn Effects) {
+pub fn handle_boton_edicion_tap(ctx: &Contexto, boton_edicion: &Boton, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModoEdicion => {
             println!("[telemetry] context=ModoEdicion, role=boton_edicion, event=tap");
             effects.desactivarEdicion();
+            Some("desactivarEdicion")
         },
         Contexto::ModoNormal => {
             println!("[telemetry] context=ModoNormal, role=boton_edicion, event=tap");
             effects.activarEdicion();
+            Some("activarEdicion")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_boton_ejecutar_tap(ctx: &Contexto, boton_ejecutar: &Boton, effects: &dyn Effects) {
+pub fn handle_boton_ejecutar_tap(ctx: &Contexto, boton_ejecutar: &Boton, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
+        Contexto::ResetFase1 => {
+            println!("[telemetry] context=ResetFase1, role=boton_ejecutar, event=tap");
+            panic!("Forbidden action called in context ResetFase1");
+        },
+        Contexto::ResetFase2 => {
+            println!("[telemetry] context=ResetFase2, role=boton_ejecutar, event=tap");
+            panic!("Forbidden action called in context ResetFase2");
+        },
         Contexto::ResetFase3 => {
             println!("[telemetry] context=ResetFase3, role=boton_ejecutar, event=tap");
             effects.ejecutarReset();
+            Some("ejecutarReset")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_boton_exportar_csv_tap(ctx: &Contexto, boton_exportar_csv: &Boton, effects: &dyn Effects) {
+pub fn handle_boton_exportar_csv_tap(ctx: &Contexto, boton_exportar_csv: &Boton, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ResetFase1 => {
             println!("[telemetry] context=ResetFase1, role=boton_exportar_csv, event=tap");
             effects.exportarCSV();
+            Some("exportarCSV")
         },
-        _ => {},
+        Contexto::ResetFase2 => {
+            println!("[telemetry] context=ResetFase2, role=boton_exportar_csv, event=tap");
+            panic!("Forbidden action called in context ResetFase2");
+        },
+        Contexto::ResetFase3 => {
+            println!("[telemetry] context=ResetFase3, role=boton_exportar_csv, event=tap");
+            panic!("Forbidden action called in context ResetFase3");
+        },
+        _ => None,
     }
 }
 
-pub fn handle_boton_guardar_tap(ctx: &Contexto, boton_guardar: &Boton, effects: &dyn Effects) {
+pub fn handle_boton_guardar_tap(ctx: &Contexto, boton_guardar: &Boton, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModalCrearActividad => {
             println!("[telemetry] context=ModalCrearActividad, role=boton_guardar, event=tap");
             effects.guardarNuevaActividad();
+            Some("guardarNuevaActividad")
         },
         Contexto::ModalCrearTarea => {
             println!("[telemetry] context=ModalCrearTarea, role=boton_guardar, event=tap");
             effects.guardarNuevaTarea();
+            Some("guardarNuevaTarea")
         },
         Contexto::ModalEditarActividad => {
             println!("[telemetry] context=ModalEditarActividad, role=boton_guardar, event=tap");
             effects.guardarEdicionActividad();
+            Some("guardarEdicionActividad")
         },
         Contexto::ModalEditarTarea => {
             println!("[telemetry] context=ModalEditarTarea, role=boton_guardar, event=tap");
             effects.guardarEdicion();
+            Some("guardarEdicion")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_boton_nuevo_tap(ctx: &Contexto, boton_nuevo: &Boton, effects: &dyn Effects) {
+pub fn handle_boton_nuevo_tap(ctx: &Contexto, boton_nuevo: &Boton, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModoEdicion => {
             println!("[telemetry] context=ModoEdicion, role=boton_nuevo, event=tap");
             effects.abrirCrearTarea();
+            Some("abrirCrearTarea")
         },
         Contexto::ModoNormal => {
             println!("[telemetry] context=ModoNormal, role=boton_nuevo, event=tap");
             effects.abrirCrearTarea();
+            Some("abrirCrearTarea")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_campo_busqueda_icono_cambio(ctx: &Contexto, campo_busqueda_icono: &CampoTexto, effects: &dyn Effects) {
+pub fn handle_campo_busqueda_icono_cambio(ctx: &Contexto, campo_busqueda_icono: &CampoTexto, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModalCrearTarea => {
             println!("[telemetry] context=ModalCrearTarea, role=campo_busqueda_icono, event=cambio");
             effects.filtrarIconosCrear(&campo_busqueda_icono.valor);
+            Some("filtrarIconosCrear")
         },
         Contexto::ModalEditarTarea => {
             println!("[telemetry] context=ModalEditarTarea, role=campo_busqueda_icono, event=cambio");
             effects.filtrarIconos(&campo_busqueda_icono.valor);
+            Some("filtrarIconos")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_campo_comentario_cambio(ctx: &Contexto, campo_comentario: &CampoTexto, effects: &dyn Effects) {
+pub fn handle_campo_comentario_cambio(ctx: &Contexto, campo_comentario: &CampoTexto, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModalComentario => {
             println!("[telemetry] context=ModalComentario, role=campo_comentario, event=cambio");
             effects.actualizarComentario(&campo_comentario.valor);
+            Some("actualizarComentario")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_campo_confirmacion_cambio(ctx: &Contexto, campo_confirmacion: &CampoTexto, effects: &dyn Effects) {
+pub fn handle_campo_confirmacion_cambio(ctx: &Contexto, campo_confirmacion: &CampoTexto, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
+        Contexto::ResetFase1 => {
+            println!("[telemetry] context=ResetFase1, role=campo_confirmacion, event=cambio");
+            panic!("Forbidden action called in context ResetFase1");
+        },
+        Contexto::ResetFase2 => {
+            println!("[telemetry] context=ResetFase2, role=campo_confirmacion, event=cambio");
+            panic!("Forbidden action called in context ResetFase2");
+        },
         Contexto::ResetFase3 => {
             println!("[telemetry] context=ResetFase3, role=campo_confirmacion, event=cambio");
             effects.actualizarConfirmacion(&campo_confirmacion.valor);
+            Some("actualizarConfirmacion")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_campo_nombre_cambio(ctx: &Contexto, campo_nombre: &CampoTexto, effects: &dyn Effects) {
+pub fn handle_campo_nombre_cambio(ctx: &Contexto, campo_nombre: &CampoTexto, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModalCrearActividad => {
             println!("[telemetry] context=ModalCrearActividad, role=campo_nombre, event=cambio");
             effects.actualizarNombreNuevaActividad(&campo_nombre.valor);
+            Some("actualizarNombreNuevaActividad")
         },
         Contexto::ModalCrearTarea => {
             println!("[telemetry] context=ModalCrearTarea, role=campo_nombre, event=cambio");
             effects.actualizarNuevoNombre(&campo_nombre.valor);
+            Some("actualizarNuevoNombre")
         },
         Contexto::ModalEditarActividad => {
             println!("[telemetry] context=ModalEditarActividad, role=campo_nombre, event=cambio");
             effects.actualizarNombreActividad(&campo_nombre.valor);
+            Some("actualizarNombreActividad")
         },
         Contexto::ModalEditarTarea => {
             println!("[telemetry] context=ModalEditarTarea, role=campo_nombre, event=cambio");
             effects.actualizarNombre(&campo_nombre.valor);
+            Some("actualizarNombre")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_campo_retroactivo_cambio(ctx: &Contexto, campo_retroactivo: &CampoNumerico, effects: &dyn Effects) {
+pub fn handle_campo_retroactivo_cambio(ctx: &Contexto, campo_retroactivo: &CampoNumerico, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModalComentario => {
             println!("[telemetry] context=ModalComentario, role=campo_retroactivo, event=cambio");
             effects.actualizarRetroactivo(&campo_retroactivo.valor);
+            Some("actualizarRetroactivo")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_checkbox_actividad_cambio(ctx: &Contexto, checkbox_actividad: &OpcionActividad, effects: &dyn Effects) {
+pub fn handle_checkbox_actividad_cambio(ctx: &Contexto, checkbox_actividad: &OpcionActividad, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModalCrearTarea => {
             println!("[telemetry] context=ModalCrearTarea, role=checkbox_actividad, event=cambio");
             effects.toggleActividadPermitida(&checkbox_actividad.id, &checkbox_actividad.marcado);
+            Some("toggleActividadPermitida")
+        },
+        Contexto::ResetFase1 => {
+            println!("[telemetry] context=ResetFase1, role=checkbox_actividad, event=cambio");
+            panic!("Forbidden action called in context ResetFase1");
         },
         Contexto::ResetFase2 => {
             println!("[telemetry] context=ResetFase2, role=checkbox_actividad, event=cambio");
             effects.toggleConservar(&checkbox_actividad.id, &checkbox_actividad.marcado);
+            Some("toggleConservar")
         },
-        _ => {},
+        Contexto::ResetFase3 => {
+            println!("[telemetry] context=ResetFase3, role=checkbox_actividad, event=cambio");
+            panic!("Forbidden action called in context ResetFase3");
+        },
+        _ => None,
     }
 }
 
-pub fn handle_checkbox_permanente_cambio(ctx: &Contexto, checkbox_permanente: &Checkbox, effects: &dyn Effects) {
+pub fn handle_checkbox_permanente_cambio(ctx: &Contexto, checkbox_permanente: &Checkbox, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModalCrearActividad => {
             println!("[telemetry] context=ModalCrearActividad, role=checkbox_permanente, event=cambio");
             effects.marcarPermanenteNueva(&checkbox_permanente.marcado);
+            Some("marcarPermanenteNueva")
         },
         Contexto::ModalEditarActividad => {
             println!("[telemetry] context=ModalEditarActividad, role=checkbox_permanente, event=cambio");
             effects.marcarPermanente(&checkbox_permanente.marcado);
+            Some("marcarPermanente")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_checkbox_sustituir_cambio(ctx: &Contexto, checkbox_sustituir: &Checkbox, effects: &dyn Effects) {
+pub fn handle_checkbox_sustituir_cambio(ctx: &Contexto, checkbox_sustituir: &Checkbox, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModalComentario => {
             println!("[telemetry] context=ModalComentario, role=checkbox_sustituir, event=cambio");
             effects.marcarSustituir(&checkbox_sustituir.marcado);
+            Some("marcarSustituir")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_display_timer_tap(ctx: &Contexto, display_timer: &Boton, effects: &dyn Effects) {
+pub fn handle_display_timer_tap(ctx: &Contexto, display_timer: &Boton, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::SesionActiva => {
             println!("[telemetry] context=SesionActiva, role=display_timer, event=tap");
-            // ignored
+            None // ignored
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_item_acerca_de_tap(ctx: &Contexto, item_acerca_de: &ItemMenu, effects: &dyn Effects) {
+pub fn handle_item_acerca_de_tap(ctx: &Contexto, item_acerca_de: &ItemMenu, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::MenuConfiguracion => {
             println!("[telemetry] context=MenuConfiguracion, role=item_acerca_de, event=tap");
             effects.abrirAcercaDe();
+            Some("abrirAcercaDe")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_item_historial_tap(ctx: &Contexto, item_historial: &ItemMenu, effects: &dyn Effects) {
+pub fn handle_item_historial_tap(ctx: &Contexto, item_historial: &ItemMenu, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::MenuConfiguracion => {
             println!("[telemetry] context=MenuConfiguracion, role=item_historial, event=tap");
             effects.abrirHistorial();
+            Some("abrirHistorial")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_item_nueva_actividad_tap(ctx: &Contexto, item_nueva_actividad: &ItemMenu, effects: &dyn Effects) {
+pub fn handle_item_nueva_actividad_tap(ctx: &Contexto, item_nueva_actividad: &ItemMenu, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::MenuConfiguracion => {
             println!("[telemetry] context=MenuConfiguracion, role=item_nueva_actividad, event=tap");
             effects.abrirCrearActividad();
+            Some("abrirCrearActividad")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_item_reset_tap(ctx: &Contexto, item_reset: &ItemMenu, effects: &dyn Effects) {
+pub fn handle_item_reset_tap(ctx: &Contexto, item_reset: &ItemMenu, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::MenuConfiguracion => {
             println!("[telemetry] context=MenuConfiguracion, role=item_reset, event=tap");
             effects.abrirReset();
+            Some("abrirReset")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_overlay_tap(ctx: &Contexto, overlay: &Boton, effects: &dyn Effects) {
+pub fn handle_overlay_tap(ctx: &Contexto, overlay: &Boton, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::MenuConfiguracion => {
             println!("[telemetry] context=MenuConfiguracion, role=overlay, event=tap");
             effects.cerrar();
+            Some("cerrar")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_pestana_actividad_tap(ctx: &Contexto, pestana_actividad: &Actividad, effects: &dyn Effects) {
+pub fn handle_pestana_actividad_tap(ctx: &Contexto, pestana_actividad: &Actividad, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModoEdicion => {
             println!("[telemetry] context=ModoEdicion, role=pestana_actividad, event=tap");
             effects.abrirEditarActividad(&pestana_actividad.id);
+            Some("abrirEditarActividad")
         },
         Contexto::ModoNormal => {
             println!("[telemetry] context=ModoNormal, role=pestana_actividad, event=tap");
             effects.cambiarPestana(&pestana_actividad.id);
+            Some("cambiarPestana")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_pestana_frecuentes_tap(ctx: &Contexto, pestana_frecuentes: &Pestana, effects: &dyn Effects) {
+pub fn handle_pestana_frecuentes_tap(ctx: &Contexto, pestana_frecuentes: &Pestana, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModoEdicion => {
             println!("[telemetry] context=ModoEdicion, role=pestana_frecuentes, event=tap");
-            // ignored
+            None // ignored
         },
         Contexto::ModoNormal => {
             println!("[telemetry] context=ModoNormal, role=pestana_frecuentes, event=tap");
             effects.cambiarPestana("'frecuentes'");
+            Some("cambiarPestana")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_selector_color_seleccion(ctx: &Contexto, selector_color: &SelectorColor, effects: &dyn Effects) {
+pub fn handle_selector_color_seleccion(ctx: &Contexto, selector_color: &SelectorColor, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModalCrearActividad => {
             println!("[telemetry] context=ModalCrearActividad, role=selector_color, event=seleccion");
             effects.seleccionarColorNuevo(&selector_color.seleccionado);
+            Some("seleccionarColorNuevo")
         },
         Contexto::ModalEditarActividad => {
             println!("[telemetry] context=ModalEditarActividad, role=selector_color, event=seleccion");
             effects.seleccionarColor(&selector_color.seleccionado);
+            Some("seleccionarColor")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_selector_icono_seleccion(ctx: &Contexto, selector_icono: &SelectorIcono, effects: &dyn Effects) {
+pub fn handle_selector_icono_seleccion(ctx: &Contexto, selector_icono: &SelectorIcono, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModalCrearTarea => {
             println!("[telemetry] context=ModalCrearTarea, role=selector_icono, event=seleccion");
             effects.seleccionarIconoNuevo(&selector_icono.seleccionado);
+            Some("seleccionarIconoNuevo")
         },
         Contexto::ModalEditarTarea => {
             println!("[telemetry] context=ModalEditarTarea, role=selector_icono, event=seleccion");
             effects.seleccionarIcono(&selector_icono.seleccionado);
+            Some("seleccionarIcono")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_tarjeta_tarea_tap(ctx: &Contexto, tarjeta_tarea: &Tarea, effects: &dyn Effects) {
+pub fn handle_tarjeta_tarea_tap(ctx: &Contexto, tarjeta_tarea: &Tarea, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModoEdicion => {
             println!("[telemetry] context=ModoEdicion, role=tarjeta_tarea, event=tap");
             effects.abrirEditarTarea(&tarjeta_tarea.tipoId);
+            Some("abrirEditarTarea")
         },
         Contexto::ModoNormal => {
             println!("[telemetry] context=ModoNormal, role=tarjeta_tarea, event=tap");
             effects.iniciarTarea(&tarjeta_tarea.tareaId);
+            Some("iniciarTarea")
         },
-        _ => {},
+        _ => None,
     }
 }
 
-pub fn handle_tarjeta_tipo_tap(ctx: &Contexto, tarjeta_tipo: &TipoTarea, effects: &dyn Effects) {
+pub fn handle_tarjeta_tipo_tap(ctx: &Contexto, tarjeta_tipo: &TipoTarea, effects: &dyn Effects) -> Option<&'static str> {
     match ctx {
         Contexto::ModoEdicion => {
             println!("[telemetry] context=ModoEdicion, role=tarjeta_tipo, event=tap");
             effects.abrirEditarTarea(&tarjeta_tipo.tipoId);
+            Some("abrirEditarTarea")
         },
         Contexto::ModoNormal => {
             println!("[telemetry] context=ModoNormal, role=tarjeta_tipo, event=tap");
             effects.seleccionarTipoTarea(&tarjeta_tipo.tipoId);
+            Some("seleccionarTipoTarea")
         },
-        _ => {},
+        _ => None,
+    }
+}
+
+impl<'a> System<'a> {
+    pub fn dispatch_boton_30dias_tap(&mut self, boton_30dias: &Boton) -> Option<&'static str> {
+        let action = handle_boton_30dias_tap(&self.current_state(), boton_30dias, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_boton_7dias_tap(&mut self, boton_7dias: &Boton) -> Option<&'static str> {
+        let action = handle_boton_7dias_tap(&self.current_state(), boton_7dias, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_boton_actividad_tap(&mut self, boton_actividad: &Actividad) -> Option<&'static str> {
+        let action = handle_boton_actividad_tap(&self.current_state(), boton_actividad, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_boton_atras_tap(&mut self, boton_atras: &Boton) -> Option<&'static str> {
+        let action = handle_boton_atras_tap(&self.current_state(), boton_atras, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_boton_cancelar_tap(&mut self, boton_cancelar: &Boton) -> Option<&'static str> {
+        let action = handle_boton_cancelar_tap(&self.current_state(), boton_cancelar, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_boton_cerrar_tap(&mut self, boton_cerrar: &Boton) -> Option<&'static str> {
+        let action = handle_boton_cerrar_tap(&self.current_state(), boton_cerrar, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_boton_configuracion_tap(&mut self, boton_configuracion: &Boton) -> Option<&'static str> {
+        let action = handle_boton_configuracion_tap(&self.current_state(), boton_configuracion, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_boton_confirmar_tap(&mut self, boton_confirmar: &Boton) -> Option<&'static str> {
+        let action = handle_boton_confirmar_tap(&self.current_state(), boton_confirmar, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_boton_continuar_tap(&mut self, boton_continuar: &Boton) -> Option<&'static str> {
+        let action = handle_boton_continuar_tap(&self.current_state(), boton_continuar, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_boton_edicion_tap(&mut self, boton_edicion: &Boton) -> Option<&'static str> {
+        let action = handle_boton_edicion_tap(&self.current_state(), boton_edicion, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_boton_ejecutar_tap(&mut self, boton_ejecutar: &Boton) -> Option<&'static str> {
+        let action = handle_boton_ejecutar_tap(&self.current_state(), boton_ejecutar, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_boton_exportar_csv_tap(&mut self, boton_exportar_csv: &Boton) -> Option<&'static str> {
+        let action = handle_boton_exportar_csv_tap(&self.current_state(), boton_exportar_csv, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_boton_guardar_tap(&mut self, boton_guardar: &Boton) -> Option<&'static str> {
+        let action = handle_boton_guardar_tap(&self.current_state(), boton_guardar, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_boton_nuevo_tap(&mut self, boton_nuevo: &Boton) -> Option<&'static str> {
+        let action = handle_boton_nuevo_tap(&self.current_state(), boton_nuevo, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_campo_busqueda_icono_cambio(&mut self, campo_busqueda_icono: &CampoTexto) -> Option<&'static str> {
+        let action = handle_campo_busqueda_icono_cambio(&self.current_state(), campo_busqueda_icono, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_campo_comentario_cambio(&mut self, campo_comentario: &CampoTexto) -> Option<&'static str> {
+        let action = handle_campo_comentario_cambio(&self.current_state(), campo_comentario, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_campo_confirmacion_cambio(&mut self, campo_confirmacion: &CampoTexto) -> Option<&'static str> {
+        let action = handle_campo_confirmacion_cambio(&self.current_state(), campo_confirmacion, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_campo_nombre_cambio(&mut self, campo_nombre: &CampoTexto) -> Option<&'static str> {
+        let action = handle_campo_nombre_cambio(&self.current_state(), campo_nombre, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_campo_retroactivo_cambio(&mut self, campo_retroactivo: &CampoNumerico) -> Option<&'static str> {
+        let action = handle_campo_retroactivo_cambio(&self.current_state(), campo_retroactivo, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_checkbox_actividad_cambio(&mut self, checkbox_actividad: &OpcionActividad) -> Option<&'static str> {
+        let action = handle_checkbox_actividad_cambio(&self.current_state(), checkbox_actividad, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_checkbox_permanente_cambio(&mut self, checkbox_permanente: &Checkbox) -> Option<&'static str> {
+        let action = handle_checkbox_permanente_cambio(&self.current_state(), checkbox_permanente, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_checkbox_sustituir_cambio(&mut self, checkbox_sustituir: &Checkbox) -> Option<&'static str> {
+        let action = handle_checkbox_sustituir_cambio(&self.current_state(), checkbox_sustituir, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_display_timer_tap(&mut self, display_timer: &Boton) -> Option<&'static str> {
+        let action = handle_display_timer_tap(&self.current_state(), display_timer, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_item_acerca_de_tap(&mut self, item_acerca_de: &ItemMenu) -> Option<&'static str> {
+        let action = handle_item_acerca_de_tap(&self.current_state(), item_acerca_de, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_item_historial_tap(&mut self, item_historial: &ItemMenu) -> Option<&'static str> {
+        let action = handle_item_historial_tap(&self.current_state(), item_historial, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_item_nueva_actividad_tap(&mut self, item_nueva_actividad: &ItemMenu) -> Option<&'static str> {
+        let action = handle_item_nueva_actividad_tap(&self.current_state(), item_nueva_actividad, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_item_reset_tap(&mut self, item_reset: &ItemMenu) -> Option<&'static str> {
+        let action = handle_item_reset_tap(&self.current_state(), item_reset, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_overlay_tap(&mut self, overlay: &Boton) -> Option<&'static str> {
+        let action = handle_overlay_tap(&self.current_state(), overlay, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_pestana_actividad_tap(&mut self, pestana_actividad: &Actividad) -> Option<&'static str> {
+        let action = handle_pestana_actividad_tap(&self.current_state(), pestana_actividad, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_pestana_frecuentes_tap(&mut self, pestana_frecuentes: &Pestana) -> Option<&'static str> {
+        let action = handle_pestana_frecuentes_tap(&self.current_state(), pestana_frecuentes, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_selector_color_seleccion(&mut self, selector_color: &SelectorColor) -> Option<&'static str> {
+        let action = handle_selector_color_seleccion(&self.current_state(), selector_color, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_selector_icono_seleccion(&mut self, selector_icono: &SelectorIcono) -> Option<&'static str> {
+        let action = handle_selector_icono_seleccion(&self.current_state(), selector_icono, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_tarjeta_tarea_tap(&mut self, tarjeta_tarea: &Tarea) -> Option<&'static str> {
+        let action = handle_tarjeta_tarea_tap(&self.current_state(), tarjeta_tarea, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
+    }
+    pub fn dispatch_tarjeta_tipo_tap(&mut self, tarjeta_tipo: &TipoTarea) -> Option<&'static str> {
+        let action = handle_tarjeta_tipo_tap(&self.current_state(), tarjeta_tipo, self.effects);
+        if let Some(a) = action {
+            self.dispatch(a, &serde_json::Value::Null);
+        }
+        action
     }
 }
 
