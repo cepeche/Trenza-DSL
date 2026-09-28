@@ -87,3 +87,51 @@ especificación en sus archivos separados (`spec/reference/cronometro-psp/trenza
 o en un solo archivo sin cabeceras falsas ni líneas en blanco repetidas.
 Si B′ sube mucho, el cuello de botella era la presentación; si no, es el
 lenguaje. Corre en ATLAS y no gasta crédito.
+
+---
+
+# B′: la condición Trenza con el material limpio (28 sep, tarde)
+
+Pre-registro en `PREREGISTRO-BPRIMA.md`, sin desviaciones, con el mismo
+digest del modelo que por la mañana. Tabla completa en `RESUMEN-BPRIMA.md`.
+
+| | A (mañana) | B (mañana) | **B′** |
+|---|---|---|---|
+| Total | 19/20 | 4/20 | **13/20** |
+| T1 (modo pausa) | 5/5 | 0/5 | 0/5 |
+| T2 (reordenar) | 4/5 | 0/5 | 3/5 |
+| T3 (pestañas) | 5/5 | 1/5 | **5/5** |
+| T4 (botón +) | 5/5 | 3/5 | **5/5** |
+| Bloques no aplicados | 21 % | 65 % | 66 % (110/166) |
+| … por ruta inexistente | — | 43 | 14 |
+| … no encontrados o repetidos | — | 78 | 24 |
+| … por cabecera mal formada | — | 55 | 72 |
+
+**Lectura pre-registrada.** 13/20 supera el umbral de ≥10/20: **la
+presentación del material era el cuello de botella principal**. El 4/20 de
+la mañana no mide el lenguaje, sino un archivo que parecía dieciséis. En T3
+y T4 (cambios locales), Trenza iguala a JS (5/5).
+
+**Lo que no explica la limpieza: T1 (0/5).**
+- Es la tarea de añadir un modo nuevo y transversal, la que más se parece
+  al bug original.
+- En T1-B-1 y T1-B-5, el verificador detecta **justo lo que Trenza promete
+  detectar**: el botón nuevo `boton_pausa` no está declarado en
+  `ModoNormal` ni en `ModoEdicion` (R1 y R5). El modelo no consigue
+  añadirlo en 3 rondas; muchos de sus bloques no se aplican.
+- En T1-B-3 y T1-B-4, la especificación verifica, pero en modo pausa ⚙️ no
+  abre el menú. Es un error de requisitos: ninguna regla puede detectarlo,
+  y el oráculo sí lo detecta.
+
+**Lo que queda en pie.**
+1. La edición textual sigue siendo el mayor coste. Aún se pierden dos de
+   cada tres bloques, sobre todo porque el modelo escribe
+   `BUSCAR context X:` como si el nombre del contexto fuera un ancla. Con
+   una herramienta de edición estructurada ("añade a X el manejador…"),
+   gran parte de esa pérdida desaparecería. Esto no está probado.
+2. Con este modelo, JS sigue por delante: 19/20 frente a 13/20, y la
+   diferencia se concentra en T1. No hay ninguna tarea en la que Trenza
+   supere a JS.
+3. El verificador hace su trabajo, porque ninguna especificación incorrecta
+   se da por buena. Pero con un modelo débil, detectar el error no basta si
+   no se sabe corregirlo.
