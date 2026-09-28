@@ -85,6 +85,14 @@ Se informa de todas las réplicas.
 3. **Deriva del modelo.** Si ATLAS actualizó el modelo entre ejecuciones,
    no es el mismo. Se anotará el digest de `ollama show gpt-oss-120b`
    antes de ejecutar.
+   *Anotado el 2026-09-28, antes de lanzar B′ (`GET /api/tags` en
+   192.168.1.84):* digest
+   `fb54b1336953877f4c31a3cb884254bda2d4c018d8d1d1a89db42be7833280b6`,
+   65.369.018.106 bytes, `modified_at` 2026-09-15T20:32:41+02:00. La
+   ejecución de la mañana (A/B, 13:12–15:14) no guardó el digest. Pero la
+   etiqueta no se ha reescrito desde el 15-sep, que es cuando se importó
+   el modelo en Ollama, así que **es casi seguro el mismo modelo**. Se
+   deduce de la fecha y no se ha comparado digest contra digest.
 4. **Mismo diseñador y ejecución exploratoria**, como en los dos
    pre-registros anteriores.
 

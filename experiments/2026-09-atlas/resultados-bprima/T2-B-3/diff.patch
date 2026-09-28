@@ -1,0 +1,24 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -588,7 +588,7 @@
+     role pestana_actividad: Actividad
+         on tap -> abrirEditarActividad(self.id)
+     role pestana_frecuentes: Pestana
+-        on tap -> ignored                          -- explícito: Frecuentes no es editable
++        on tap -> abrirReordenarFrecuentes
+     role boton_edicion: Boton
+         on tap -> desactivarEdicion
+     role boton_nuevo: Boton
+@@ -681,6 +681,12 @@
+ -- compilador Trenza NO genera, pero cuya firma sí conoce).
+ 
+ -- El compilador genera un trait Rust que el backend debe implementar.
++
++context ModalReordenarFrecuentes:
++    role boton_cerrar: Boton
++        on tap -> cerrar
++    transitions:
++        on cerrar -> [close_overlay]
+ 
+ external cronometro_api:
+     -- Sesiones

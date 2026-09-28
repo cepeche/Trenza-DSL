@@ -1,0 +1,50 @@
+{
+ "id": "T3-B-3",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 63.9,
+ "turnos": [
+  {
+   "prompt_eval_count": 7523,
+   "eval_count": 677,
+   "total_duration": 35004820882,
+   "done_reason": "stop",
+   "bloques": 1,
+   "informe": [
+    "1 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 2836,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 7711,
+   "eval_count": 429,
+   "total_duration": 27210346887,
+   "done_reason": "stop",
+   "bloques": 1,
+   "informe": [
+    "Bloque 1 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 1540,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 7872,
+   "eval_count": 7,
+   "total_duration": 1486659898,
+   "done_reason": "stop",
+   "bloques": 0,
+   "informe": [],
+   "thinking_chars": 0,
+   "check": null
+  }
+ ],
+ "lineas_diff": 2,
+ "max_prompt_tokens": 7872
+}

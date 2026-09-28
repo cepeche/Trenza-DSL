@@ -1,0 +1,45 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -144,6 +144,7 @@
+     contexts:
+         ModoEdicion
+         ModoNormal          -- base por defecto
++        ModoPausa           -- nuevo modo pausa
+     -- (2) Contextos concurrentes — coexisten ortogonalmente con el base
+     concurrent:
+         SesionActiva        -- activo cuando hay sesión en curso
+@@ -612,7 +613,25 @@
+ 
+ -- No hay edición de tareas ni actividades.
+ 
+-context ModoNormal:
++context ModoPausa:
++    role tarjeta_tipo: TipoTarea
++        on tap -> ignored                         -- no se pueden iniciar tareas en pausa
++    role tarjeta_tarea: Tarea
++        on tap -> ignored                         -- no se pueden iniciar tareas en pausa
++    role pestana_actividad: Actividad
++        on tap -> cambiarPestana(self.id)         -- cambiar pestaña sí está permitido
++    role pestana_frecuentes: Pestana
++        on tap -> cambiarPestana('frecuentes')   -- cambiar pestaña sí está permitido
++    role boton_edicion: Boton
++        on tap -> ignored                         -- no entrar en modo edición
++    role boton_nuevo: Boton
++        on tap -> ignored                         -- no crear tareas
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion          -- menú sigue accesible
++    role boton_pausa: Boton
++        on tap -> salirDePausa
++    transitions:
++        on salirDePausa -> ModoNormal
+     role tarjeta_tipo: TipoTarea
+         on tap -> seleccionarTipoTarea(self.tipoId)
+     role tarjeta_tarea: Tarea
+@@ -629,6 +648,7 @@
+         on tap -> abrirMenuConfiguracion
+     transitions:
+         on activarEdicion        -> ModoEdicion
++        on entrarModoPausa -> ModoPausa
+         on abrirCrearTarea       -> ModalCrearTarea
+         on abrirMenuConfiguracion -> MenuConfiguracion
+         -- seleccionarTipoTarea puede ramificar:

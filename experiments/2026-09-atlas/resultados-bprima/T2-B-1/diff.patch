@@ -1,0 +1,40 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -159,6 +159,7 @@
+         ModalHistorial
+         ModalReset
+         ModalAcercaDe
++        ModalReordenarFrecuentes
+ 
+ -- Overlay: menú desplegable del botón de configuración.
+ 
+@@ -201,6 +202,12 @@
+         -- PROPUESTA GAP-7: efectos de ciclo de vida
+         [on_entry] -> verificar_conexion()
+         [on_entry] -> cargar_tiempo_acumulado()
++
++context ModalReordenarFrecuentes:
++    role boton_cerrar: Boton
++        on tap -> cerrar
++    transitions:
++        on cerrar -> [close_overlay]
+ 
+ -- Overlay: se muestra antes de iniciar una sesión.
+ 
+@@ -588,7 +595,7 @@
+     role pestana_actividad: Actividad
+         on tap -> abrirEditarActividad(self.id)
+     role pestana_frecuentes: Pestana
+-        on tap -> ignored                          -- explícito: Frecuentes no es editable
++        on tap -> abrirReordenarFrecuentes          -- abre dialogo de reordenado en modo edición
+     role boton_edicion: Boton
+         on tap -> desactivarEdicion
+     role boton_nuevo: Boton
+@@ -601,6 +608,7 @@
+         on abrirEditarActividad   -> ModalEditarActividad
+         on abrirCrearTarea        -> ModalCrearTarea
+         on abrirMenuConfiguracion -> MenuConfiguracion
++        on abrirReordenarFrecuentes -> ModalReordenarFrecuentes
+     -- NOTA: abrirEditarTarea y abrirEditarActividad necesitan
+     -- pasar el ID del elemento a editar al modal destino.
+     -- Ver GAP-1 en ANALISIS_GAPS.md.

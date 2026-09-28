@@ -1,0 +1,36 @@
+{
+ "id": "T4-B-3",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 83.7,
+ "turnos": [
+  {
+   "prompt_eval_count": 7506,
+   "eval_count": 1393,
+   "total_duration": 54759467224,
+   "done_reason": "stop",
+   "bloques": 2,
+   "informe": [
+    "Bloque 1 (cronometro.trz): aplicado.",
+    "Bloque 2 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 5820,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 7739,
+   "eval_count": 487,
+   "total_duration": 28878476236,
+   "done_reason": "stop",
+   "bloques": 0,
+   "informe": [],
+   "thinking_chars": 2236,
+   "check": null
+  }
+ ],
+ "lineas_diff": 3,
+ "max_prompt_tokens": 7739
+}

@@ -1,0 +1,11 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -586,7 +586,7 @@
+     role tarjeta_tarea: Tarea
+         on tap -> abrirEditarTarea(self.tipoId)    -- edita el tipo, no la combinación
+     role pestana_actividad: Actividad
+-        on tap -> abrirEditarActividad(self.id)
++        on tap -> cambiarPestana(self.id)
+     role pestana_frecuentes: Pestana
+         on tap -> ignored                          -- explícito: Frecuentes no es editable
+     role boton_edicion: Boton

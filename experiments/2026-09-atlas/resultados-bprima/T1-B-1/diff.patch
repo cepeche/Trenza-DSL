@@ -1,0 +1,38 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -144,6 +144,8 @@
+     contexts:
+         ModoEdicion
+         ModoNormal          -- base por defecto
++        ModoPausa           -- nuevo modo pausa
++        ModoPausa           -- nuevo modo pausa
+     -- (2) Contextos concurrentes — coexisten ortogonalmente con el base
+     concurrent:
+         SesionActiva        -- activo cuando hay sesión en curso
+@@ -682,6 +684,26 @@
+ 
+ -- El compilador genera un trait Rust que el backend debe implementar.
+ 
++context ModoPausa:
++    role tarjeta_tipo: TipoTarea
++        on tap -> ignored
++    role tarjeta_tarea: Tarea
++        on tap -> ignored
++    role pestana_actividad: Actividad
++        on tap -> cambiarPestana(self.id)
++    role pestana_frecuentes: Pestana
++        on tap -> cambiarPestana('frecuentes')
++    role boton_edicion: Boton
++        on tap -> ignored
++    role boton_nuevo: Boton
++        on tap -> ignored
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion
++    role boton_pausa: Boton
++        on tap -> desactivarPausa
++    transitions:
++        on desactivarPausa       -> ModoNormal
++
+ external cronometro_api:
+     -- Sesiones
+     iniciar_sesion(
