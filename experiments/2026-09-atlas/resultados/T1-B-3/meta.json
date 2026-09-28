@@ -1,0 +1,73 @@
+{
+ "id": "T1-B-3",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 310.0,
+ "turnos": [
+  {
+   "prompt_eval_count": 10049,
+   "eval_count": 1802,
+   "total_duration": 57107492781,
+   "done_reason": "stop",
+   "bloques": 7,
+   "informe": [
+    "7 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 5040,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 10779,
+   "eval_count": 2225,
+   "total_duration": 67468538854,
+   "done_reason": "stop",
+   "bloques": 4,
+   "informe": [
+    "Bloque 1 (cronometro.trz): aplicado.",
+    "Bloque 2 (cronometro.trz): aplicado.",
+    "Bloque 3 (cronometro.trz): aplicado.",
+    "Bloque 4 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 7677,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [319:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [322:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]"
+   }
+  },
+  {
+   "prompt_eval_count": 11412,
+   "eval_count": 4440,
+   "total_duration": 131371158675,
+   "done_reason": "stop",
+   "bloques": 1,
+   "informe": [
+    "Bloque 1 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 19444,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [322:5] El rol 'tarjeta_tipo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [325:5] El rol 'tarjeta_tarea' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [328:5] El rol 'pestana_actividad' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [331:5] El rol 'pestana_frecuentes' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [334:5] El rol 'boton_edicion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [337:5] El rol 'boton_nuevo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [340:5] El rol 'boton_configuracion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [343:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [346:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [349:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]"
+   }
+  },
+  {
+   "prompt_eval_count": 12103,
+   "eval_count": 1767,
+   "total_duration": 53865792869,
+   "done_reason": "stop",
+   "bloques": 1,
+   "informe": [
+    "1 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 7255,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [322:5] El rol 'tarjeta_tipo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [325:5] El rol 'tarjeta_tarea' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [328:5] El rol 'pestana_actividad' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [331:5] El rol 'pestana_frecuentes' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [334:5] El rol 'boton_edicion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [337:5] El rol 'boton_nuevo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [340:5] El rol 'boton_configuracion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [343:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [346:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [349:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]"
+   }
+  }
+ ],
+ "lineas_diff": 63,
+ "max_prompt_tokens": 12103
+}

@@ -1,0 +1,87 @@
+{
+ "id": "T1-B-1",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 282.1,
+ "turnos": [
+  {
+   "prompt_eval_count": 10049,
+   "eval_count": 3278,
+   "total_duration": 98788709447,
+   "done_reason": "stop",
+   "bloques": 5,
+   "informe": [
+    "Bloque 1 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 2 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 3 (cronometro.trz): el texto de BUSCAR aparece 2 veces; no se aplicó.",
+    "Bloque 4 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 5 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 11929,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [1387:9] El contexto 'ModoPausa' es inalcanzable [reachability]"
+   }
+  },
+  {
+   "prompt_eval_count": 10692,
+   "eval_count": 2223,
+   "total_duration": 67252124247,
+   "done_reason": "stop",
+   "bloques": 4,
+   "informe": [
+    "Bloque 1: contexts: no es un archivo que puedas cambiar.",
+    "3 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 7031,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [1387:9] El contexto 'ModoPausa' es inalcanzable [reachability]"
+   }
+  },
+  {
+   "prompt_eval_count": 11356,
+   "eval_count": 1643,
+   "total_duration": 50024512090,
+   "done_reason": "stop",
+   "bloques": 5,
+   "informe": [
+    "Bloque 1 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 2 (cronometro.trz): aplicado.",
+    "Bloque 3 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 4 (cronometro.trz): aplicado.",
+    "Bloque 5 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 4597,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [1413:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [1416:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [1475:9] El contexto 'ModoPausa' es inalcanzable [reachability]"
+   }
+  },
+  {
+   "prompt_eval_count": 12110,
+   "eval_count": 2180,
+   "total_duration": 65722800077,
+   "done_reason": "stop",
+   "bloques": 9,
+   "informe": [
+    "Bloque 1 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 2 (cronometro.trz): el texto de BUSCAR aparece 2 veces; no se aplicó.",
+    "Bloque 3 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 4 (cronometro.trz): el texto de BUSCAR aparece 2 veces; no se aplicó.",
+    "Bloque 5 (cronometro.trz): el texto de BUSCAR aparece 2 veces; no se aplicó.",
+    "Bloque 6 (cronometro.trz): aplicado.",
+    "Bloque 7 (cronometro.trz): el texto de BUSCAR aparece 2 veces; no se aplicó.",
+    "Bloque 8 (cronometro.trz): el texto de BUSCAR aparece 2 veces; no se aplicó.",
+    "Bloque 9 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó."
+   ],
+   "thinking_chars": 4819,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [1413:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [1416:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [1475:9] El contexto 'ModoPausa' es inalcanzable [reachability]"
+   }
+  }
+ ],
+ "lineas_diff": 64,
+ "max_prompt_tokens": 12110
+}

@@ -1,0 +1,86 @@
+T1-A-1: ya evaluada
+T1-B-1: ya evaluada
+T2-B-1: 4b✓ 4b✓ 4b✗ 4b✗ → NO correcta (256 s)
+T2-A-1: 3b✓ 3b✓ ·→ correcta (156 s)
+T3-A-1: 1b✓ 1b✓ ·→ correcta (106 s)
+T3-B-1: 1b✓ 1b✓ 1b✓ 1b✓ → NO correcta (87 s)
+T4-B-1: 2b✓ 2b✓ 2b✓ 2b✓ → NO correcta (121 s)
+T4-A-1: 1b✓ 1b✓ ·→ correcta (80 s)
+T1-B-2: 5b✗ 5b✗ 2b✗ 4b✗ → NO correcta (375 s)
+T1-A-2: 6b✓ 7b✓ ·→ correcta (181 s)
+T2-A-2: 5b✓ ·→ correcta (94 s)
+T2-B-2: 4b✓ 4b✗ 4b✗ 5b✗ → NO correcta (276 s)
+T3-B-2: 1b✓ 1b✓ 1b✓ 1b✓ → NO correcta (94 s)
+T3-A-2: 1b✓ 1b✓ 1b✓ ·→ correcta (115 s)
+T4-A-2: 1b✓ 1b✓ ·→ correcta (46 s)
+T4-B-2: 2b✓ 2b✓ 2b✓ 1b✓ → correcta (132 s)
+T1-A-3: 6b✓ 10b✓ 8b✓ 4b✓ → correcta (245 s)
+T1-B-3: 7b✓ 4b✗ 1b✗ 1b✗ → NO correcta (310 s)
+T2-B-3: 4b✓ 4b✓ 4b✗ 3b✗ → NO correcta (201 s)
+T2-A-3: 5b✓ 3b✓ 3b✓ ·→ correcta (555 s)
+T3-A-3: 1b✓ ·→ correcta (52 s)
+T3-B-3: 1b✓ 1b✓ 1b✓ 1b✓ → correcta (71 s)
+T4-B-3: 2b✓ 2b✓ 2b✓ ·→ correcta (94 s)
+T4-A-3: 1b✓ ·→ correcta (28 s)
+T1-B-4: 6b✓ 5b✗ 3b✗ 5b✗ → NO correcta (274 s)
+T1-A-4: 7b✓ ·→ correcta (137 s)
+T2-A-4: 5b✓ ·→ correcta (110 s)
+T2-B-4: 3b✓ 4b✓ 4b✗ 2b✗ → NO correcta (226 s)
+T3-B-4: 1b✓ 1b✓ 1b✓ 1b✓ → NO correcta (58 s)
+T3-A-4: 1b✓ 1b✓ ·→ correcta (89 s)
+T4-A-4: 1b✓ 1b✓ ·→ correcta (41 s)
+T4-B-4: 2b✓ 2b✓ ·→ correcta (73 s)
+T1-A-5: 43b✓ 9b✓ ·→ correcta (253 s)
+T1-B-5: 8b✓ 5b✓ 5b✓ 5b✗ → NO correcta (300 s)
+T2-B-5: 4b✓ 4b✓ 4b✗ 3b✗ → NO correcta (233 s)
+T2-A-5: 4b✓ 4b✓ 4b✓ 2b✓ → NO correcta (216 s)
+T3-A-5: 1b✓ 1b✓ ·→ correcta (62 s)
+T3-B-5: 1b✓ 1b✓ 1b✓ 1b✓ → NO correcta (51 s)
+T4-B-5: 2b✓ 2b✓ 2b✓ 2b✓ → NO correcta (125 s)
+T4-A-5: 1b✓ 1b✓ ·→ correcta (42 s)
+| Réplica | Correcta | Arranca | Expectativas fallidas | Regresiones | Turnos | Máx. tokens prompt | s |
+|---|---|---|---|---|---|---|---|
+| T1-A-1 | sí | sí | 0 | 0 | 3 | 20545 | 158.0 |
+| T1-A-2 | sí | sí | 0 | 0 | 3 | 21846 | 181.2 |
+| T1-A-3 | sí | sí | 0 | 0 | 4 | 22585 | 245.5 |
+| T1-A-4 | sí | sí | 0 | 0 | 2 | 19796 | 136.8 |
+| T1-A-5 | sí | sí | 0 | 0 | 3 | 22406 | 253.1 |
+| T1-B-1 | no | no | 0 | 0 | 4 | 12110 | 282.1 |
+| T1-B-2 | no | no | 0 | 0 | 4 | 12140 | 374.6 |
+| T1-B-3 | no | no | 0 | 0 | 4 | 12103 | 310.0 |
+| T1-B-4 | no | no | 0 | 0 | 4 | 12076 | 273.8 |
+| T1-B-5 | no | no | 0 | 0 | 4 | 12445 | 299.6 |
+| T2-A-1 | sí | sí | 0 | 0 | 3 | 20412 | 156.0 |
+| T2-A-2 | sí | sí | 0 | 0 | 2 | 19943 | 94.4 |
+| T2-A-3 | sí | sí | 0 | 0 | 4 | 31717 | 555.2 |
+| T2-A-4 | sí | sí | 0 | 0 | 2 | 20574 | 110.3 |
+| T2-A-5 | no | sí | 1 | 0 | 4 | 21551 | 215.8 |
+| T2-B-1 | no | no | 0 | 0 | 4 | 11651 | 256.4 |
+| T2-B-2 | no | no | 0 | 0 | 4 | 11481 | 276.4 |
+| T2-B-3 | no | no | 0 | 0 | 4 | 11936 | 200.7 |
+| T2-B-4 | no | no | 0 | 0 | 4 | 11553 | 226.1 |
+| T2-B-5 | no | no | 0 | 0 | 4 | 11891 | 232.9 |
+| T3-A-1 | sí | sí | 0 | 0 | 3 | 19693 | 105.9 |
+| T3-A-2 | sí | sí | 0 | 0 | 4 | 20640 | 115.0 |
+| T3-A-3 | sí | sí | 0 | 0 | 2 | 18699 | 52.3 |
+| T3-A-4 | sí | sí | 0 | 0 | 3 | 19428 | 88.5 |
+| T3-A-5 | sí | sí | 0 | 0 | 3 | 19635 | 62.2 |
+| T3-B-1 | no | sí | 1 | 0 | 4 | 10442 | 87.5 |
+| T3-B-2 | no | sí | 1 | 0 | 4 | 10489 | 94.5 |
+| T3-B-3 | sí | sí | 0 | 0 | 4 | 10418 | 71.1 |
+| T3-B-4 | no | sí | 1 | 0 | 4 | 10460 | 57.9 |
+| T3-B-5 | no | sí | 1 | 0 | 4 | 10452 | 50.9 |
+| T4-A-1 | sí | sí | 0 | 0 | 3 | 19363 | 80.0 |
+| T4-A-2 | sí | sí | 0 | 0 | 3 | 19376 | 46.0 |
+| T4-A-3 | sí | sí | 0 | 0 | 2 | 18497 | 27.8 |
+| T4-A-4 | sí | sí | 0 | 0 | 3 | 19326 | 40.9 |
+| T4-A-5 | sí | sí | 0 | 0 | 3 | 19373 | 42.4 |
+| T4-B-1 | no | sí | 1 | 0 | 4 | 10715 | 121.2 |
+| T4-B-2 | sí | sí | 0 | 0 | 4 | 10608 | 132.1 |
+| T4-B-3 | sí | sí | 0 | 0 | 4 | 10775 | 93.6 |
+| T4-B-4 | sí | sí | 0 | 0 | 3 | 10514 | 72.6 |
+| T4-B-5 | no | sí | 1 | 0 | 4 | 10756 | 124.6 |
+
+**A:** 19/20 correctas.
+
+**B:** 4/20 correctas.

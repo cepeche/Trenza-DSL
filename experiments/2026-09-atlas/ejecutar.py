@@ -110,6 +110,13 @@ def aplicar(texto, work, cond):
             continue
         f.write_text(actual.replace(buscar, reemplazo, 1), encoding="utf-8")
         informe.append(f"Bloque {n} ({ruta}): aplicado.")
+    # D1: una cabecera BUSCAR que no forma bloque válido cuenta como bloque fallido
+    malas = len(re.findall(r"^<{7} BUSCAR", texto, re.M)) - n
+    if malas > 0:
+        n += malas
+        informe.append(f"{malas} bloque(s) con la cabecera mal formada; no se aplicaron. "
+                       "Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar "
+                       "empieza en la línea siguiente.")
     return n, informe
 
 

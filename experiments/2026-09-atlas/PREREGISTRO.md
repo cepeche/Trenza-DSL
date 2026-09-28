@@ -96,4 +96,21 @@ cambia, se descartan y el cambio va a *Desviaciones*.
 
 ## Desviaciones
 
-(ninguna todavía)
+**D1 (2026-09-28, tras el piloto; aprobada por César y aplicada en `ejecutar.py` antes de repetir los pilotos).**
+En los dos pilotos el modelo escribió bloques con la cabecera mal formada:
+en lugar de la ruta puso en la línea `<<<<<<< BUSCAR` la primera línea del
+texto que buscaba (T1-A-1, turno 1, 9 bloques) o un nombre de contexto
+(`BUSCAR context ModoNormal:`, T1-B-1, turno 2). La expresión regular no los
+reconoce, así que el script contó 0 bloques y dio la réplica por
+TERMINADA, aunque el modelo sí quería seguir cambiando cosas. T1-A-1 acabó en
+un turno sin aplicar nada. El protocolo pre-registrado solo preveía terminar
+cuando el modelo respondiera sin bloques.
+Cambio propuesto: toda línea que empiece por `<<<<<<< BUSCAR` y no forme un
+bloque válido cuenta como **bloque fallido** («cabecera mal formada: tras
+BUSCAR va solo la ruta del archivo»). Si hay alguno, la réplica sigue y
+consume una ronda de corrección, como cualquier otro bloque que no se pudo
+aplicar. Los dos pilotos se descartan y se repiten.
+
+Nota, sin cambio de protocolo: en Windows, `ATLAS-A9` resuelve primero a una
+IPv6 de enlace local en la que Ollama no contesta. Se usa
+`ATLAS_URL=http://192.168.1.84:11434`.

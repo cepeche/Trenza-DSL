@@ -1,0 +1,22 @@
+{
+ "correcta": false,
+ "arranca": true,
+ "fallos_expectativa": [
+  {
+   "pre": "edicion",
+   "tap": "pestana_actividad",
+   "obs": {
+    "action": "abrirEditarActividad",
+    "base": "ModoEdicion",
+    "concurrent": [],
+    "forbidden": false,
+    "missing": false,
+    "overlays": [
+     "ModalEditarActividad"
+    ]
+   }
+  }
+ ],
+ "regresiones": [],
+ "forbidden_como_nada": 0
+}

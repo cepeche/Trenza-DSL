@@ -1,0 +1,15 @@
+--- frontend/js/app.js
++++ frontend/js/app.js
+@@ -282,11 +282,8 @@
+         tab.className = 'tab';
+         tab.dataset.tab = act.id;
+         tab.textContent = act.nombre;
++        // En modo edición ya no se abre el editor de actividad; siempre cambia a la pestaña
+         tab.addEventListener('click', () => {
+-            if (AppState.modoEdicion) {
+-                mostrarModalEditarActividad(act.id);
+-                return;
+-            }
+             AppState.pestanaActual = act.id;
+             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+             tab.classList.add('active');

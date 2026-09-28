@@ -1,0 +1,79 @@
+{
+ "id": "T2-B-4",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 226.1,
+ "turnos": [
+  {
+   "prompt_eval_count": 9999,
+   "eval_count": 1545,
+   "total_duration": 48961252547,
+   "done_reason": "stop",
+   "bloques": 3,
+   "informe": [
+    "Bloque 1: contexts/ModoEdicion.trz no es un archivo que puedas cambiar.",
+    "Bloque 2: transitions: no es un archivo que puedas cambiar.",
+    "1 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 5330,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 10519,
+   "eval_count": 2185,
+   "total_duration": 65554072546,
+   "done_reason": "stop",
+   "bloques": 4,
+   "informe": [
+    "Bloque 1 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 2: contexts/ModoEdicion.trz no es un archivo que puedas cambiar.",
+    "Bloque 3: contexts/ModoEdicion.trz no es un archivo que puedas cambiar.",
+    "1 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 7456,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 11178,
+   "eval_count": 1864,
+   "total_duration": 56152827191,
+   "done_reason": "stop",
+   "bloques": 4,
+   "informe": [
+    "Bloque 1 (cronometro.trz): aplicado.",
+    "Bloque 2 (cronometro.trz): aplicado.",
+    "Bloque 3: contexts/ModoEdicion.trz no es un archivo que puedas cambiar.",
+    "Bloque 4: contexts/ModoEdicion.trz no es un archivo que puedas cambiar."
+   ],
+   "thinking_chars": 7005,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [398:9] El contexto 'ModalReordenarFrecuentes' es inalcanzable [reachability]"
+   }
+  },
+  {
+   "prompt_eval_count": 11553,
+   "eval_count": 1841,
+   "total_duration": 55336665108,
+   "done_reason": "stop",
+   "bloques": 2,
+   "informe": [
+    "Bloque 1 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 2 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó."
+   ],
+   "thinking_chars": 7155,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [398:9] El contexto 'ModalReordenarFrecuentes' es inalcanzable [reachability]"
+   }
+  }
+ ],
+ "lineas_diff": 9,
+ "max_prompt_tokens": 11553
+}

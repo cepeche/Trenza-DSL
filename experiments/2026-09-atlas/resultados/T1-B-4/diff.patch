@@ -1,0 +1,76 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -1449,6 +1449,73 @@
+ 
+ 
+ 
++context ModoPausa:
++    
++    
++    role tarjeta_tipo: TipoTarea
++        on tap -> ignored
++    
++    role tarjeta_tarea: Tarea
++        on tap -> ignored
++    
++    role pestana_actividad: Actividad
++        on tap -> cambiarPestana(self.id)
++    
++    role pestana_frecuentes: Pestana
++        on tap -> cambiarPestana('frecuentes')
++    
++    role boton_edicion: Boton
++        on tap -> ignored
++    
++    role boton_nuevo: Boton
++        on tap -> ignored
++    
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion
++
++    role boton_pausa: Boton
++        on tap -> ignored
++
++    role boton_pausa: Boton
++        on tap -> entrarModoPausa
++    
++    role boton_pausa: Boton
++        on tap -> salirModoPausa
++    
++    transitions:
++        on salirModoPausa -> ModoNormal
++
++context ModoPausa:
++    
++    
++    role tarjeta_tipo: TipoTarea
++        on tap -> ignored
++    
++    role tarjeta_tarea: Tarea
++        on tap -> ignored
++    
++    role pestana_actividad: Actividad
++        on tap -> cambiarPestana(self.id)
++    
++    role pestana_frecuentes: Pestana
++        on tap -> cambiarPestana('frecuentes')
++    
++    role boton_edicion: Boton
++        on tap -> ignored
++    
++    role boton_nuevo: Boton
++        on tap -> ignored
++    
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion
++    
++    role boton_pausa: Boton
++        on tap -> salirModoPausa
++    
++    transitions:
++        on salirModoPausa -> ModoNormal
++        on abrirMenuConfiguracion -> MenuConfiguracion
++
+ external cronometro_api:
+ 
+ 

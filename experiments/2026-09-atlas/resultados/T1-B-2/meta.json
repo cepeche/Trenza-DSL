@@ -1,0 +1,79 @@
+{
+ "id": "T1-B-2",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 374.6,
+ "turnos": [
+  {
+   "prompt_eval_count": 10049,
+   "eval_count": 4196,
+   "total_duration": 125296590547,
+   "done_reason": "stop",
+   "bloques": 5,
+   "informe": [
+    "Bloque 1 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 2 (cronometro.trz): aplicado.",
+    "Bloque 3: contexts/ModoNormal.trz no es un archivo que puedas cambiar.",
+    "Bloque 4: contexts/ModoNormal.trz no es un archivo que puedas cambiar.",
+    "Bloque 5: contexts/ModoEdicion.trz no es un archivo que puedas cambiar."
+   ],
+   "thinking_chars": 15663,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [1452:9] El contexto 'ModoPausa' es inalcanzable [reachability]"
+   }
+  },
+  {
+   "prompt_eval_count": 10731,
+   "eval_count": 3204,
+   "total_duration": 95590790668,
+   "done_reason": "stop",
+   "bloques": 5,
+   "informe": [
+    "Bloque 1 (cronometro.trz): aplicado.",
+    "Bloque 2 (cronometro.trz): aplicado.",
+    "Bloque 3 (cronometro.trz): el texto de BUSCAR aparece 2 veces; no se aplicó.",
+    "Bloque 4 (cronometro.trz): aplicado.",
+    "Bloque 5 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 11933,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [1472:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [1474:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [1210:9] La acción 'boton_pausa.tap' no está declarada en el contexto 'ModoEdicion' (se maneja en los contextos base) [completeness]\n  [1295:9] La acción 'boton_pausa.tap' no está declarada en el contexto 'ModoNormal' (se maneja en los contextos base) [completeness]\n  [1480:9] El contexto 'ModoPausa' es inalcanzable [reachability]\n  [1210:9] role 'boton_pausa' appears in los contextos base but is absent from context 'ModoEdicion' [exhaustiveness]\n  [1295:9] role 'boton_pausa' appears in los contextos base but is absent from context 'ModoNormal' [exhaustiveness]"
+   }
+  },
+  {
+   "prompt_eval_count": 11548,
+   "eval_count": 3148,
+   "total_duration": 94190784925,
+   "done_reason": "stop",
+   "bloques": 2,
+   "informe": [
+    "2 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 12976,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [1472:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [1474:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [1210:9] La acción 'boton_pausa.tap' no está declarada en el contexto 'ModoEdicion' (se maneja en los contextos base) [completeness]\n  [1295:9] La acción 'boton_pausa.tap' no está declarada en el contexto 'ModoNormal' (se maneja en los contextos base) [completeness]\n  [1480:9] El contexto 'ModoPausa' es inalcanzable [reachability]\n  [1210:9] role 'boton_pausa' appears in los contextos base but is absent from context 'ModoEdicion' [exhaustiveness]\n  [1295:9] role 'boton_pausa' appears in los contextos base but is absent from context 'ModoNormal' [exhaustiveness]"
+   }
+  },
+  {
+   "prompt_eval_count": 12140,
+   "eval_count": 1953,
+   "total_duration": 59288699934,
+   "done_reason": "stop",
+   "bloques": 4,
+   "informe": [
+    "Bloque 1: contexts: no es un archivo que puedas cambiar.",
+    "3 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 4270,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [1472:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [1474:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [1210:9] La acción 'boton_pausa.tap' no está declarada en el contexto 'ModoEdicion' (se maneja en los contextos base) [completeness]\n  [1295:9] La acción 'boton_pausa.tap' no está declarada en el contexto 'ModoNormal' (se maneja en los contextos base) [completeness]\n  [1480:9] El contexto 'ModoPausa' es inalcanzable [reachability]\n  [1210:9] role 'boton_pausa' appears in los contextos base but is absent from context 'ModoEdicion' [exhaustiveness]\n  [1295:9] role 'boton_pausa' appears in los contextos base but is absent from context 'ModoNormal' [exhaustiveness]"
+   }
+  }
+ ],
+ "lineas_diff": 49,
+ "max_prompt_tokens": 12140
+}

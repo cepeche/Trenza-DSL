@@ -1,0 +1,74 @@
+{
+ "id": "T4-B-5",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 124.6,
+ "turnos": [
+  {
+   "prompt_eval_count": 9919,
+   "eval_count": 996,
+   "total_duration": 31605880015,
+   "done_reason": "stop",
+   "bloques": 2,
+   "informe": [
+    "Bloque 1: transitions: no es un archivo que puedas cambiar.",
+    "1 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 3698,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 10264,
+   "eval_count": 1228,
+   "total_duration": 37682805516,
+   "done_reason": "stop",
+   "bloques": 2,
+   "informe": [
+    "Bloque 1 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 2 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 4932,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 10521,
+   "eval_count": 881,
+   "total_duration": 26884507785,
+   "done_reason": "stop",
+   "bloques": 2,
+   "informe": [
+    "Bloque 1 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 2 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 3406,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 10756,
+   "eval_count": 932,
+   "total_duration": 28302790633,
+   "done_reason": "stop",
+   "bloques": 2,
+   "informe": [
+    "Bloque 1 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 2 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 3499,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  }
+ ],
+ "lineas_diff": 4,
+ "max_prompt_tokens": 10756
+}

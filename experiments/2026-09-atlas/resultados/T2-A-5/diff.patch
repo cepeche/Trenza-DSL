@@ -1,0 +1,52 @@
+--- frontend/index.html
++++ frontend/index.html
+@@ -329,6 +329,19 @@
+         </div>
+     </div>
+ 
++    <!-- Modal Reordenar frecuentes -->
++    <div class="modal-overlay" id="reorderModal">
++        <div class="modal-content">
++            <div class="modal-header">
++                <div class="modal-task-name">Reordenar frecuentes</div>
++            </div>
++            <!-- Contenido futuro del reordenado irá aquí -->
++            <div class="form-buttons" style="margin-top:1.5rem">
++                <button class="btn-primary" id="btnReorderClose" onclick="cerrarReorderModal()">Cerrar</button>
++            </div>
++        </div>
++    </div>
++
+     <!-- Modal Historial -->
+     <div class="modal-overlay historial-overlay" id="historialModal">
+         <div class="modal-content historial-content">
+--- frontend/js/app.js
++++ frontend/js/app.js
+@@ -751,6 +751,15 @@
+     document.getElementById('editActivityModal').classList.remove('active');
+ }
+ 
++// --- Diálogo Reordenar Frecuentes -------------------------------------------------
++function mostrarReorderModal() {
++    document.getElementById('reorderModal').classList.add('active');
++}
++
++function cerrarReorderModal() {
++    document.getElementById('reorderModal').classList.remove('active');
++}
++
+ function seleccionarColorEdit(color) {
+     AppState.colorEditSeleccionado = color;
+     document.querySelectorAll('#editColorPicker .color-option').forEach(opt => {
+@@ -895,6 +904,11 @@
+ 
+     document.getElementById('editTaskModal').addEventListener('click', function(e) {
+         if (e.target === this) cerrarModalEditarTarea();
++    });
++
++    // Cerrar modal reordenar frecuentes al hacer click en overlay
++    document.getElementById('reorderModal').addEventListener('click', function(e) {
++        if (e.target === this) cerrarReorderModal();
+     });
+ 
+     document.getElementById('historialModal').addEventListener('click', function(e) {

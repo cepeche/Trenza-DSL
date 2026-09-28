@@ -1,0 +1,20 @@
+{
+ "correcta": false,
+ "arranca": true,
+ "fallos_expectativa": [
+  {
+   "pre": "edicion",
+   "tap": "pestana_frecuentes",
+   "obs": {
+    "mode": "edicion",
+    "overlays": [],
+    "tab": "frecuentes",
+    "mutations": 0,
+    "missing": false,
+    "errors": 0
+   }
+  }
+ ],
+ "regresiones": [],
+ "forbidden_como_nada": 0
+}

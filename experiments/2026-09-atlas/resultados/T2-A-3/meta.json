@@ -1,0 +1,69 @@
+{
+ "id": "T2-A-3",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 555.2,
+ "turnos": [
+  {
+   "prompt_eval_count": 17729,
+   "eval_count": 12695,
+   "total_duration": 393019084345,
+   "done_reason": "stop",
+   "bloques": 5,
+   "informe": [
+    "Bloque 1: </div> no es un archivo que puedas cambiar.",
+    "4 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 6803,
+   "check": {
+    "codigo": 0,
+    "salida": "\nMi Cronómetro PSP — JS Unit Tests\n===================================\n\n  ✓  formatearDuracion: 0 segundos → \"0:00\"\n  ✓  formatearDuracion: 59 segundos → \"0:00\" (trunca, no redondea)\n  ✓  formatearDuracion: 60 segundos → \"0:01\"\n  ✓  formatearDuracion: 90 segundos → \"0:01\"\n  ✓  formatearDuracion: 3600 segundos → \"1:00\"\n  ✓  formatearDuracion: 3661 segundos → \"1:01\"\n  ✓  formatearDuracion: 7380 segundos → \"2:03\"\n  ✓  formatearDuracion: minutos < 10 se pad con cero (\"1:05\")\n  ✓  formatearDuracion: minutos ≥ 10 sin cero adicional (\"1:10\")\n  ✓  formatearDuracion: valores grandes (10 horas) → \"10:00\"\n  ✓  getTareasFrecuentes: lista vacía si todos usos_7d = 0\n  ✓  getTareasFrecuentes: solo incluye tipos con usos_7d > 0\n  ✓  getTareasFrecuentes: máximo 8 resultados del top\n  ✓  getTareasFrecuentes: ordenados por usos_7d DESC\n  ✓  getTareasFrecuentes: tipo reciente de hoy se añade si no está en el top8\n  ✓  getTareasFrecuentes: tipo reciente no se duplica si ya está en el top8\n  ✓  getTareasFrecuentes: recientes solo considera las últimas 3 sesiones\n  ✓  getTiempoHoyTipoTarea: suma correctamente sesiones cerradas (strings PDO)\n  ✓  getTiempoHoyTipoTarea: devuelve 0 si no hay sesiones del tipo\n  ✓  getTiempoHoyTipoTarea: ignora sesiones sin duración (sesiones activas, duracion=null)\n  ✓  getTiempoHoyTipoTarea: suma sesión activa si es del mismo tipo\n  ✓  getTiempoHoyTipoTarea: no suma sesión activa de otro tipo\n  ✓  getTiempoHoyTipoTarea: sesión activa solo cuenta desde medianoche si empezó ayer\n  ✓  getTiempoHoyTarea: suma sesiones cerradas de esa tarea exacta\n  ✓  getTiempoHoyTarea: devuelve 0 si no hay sesiones de esa tarea\n  ✓  getTiempoHoyTarea: suma sesión activa si esa tarea está activa\n  ✓  getTiempoHoyTarea: no suma sesión activa si es otra tarea\n  ✓  getTiempoHoyTarea: sesión activa limitada a medianoche si empezó ayer\n  ✓  getTiempoHoyTarea: no hay concatenación string (bug PDO \"3600\"+\"900\"=\"3600900\")\n\n29 tests: 29 passed, 0 failed\n"
+   }
+  },
+  {
+   "prompt_eval_count": 29626,
+   "eval_count": 2293,
+   "total_duration": 109258867054,
+   "done_reason": "stop",
+   "bloques": 3,
+   "informe": [
+    "Bloque 1: </div> no es un archivo que puedas cambiar.",
+    "2 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 8791,
+   "check": {
+    "codigo": 0,
+    "salida": "\nMi Cronómetro PSP — JS Unit Tests\n===================================\n\n  ✓  formatearDuracion: 0 segundos → \"0:00\"\n  ✓  formatearDuracion: 59 segundos → \"0:00\" (trunca, no redondea)\n  ✓  formatearDuracion: 60 segundos → \"0:01\"\n  ✓  formatearDuracion: 90 segundos → \"0:01\"\n  ✓  formatearDuracion: 3600 segundos → \"1:00\"\n  ✓  formatearDuracion: 3661 segundos → \"1:01\"\n  ✓  formatearDuracion: 7380 segundos → \"2:03\"\n  ✓  formatearDuracion: minutos < 10 se pad con cero (\"1:05\")\n  ✓  formatearDuracion: minutos ≥ 10 sin cero adicional (\"1:10\")\n  ✓  formatearDuracion: valores grandes (10 horas) → \"10:00\"\n  ✓  getTareasFrecuentes: lista vacía si todos usos_7d = 0\n  ✓  getTareasFrecuentes: solo incluye tipos con usos_7d > 0\n  ✓  getTareasFrecuentes: máximo 8 resultados del top\n  ✓  getTareasFrecuentes: ordenados por usos_7d DESC\n  ✓  getTareasFrecuentes: tipo reciente de hoy se añade si no está en el top8\n  ✓  getTareasFrecuentes: tipo reciente no se duplica si ya está en el top8\n  ✓  getTareasFrecuentes: recientes solo considera las últimas 3 sesiones\n  ✓  getTiempoHoyTipoTarea: suma correctamente sesiones cerradas (strings PDO)\n  ✓  getTiempoHoyTipoTarea: devuelve 0 si no hay sesiones del tipo\n  ✓  getTiempoHoyTipoTarea: ignora sesiones sin duración (sesiones activas, duracion=null)\n  ✓  getTiempoHoyTipoTarea: suma sesión activa si es del mismo tipo\n  ✓  getTiempoHoyTipoTarea: no suma sesión activa de otro tipo\n  ✓  getTiempoHoyTipoTarea: sesión activa solo cuenta desde medianoche si empezó ayer\n  ✓  getTiempoHoyTarea: suma sesiones cerradas de esa tarea exacta\n  ✓  getTiempoHoyTarea: devuelve 0 si no hay sesiones de esa tarea\n  ✓  getTiempoHoyTarea: suma sesión activa si esa tarea está activa\n  ✓  getTiempoHoyTarea: no suma sesión activa si es otra tarea\n  ✓  getTiempoHoyTarea: sesión activa limitada a medianoche si empezó ayer\n  ✓  getTiempoHoyTarea: no hay concatenación string (bug PDO \"3600\"+\"900\"=\"3600900\")\n\n29 tests: 29 passed, 0 failed\n"
+   }
+  },
+  {
+   "prompt_eval_count": 30677,
+   "eval_count": 1172,
+   "total_duration": 44495468014,
+   "done_reason": "stop",
+   "bloques": 3,
+   "informe": [
+    "Bloque 1 (frontend/index.html): aplicado.",
+    "Bloque 2 (frontend/js/app.js): aplicado.",
+    "Bloque 3 (frontend/js/app.js): aplicado."
+   ],
+   "thinking_chars": 3629,
+   "check": {
+    "codigo": 0,
+    "salida": "\nMi Cronómetro PSP — JS Unit Tests\n===================================\n\n  ✓  formatearDuracion: 0 segundos → \"0:00\"\n  ✓  formatearDuracion: 59 segundos → \"0:00\" (trunca, no redondea)\n  ✓  formatearDuracion: 60 segundos → \"0:01\"\n  ✓  formatearDuracion: 90 segundos → \"0:01\"\n  ✓  formatearDuracion: 3600 segundos → \"1:00\"\n  ✓  formatearDuracion: 3661 segundos → \"1:01\"\n  ✓  formatearDuracion: 7380 segundos → \"2:03\"\n  ✓  formatearDuracion: minutos < 10 se pad con cero (\"1:05\")\n  ✓  formatearDuracion: minutos ≥ 10 sin cero adicional (\"1:10\")\n  ✓  formatearDuracion: valores grandes (10 horas) → \"10:00\"\n  ✓  getTareasFrecuentes: lista vacía si todos usos_7d = 0\n  ✓  getTareasFrecuentes: solo incluye tipos con usos_7d > 0\n  ✓  getTareasFrecuentes: máximo 8 resultados del top\n  ✓  getTareasFrecuentes: ordenados por usos_7d DESC\n  ✓  getTareasFrecuentes: tipo reciente de hoy se añade si no está en el top8\n  ✓  getTareasFrecuentes: tipo reciente no se duplica si ya está en el top8\n  ✓  getTareasFrecuentes: recientes solo considera las últimas 3 sesiones\n  ✓  getTiempoHoyTipoTarea: suma correctamente sesiones cerradas (strings PDO)\n  ✓  getTiempoHoyTipoTarea: devuelve 0 si no hay sesiones del tipo\n  ✓  getTiempoHoyTipoTarea: ignora sesiones sin duración (sesiones activas, duracion=null)\n  ✓  getTiempoHoyTipoTarea: suma sesión activa si es del mismo tipo\n  ✓  getTiempoHoyTipoTarea: no suma sesión activa de otro tipo\n  ✓  getTiempoHoyTipoTarea: sesión activa solo cuenta desde medianoche si empezó ayer\n  ✓  getTiempoHoyTarea: suma sesiones cerradas de esa tarea exacta\n  ✓  getTiempoHoyTarea: devuelve 0 si no hay sesiones de esa tarea\n  ✓  getTiempoHoyTarea: suma sesión activa si esa tarea está activa\n  ✓  getTiempoHoyTarea: no suma sesión activa si es otra tarea\n  ✓  getTiempoHoyTarea: sesión activa limitada a medianoche si empezó ayer\n  ✓  getTiempoHoyTarea: no hay concatenación string (bug PDO \"3600\"+\"900\"=\"3600900\")\n\n29 tests: 29 passed, 0 failed\n"
+   }
+  },
+  {
+   "prompt_eval_count": 31717,
+   "eval_count": 7,
+   "total_duration": 7615446411,
+   "done_reason": "stop",
+   "bloques": 0,
+   "informe": [],
+   "thinking_chars": 0,
+   "check": null
+  }
+ ],
+ "lineas_diff": 23,
+ "max_prompt_tokens": 31717
+}

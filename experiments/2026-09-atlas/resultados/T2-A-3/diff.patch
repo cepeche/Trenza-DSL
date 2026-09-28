@@ -1,0 +1,48 @@
+--- frontend/index.html
++++ frontend/index.html
+@@ -329,6 +329,16 @@
+         </div>
+     </div>
+ 
++    <!-- Modal Reordenar Frecuentes -->
++    <div class="modal-overlay" id="reorderModal">
++        <div class="modal-content">
++            <div class="modal-header">
++                <div class="modal-task-name">Reordenar frecuentes</div>
++            </div>
++            <button class="btn-primary" id="btnReorderClose">Cerrar</button>
++        </div>
++    </div>
++
+     <!-- Modal Historial -->
+     <div class="modal-overlay historial-overlay" id="historialModal">
+         <div class="modal-content historial-content">
+--- frontend/js/app.js
++++ frontend/js/app.js
+@@ -320,6 +320,11 @@
+     const tabFrecuentesNuevo = tabFrecuentes.cloneNode(true);
+     tabFrecuentes.replaceWith(tabFrecuentesNuevo);
+     tabFrecuentesNuevo.addEventListener('click', () => {
++        if (AppState.modoEdicion) {
++            // abrir diálogo de reordenar frecuentes
++            document.getElementById('reorderModal').classList.add('active');
++            return;
++        }
+         if (AppState.modoEdicion) return; // Frecuentes no tiene edición propia; ignorar en modo edición
+         AppState.pestanaActual = 'frecuentes';
+         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+@@ -899,6 +904,14 @@
+ 
+     document.getElementById('historialModal').addEventListener('click', function(e) {
+         if (e.target === this) cerrarModalHistorial();
++    });
++
++    // Cerrar modal Reordenar Frecuentes
++    document.getElementById('reorderModal').addEventListener('click', function(e) {
++        if (e.target === this) document.getElementById('reorderModal').classList.remove('active');
++    });
++    document.getElementById('btnReorderClose').addEventListener('click', function() {
++        document.getElementById('reorderModal').classList.remove('active');
+     });
+ 
+     // Cerrar settings menu al hacer click fuera

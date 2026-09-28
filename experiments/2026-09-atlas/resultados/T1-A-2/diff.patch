@@ -1,0 +1,90 @@
+--- frontend/index.html
++++ frontend/index.html
+@@ -90,6 +90,12 @@
+     <!-- Botón modo edición -->
+     <button class="edit-mode-button" id="editModeButton" onclick="toggleModoEdicion()" title="Modo edición">✏️</button>
+ 
++    <!-- Botón pausa ⏸ -->
++    <button class="pause-button" id="pauseButton" onclick="togglePause()" title="Pausa">⏸</button>
++
++    <!-- Botón pausa ⏸ -->
++    <button class="pause-button" id="pauseButton" onclick="togglePause()" title="Pausa">⏸</button>
++
+     <!-- Botón flotante + -->
+     <button class="fab-button" onclick="mostrarModalCrear()" title="Nueva tarea">+</button>
+ 
+--- frontend/js/app.js
++++ frontend/js/app.js
+@@ -39,6 +39,7 @@
+     timerInterval: null,
+     pestanaActual: 'frecuentes',
+     modoEdicion: false,
++    pauseMode: false, // nuevo flag para modo pausa
+     iconoSeleccionado: 'draft',
+     iconoEditSeleccionado: 'draft',
+     colorSeleccionado: '#667eea',
+@@ -408,7 +409,7 @@
+ }
+ 
+ function iniciarTarea(tareaId) {
+-    if (AppState.modoEdicion) return; // defensivo: no iniciar en modo edición
++    if (AppState.modoEdicion || AppState.pauseMode) return; // no iniciar en modo edición ni pausa
+     // Guardar tarea pendiente y abrir modal de comentario
+     const tarea = AppState.tareas.find(t => t.id === tareaId);
+     AppState.tareaIdPendiente = tareaId;
+@@ -513,6 +514,9 @@
+ }
+ 
+ function mostrarModalCrear() {
++    // No permitir crear tareas mientras está el modo pausa activo
++    if (AppState.pauseMode) return;
++
+     if (AppState.pestanaActual === 'frecuentes') {
+         mostrarModalCrearTarea();
+     } else {
+@@ -646,6 +650,8 @@
+ }
+ 
+ function tarjetaTouchEnd(e, tipoTareaId, esTipo, tareaId) {
++    // En modo pausa no hacer nada
++    if (AppState.pauseMode) { e && e.preventDefault?.(); return; }
+     if (_touchCancelled) return;
+     e.preventDefault(); // evitar que dispare también el onclick
+     if (AppState.modoEdicion) {
+@@ -658,6 +664,8 @@
+ }
+ 
+ function tarjetaClick(tipoTareaId, esTipo, tareaId) {
++    // En modo pausa no hacer nada
++    if (AppState.pauseMode) return;
+     // Solo se ejecuta en ratón (en táctil, preventDefault en touchend lo evita)
+     if (AppState.modoEdicion) {
+         mostrarModalEditarTarea(tipoTareaId);
+@@ -673,10 +681,27 @@
+ // Activo: click en tarjeta → MODAL EDITAR TAREA | click en pestaña → MODAL EDITAR ACTIV.
+ 
+ function toggleModoEdicion() {
++    // No permitir entrar en modo edición mientras está el modo pausa activo
++    if (AppState.pauseMode) return;
+     AppState.modoEdicion = !AppState.modoEdicion;
+     document.getElementById('editModeButton').classList.toggle('active', AppState.modoEdicion);
+     document.body.classList.toggle('edit-mode', AppState.modoEdicion);
+     actualizarUI();
++}
++
++// --- MODO PAUSA -----------------------------------------------------------
++function togglePause() {
++    // En modo edición el botón pausa no hace nada
++    if (AppState.modoEdicion) return;
++
++    AppState.pauseMode = !AppState.pauseMode;
++
++    // Clase en <body> para estilos y lógica
++    document.body.classList.toggle('pause-mode', AppState.pauseMode);
++
++    // Indicador visual del botón
++    const btn = document.getElementById('pauseButton');
++    if (btn) btn.classList.toggle('active', AppState.pauseMode);
+ }
+ 
+ // === MODAL EDITAR TAREA ===

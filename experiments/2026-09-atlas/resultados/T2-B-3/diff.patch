@@ -1,0 +1,19 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -393,6 +393,16 @@
+         [on_entry] -> verificar_conexion()
+ 
+         [on_entry] -> cargar_tiempo_acumulado()
++
++-- Overlay: diálogo para reordenar la lista de tareas frecuentes.
++-- Actualmente sin contenido, sólo botón cerrar.
++context ModalReordenarFrecuentes:
++
++    role boton_cerrar: Boton
++        on tap -> cerrar
++
++    transitions:
++        on cerrar -> [close_overlay]
+ 
+ -- contexts/ModalComentario.trz
+ 
