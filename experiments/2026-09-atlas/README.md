@@ -46,3 +46,20 @@ sección de amenazas o de desviaciones. Después:
 python experiments/2026-09-atlas/ejecutar.py --estructurada            # 10 réplicas de T1-B
 python experiments/2026-09-atlas/ejecutar.py --estructurada --resumen  # RESUMEN-ESTRUCTURADA.md
 ```
+
+## Registro en la AGENDA del par
+
+La AGENDA del par César ⇄ Claude (`M:/arneses/AGENDA.md`) solo existe en
+el portátil de César. Una sesión en la nube no la ve. Sobre este
+experimento dice, a 28-sep-2026:
+
+- **Parte de novedades (Cronista, 28-sep):** réplica con gpt-oss-120b en
+  tres rondas pre-registradas. A 19/20 frente a B 4/20; B′ 13/20 (la
+  presentación era el cuello de botella); B″ T1 3/10, no concluyente. Se
+  citan los commits `f1da1e7`, `83d3b11` y `8ab8e16` de esta rama.
+- **Estado del Cronista:** «Réplica con ATLAS hecha el 28-sep; el análisis
+  sigue en `experiments/2026-09-atlas`».
+
+La AGENDA guarda decisiones y estado; el detalle vive aquí. Si hace falta
+cambiar lo que dice o consultar otra cosa de ella, hay que pedírselo a
+César. Esta sección se actualiza cuando cambie la entrada de la AGENDA.
