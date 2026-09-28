@@ -137,7 +137,7 @@ Después, reinicia Claude Desktop.
   ```
 
   `claude mcp list` → `atlas: ... ✔ Connected`.
-- **Extensión:** `npx -y @anthropic-ai/mcpb pack .` valida el manifiesto y genera `atlas-mcp.mcpb` (4 KB). `.gitignore` ya lo excluye. En Windows, los logs de Claude Desktop están en `%APPDATA%\Claude\logs\`. El de la extensión debería llamarse `mcp-server-atlas-mcp.log` (por analogía con macOS, `[UNVERIFIED]`).
+- **Extensión:** `npx -y @anthropic-ai/mcpb pack .` valida el manifiesto y genera `atlas-mcp.mcpb` (4 KB). `.gitignore` ya lo excluye. Instalada con doble clic, Claude Desktop avisa de que no está firmada (es normal) y **no la activa sola** porque al instalarla aún falta la URL, que es obligatoria: después de rellenarla hay que activar el interruptor en Ajustes → Extensiones. En Windows, los logs están en `%LOCALAPPDATA%\Claude\Logs\` (no en `%APPDATA%`), y el de la extensión lleva el nombre visible: `mcp-server-ATLAS (modelo local).log`. Verificado: arranca con el `uv` del `PATH`, sin tocar `manifest.json` (el primer arranque instala 32 paquetes en 0,4 s), y sus herramientas funcionan de punta a punta desde Claude Code (`atlas_ask` con `gpt-oss-120b`: 8,8 s, 284 tokens de salida).
 - **Si la extensión no encuentra `uv`:** primero, cierra Claude Desktop del todo (también desde la bandeja del sistema) y vuelve a abrirlo, para que herede el `PATH` nuevo. Si aun así falla, cambia en `manifest.json` `"command": "uv"` por la ruta absoluta de arriba y vuelve a empaquetar. Ojo: esa ruta solo vale en esta máquina, así que no la subas al repositorio.
 
 ## Variables
