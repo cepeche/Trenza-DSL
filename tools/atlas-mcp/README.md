@@ -22,7 +22,8 @@ borrar modelos.
 |---|---|---|
 | Claude Code en tu ordenador | Sí | `claude mcp add` (abajo) |
 | Claude Desktop (chat) | Sí | extensión `.mcpb` o `claude_desktop_config.json` |
-| Cowork desde la app de escritorio | Sí, con la app abierta | extensión `.mcpb`. Según Anthropic, *"Local MCP servers bundled with plugins and desktop extensions run on your computer"* y *"plugins that include local MCP servers work through the desktop app only"* |
+| Cowork desde la app de escritorio, **sesión local** | Sí, con la app abierta | extensión `.mcpb`. Según Anthropic, *"Local MCP servers bundled with plugins and desktop extensions run on your computer"* |
+| Cowork desde la app de escritorio, **sesión en la nube** (hoy, la opción por defecto) | No | *"Cowork sessions run in the cloud by default"* y *"Local MCP servers don't run in sessions in the cloud"* (arquitectura de Cowork, consultada el 28 sep 2026). La sesión en la nube solo llega a tu ordenador para las carpetas conectadas, no a los MCP locales. La ejecución local *"remains available for existing desktop deployments"*. |
 | Cowork desde la web o el móvil | No | La sesión corre en los servidores de Anthropic y "can't reach your home or company network" |
 | Claude Code en la nube (esta sesión) | No | Igual que la anterior. La alternativa es `claude remote-control` en tu ordenador: la sesión corre ahí, con sus MCP locales, y la manejas desde la web o el móvil. |
 
@@ -35,7 +36,7 @@ Fuentes:
 [MCP en Claude Code](https://code.claude.com/docs/en/mcp).
 
 **Sin verificar:**
-- si un servidor escrito a mano en `claude_desktop_config.json` (sin empaquetar como extensión) aparece dentro de Cowork. La documentación solo habla de plugins y extensiones, así que para Cowork usa la extensión;
+- si un servidor escrito a mano en `claude_desktop_config.json` (sin empaquetar como extensión) aparece dentro de Cowork. La documentación no nombra ese fichero. Solo hay un indicio: la directiva `isLocalDevMcpEnabled` desactiva a la vez *"plugin-bundled and locally configured MCP servers"*, lo que sugiere que en sesión local se tratan igual. Aun así, para Cowork usa la extensión. En sesión en la nube no funciona ninguna de las dos vías;
 - si Claude Desktop pasa vacío o como texto literal un campo opcional que dejas en blanco. El servidor acepta los dos casos.
 
 ## 1. Preparar ATLAS
@@ -84,7 +85,7 @@ pegues en el chat ni la subas al repositorio.
 
 ```bash
 cd tools/atlas-mcp
-npx -y @anthropic-ai/mcpb pack .      # genera atlas-mcp-0.1.0.mcpb
+npx -y @anthropic-ai/mcpb pack .      # genera atlas-mcp.mcpb (sin versión en el nombre)
 ```
 
 Instálala con doble clic, o desde Ajustes → Extensiones → Opciones
@@ -119,6 +120,25 @@ Edita la configuración desde Ajustes → Desarrollador → Editar configuració
 ```
 
 Después, reinicia Claude Desktop.
+
+## Instalación comprobada en Windows 11 (NOMADA, 28 sep 2026)
+
+- **Nombre de ATLAS en la red:** `ATLAS-A9` (también `ATLAS-A9.local` por mDNS). `atlas` y `atlas.local` **no** resuelven.
+- **Servidor de modelos:** Ollama en el `11434`, ya escuchando en `0.0.0.0` (`OLLAMA_HOST=0.0.0.0:11434` en la unidad systemd): no hubo que tocar ATLAS. URL: `http://ATLAS-A9:11434/v1`. Anuncia `gpt-oss-120b:latest` (el primero, y por tanto el de por defecto), `qwen3-30b-a3b:latest` y `qwen3:8b`, con un contexto de 40.960 tokens. El `8080` responde 200, pero es Open WebUI (devuelve HTML), no una API de modelos. `1234` y `8000` están cerrados.
+- **uv:** `winget install astral-sh.uv` lo instala en `%LOCALAPPDATA%\Microsoft\WinGet\Packages\astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe\uv.exe` y añade esa carpeta al `PATH` de usuario. Los procesos que ya estaban abiertos, incluida la app de Claude, no lo ven hasta que se reinician.
+- **Pruebas:** `uv run smoke_test.py` → OK. `uv run smoke_test.py --uv` → OK. `--real` contra `gpt-oss-120b` → OK: respuesta en **4,2 s** (88 tokens de entrada, 67 de salida, `fin=stop`), 7 s en total contando el arranque. En `--real`, la línea `Tool 'atlas_ask' failed: ... fuera de ATLAS_FILES_ROOT` es la prueba negativa y es lo esperado.
+- **Claude Code:** en esta máquina, el CLI `claude` no está en el `PATH`. Es el que trae la app de escritorio (`%APPDATA%\Claude\claude-code\<versión>\claude.exe`). Registro usado, con `uv` por ruta absoluta para no depender del `PATH`:
+
+  ```powershell
+  & "$env:APPDATA\Claude\claude-code\<versión>\claude.exe" mcp add atlas --scope user `
+    -e ATLAS_URL=http://ATLAS-A9:11434/v1 -e ATLAS_FILES_ROOT=C:\Proyectos\Trenza-DSL `
+    -- "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe\uv.exe" `
+       run --script C:\Proyectos\Trenza-DSL\tools\atlas-mcp\server\atlas_mcp.py
+  ```
+
+  `claude mcp list` → `atlas: ... ✔ Connected`.
+- **Extensión:** `npx -y @anthropic-ai/mcpb pack .` valida el manifiesto y genera `atlas-mcp.mcpb` (4 KB). `.gitignore` ya lo excluye. En Windows, los logs de Claude Desktop están en `%APPDATA%\Claude\logs\`. El de la extensión debería llamarse `mcp-server-atlas-mcp.log` (por analogía con macOS, `[UNVERIFIED]`).
+- **Si la extensión no encuentra `uv`:** primero, cierra Claude Desktop del todo (también desde la bandeja del sistema) y vuelve a abrirlo, para que herede el `PATH` nuevo. Si aun así falla, cambia en `manifest.json` `"command": "uv"` por la ruta absoluta de arriba y vuelve a empaquetar. Ojo: esa ruta solo vale en esta máquina, así que no la subas al repositorio.
 
 ## Variables
 
