@@ -1,0 +1,37 @@
+-- replace_overlay.trz — `[replace] X`: un menú que, al elegir una opción,
+-- se cierra y abre en su lugar el diálogo elegido (en vez de quedarse
+-- apilado debajo). Lo compila y prueba scripts/check-generated.sh.
+
+data Button:
+    id: Id
+
+system Menus:
+    initial: Home
+    contexts:
+        Home
+    overlays:
+        Menu
+        About
+
+context Home:
+    role menu_button: Button
+        on tap -> openMenu
+    transitions:
+        on openMenu -> Menu
+
+context Menu:
+    role about_item: Button
+        on tap -> openAbout
+    role close_button: Button
+        on tap -> close
+    transitions:
+        on openAbout -> [replace] About
+        on close -> [close_overlay]
+
+context About:
+    role about_item: Button
+        on tap -> ignored
+    role close_button: Button
+        on tap -> close
+    transitions:
+        on close -> [close_overlay]

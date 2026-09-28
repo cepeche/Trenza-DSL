@@ -30,6 +30,12 @@ fn only(src: &str, expected: &[&str]) {
     assert_eq!(codes(src), expected);
 }
 
+/// Declara `back` como señal externa del sistema: los tests de R1 quitan el
+/// manejador que produce `back`, y así la vuelta de B a A sigue viva (R10).
+fn con_back_externo(src: &str) -> String {
+    src.replace("    initial: A\n", "    initial: A\n    events: back\n")
+}
+
 /// Especificación mínima válida: dos contextos que se alternan.
 const BASE: &str = "
 data D:
@@ -63,28 +69,26 @@ fn base_es_valida() {
 
 #[test]
 fn r1_manejador_ausente_es_error() {
-    let src = BASE.replace("        on e -> back\n", "");
+    let src = con_back_externo(&BASE.replace("        on e -> back\n", ""));
     only(&src, &["completeness"]);
 }
 
 #[test]
 fn r1_ignored_explicito_satisface_la_regla() {
-    let src = BASE.replace("on e -> back", "on e -> ignored");
-    // B ya no puede volver (nada produce `back`), pero R4 sólo mira el grafo
-    // de transiciones declaradas, así que sigue siendo válida.
+    let src = con_back_externo(&BASE.replace("on e -> back", "on e -> ignored"));
     ok(&src);
 }
 
 #[test]
 fn r1_forbidden_explicito_satisface_la_regla() {
-    ok(&BASE.replace("on e -> back", "on e -> forbidden"));
+    ok(&con_back_externo(&BASE.replace("on e -> back", "on e -> forbidden")));
 }
 
 #[test]
 fn r1_comodin_exime_al_contexto() {
-    let src = BASE
+    let src = con_back_externo(&BASE
         .replace("        on e -> back\n", "")
-        .replace("context B:\n", "context B:\n    role *: ignored\n");
+        .replace("context B:\n", "context B:\n    role *: ignored\n"));
     ok(&src);
 }
 
@@ -110,7 +114,7 @@ fn r3_contexto_inalcanzable_es_aviso() {
         "{BASE}
 context C:
     role r: D
-        on e -> ignored
+        on e -> z
     transitions:
         on z -> A
 "
@@ -194,6 +198,7 @@ fn r6_limitacion_self_no_se_comprueba() {
 const SLOTS: &str = "
 system S:
     initial: Base
+    events: activar desactivar
     contexts:
         Base
     concurrent:
@@ -363,5 +368,88 @@ fn hermanos_el_caso_de_estudio_verifica_sin_comodines() {
     ))
     .unwrap();
     assert!(!src.contains("role *"));
+    // Sin errores. Quedan dos avisos que son un hallazgo real, no ruido:
+    // la ramificación de `seleccionarTipoTarea` según el número de
+    // actividades depende de datos (GAP-5) y el DSL no la expresa, así que
+    // `elegirActividad` nunca se produce en ModoNormal y
+    // ModalSeleccionActividad queda inalcanzable.
+    only(&src, &["dead-transition", "reachability"]);
+}
+
+// --------------------------------------- R10, `pending`, `events:` (2026-09-28)
+
+fn severity_of(src: &str, code: &str) -> String {
+    let program = parser::parse_file(src).unwrap();
+    let diags = validator::verify(&program).unwrap_err();
+    diags.into_iter().find(|d| d.code == code).unwrap().severity
+}
+
+#[test]
+fn r10_transicion_sin_productor_es_aviso() {
+    // Nadie produce `nunca` en A: la transición es código muerto.
+    let src = BASE.replace("        on go -> B\n", "        on go -> B\n        on nunca -> B\n");
+    only(&src, &["dead-transition"]);
+    assert_eq!(severity_of(&src, "dead-transition"), "warning");
+}
+
+#[test]
+fn r10_senal_declarada_en_events_esta_viva() {
+    let src = BASE
+        .replace("        on go -> B\n", "        on go -> B\n        on nunca -> B\n")
+        .replace("    initial: A\n", "    initial: A\n    events: nunca\n");
     ok(&src);
+}
+
+#[test]
+fn r10_la_arista_muerta_no_cuenta_para_r4() {
+    // Si la única vuelta de B a A es muerta, B no puede volver: R4 lo ve.
+    let src = BASE.replace("        on e -> back\n", "        on e -> ignored\n");
+    only(&src, &["dead-transition", "return"]);
+}
+
+#[test]
+fn events_acepta_varias_senales_en_varias_lineas() {
+    let src = BASE
+        .replace("        on go -> B\n", "        on go -> B\n        on uno -> B\n        on dos -> B\n")
+        .replace("    initial: A\n", "    initial: A\n    events:\n        uno\n        dos\n");
+    ok(&src);
+}
+
+#[test]
+fn pending_en_manejador_es_aviso_y_satisface_r1() {
+    let src = con_back_externo(&BASE.replace("on e -> back", "on e -> pending"));
+    only(&src, &["pending-handler"]);
+    assert_eq!(severity_of(&src, "pending-handler"), "warning");
+}
+
+#[test]
+fn pending_en_contexto_sustituye_al_aviso_de_alcanzabilidad() {
+    let src = BASE.replace("        A\n        B\n", "        A\n        B\n        C\n")
+        + "
+context C:
+    pending
+    role r: D
+        on e -> home
+    transitions:
+        on home -> A
+";
+    only(&src, &["pending-context"]);
+    assert_eq!(severity_of(&src, "pending-context"), "warning");
+}
+
+#[test]
+fn replace_a_otro_overlay_es_valido_y_cuenta_como_arista() {
+    // M1 sustituye M por N; N sólo es alcanzable a través del `[replace]`.
+    let src = HERMANOS
+        .replace("    overlays:\n        M\n", "    overlays:\n        M\n        N\n")
+        .replace("        on paso2 -> M2\n", "        on paso2 -> [replace] N\n")
+        + "
+context N:
+    role r: D
+        on e -> cerrarN
+    transitions:
+        on cerrarN -> [close_overlay]
+";
+    // M2 deja de ser alcanzable (su única entrada era paso2): eso lo avisa R3.
+    only(&src, &["reachability"]);
 }

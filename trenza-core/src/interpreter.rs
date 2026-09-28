@@ -54,7 +54,7 @@ impl Interpreter {
                     new_state = if trans.target == "[stay]" {
                         self.state.current_state.clone()
                     } else {
-                        trans.target.trim_matches(|c| c == '[' || c == ']').to_string()
+                        trans.target_name().trim_matches(|c| c == '[' || c == ']').to_string()
                     };
                     break;
                 }

@@ -54,6 +54,7 @@ mod tests {
             slots: vec![],
             fills: vec![],
             ignore_rest: false,
+            pending: false,
             is_anonymous: false,
             initial_sub: None,
         };

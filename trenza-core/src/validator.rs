@@ -102,6 +102,54 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
     }
     if !errors.is_empty() { return Err(errors); }
 
+    // Acciones que puede producir cada contexto: las de sus roles y las de
+    // los roles que otros contextos aportan a sus slots (`fills X.s`). Una
+    // acción despachada la ven además todos los contextos concurrentes
+    // activos, así que para éstos cuenta cualquier acción del programa.
+    let mut produced: HashMap<String, HashSet<String>> = HashMap::new();
+    let mut produced_anywhere: HashSet<String> = HashSet::new();
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            let mut add = |owner: &str, roles: &Vec<RoleDef>| {
+                for r in roles {
+                    for a in &r.actions {
+                        if let ActionTarget::Call(c) = &a.target {
+                            produced.entry(owner.to_string()).or_default().insert(c.function.clone());
+                            produced_anywhere.insert(c.function.clone());
+                        }
+                    }
+                }
+            };
+            add(&ctx.name, &ctx.roles);
+            for f in &ctx.fills {
+                add(&f.target_context, &f.roles);
+            }
+        }
+    }
+    // Señales declaradas en `events:` del sistema: estímulos que llegan de
+    // fuera de los roles (temporizadores, respuestas externas, fases
+    // internas). Pueden disparar transiciones en cualquier contexto.
+    let mut system_events: HashSet<String> = HashSet::new();
+    for def in &program.definitions {
+        if let Definition::System(sys) = def {
+            for sec in &sys.sections {
+                if let SystemSection::Events(evs) = sec {
+                    system_events.extend(evs.iter().cloned());
+                }
+            }
+        }
+    }
+    let is_live = |ctx: &ContextDef, action: &str| -> bool {
+        if system_events.contains(action) {
+            true
+        } else if concurrent_contexts.contains(&ctx.name) {
+            produced_anywhere.contains(action)
+        } else {
+            produced.get(&ctx.name).map_or(false, |p| p.contains(action))
+        }
+    };
+    let mut dead_transitions: Vec<(String, String, Span)> = Vec::new();
+
     // Pass 1: Build indexes & Check Determinism (Rule 2)
             let mut context_spans: HashMap<String, Span> = HashMap::new();
             let mut role_spans: HashMap<String, Span> = HashMap::new();
@@ -155,11 +203,17 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
 
             let mut targets = Vec::new();
             for trans in &ctx.transitions {
+                // R10: sólo cuentan las transiciones vivas (alguna acción
+                // producible las dispara); las muertas se señalan más abajo.
+                if !is_live(ctx, &trans.event) {
+                    dead_transitions.push((ctx.name.clone(), trans.event.clone(), ctx.name_span.clone()));
+                    continue;
+                }
                 let target = if trans.target == "[close_overlay]" || trans.target == "[deactivate]" {
                     initial_context.clone()
                 } else {
-                    // Remove brackets if it's a simple context name like [ContextName]
-                    trans.target.trim_matches(|c| c == '[' || c == ']').to_string()
+                    // `[replace] X` y `[X]` → X
+                    trans.target_name().trim_matches(|c| c == '[' || c == ']').to_string()
                 };
                 targets.push(target);
             }
@@ -230,17 +284,63 @@ pub fn verify(program: &Program) -> Result<(), Vec<Diagnostic>> {
         }
     }
         
-    for ctx_name in &all_contexts {
-        if !visited.contains(ctx_name) {
+    let pending_contexts: HashSet<String> = program.definitions.iter().filter_map(|d| match d {
+        Definition::Context(c) if c.pending => Some(c.name.clone()),
+        _ => None,
+    }).collect();
+    let mut sorted_all: Vec<&String> = all_contexts.iter().collect();
+    sorted_all.sort();
+    for ctx_name in sorted_all {
+        let span = context_spans.get(ctx_name).cloned().unwrap_or(Span {
+            start: Pos { line: 1, col: 1 },
+            end: Pos { line: 1, col: 10 }
+        });
+        if pending_contexts.contains(ctx_name) {
+            // `pending`: se declara a propósito sin camino de entrada todavía.
             errors.push(Diagnostic {
-                span: context_spans.get(ctx_name).cloned().unwrap_or(Span { 
-                    start: Pos { line: 1, col: 1 }, 
-                    end: Pos { line: 1, col: 10 } 
-                }),
+                span,
+                message: format!("El contexto '{}' está marcado como pendiente", ctx_name),
+                severity: "warning".to_string(),
+                code: "pending-context".to_string(),
+            });
+        } else if !visited.contains(ctx_name) {
+            errors.push(Diagnostic {
+                span,
                 message: format!("El contexto '{}' es inalcanzable", ctx_name),
                 severity: "warning".to_string(),
                 code: "reachability".to_string(),
             });
+        }
+    }
+
+    // R10: transiciones muertas (ninguna acción producible las dispara).
+    for (ctx_name, action, span) in &dead_transitions {
+        errors.push(Diagnostic {
+            span: span.clone(),
+            message: format!(
+                "La transición 'on {}' de '{}' nunca se dispara: ningún rol de '{}' produce la acción '{}' y no es una señal declarada en `events:` del sistema",
+                action, ctx_name, ctx_name, action
+            ),
+            severity: "warning".to_string(),
+            code: "dead-transition".to_string(),
+        });
+    }
+
+    // Manejadores `pending`: declarados, pero sin comportamiento decidido.
+    for def in &program.definitions {
+        if let Definition::Context(ctx) = def {
+            for r in &ctx.roles {
+                for a in &r.actions {
+                    if matches!(a.target, ActionTarget::Pending) {
+                        errors.push(Diagnostic {
+                            span: r.span.clone(),
+                            message: format!("'{}.{}' en '{}' está pendiente de decidir", r.name, a.event, ctx.name),
+                            severity: "warning".to_string(),
+                            code: "pending-handler".to_string(),
+                        });
+                    }
+                }
+            }
         }
     }
 

@@ -112,11 +112,11 @@ pub fn classify(program: &Program) -> Topology {
                 if !t.sub_contexts.contains(&ctx.name) { continue; }
                 if t.parent_of.contains_key(&ctx.name) { continue; }
                 let mut found = ctx.transitions.iter()
-                    .find(|tr| t.overlays.contains(&tr.target))
-                    .map(|tr| tr.target.clone());
+                    .find(|tr| t.overlays.contains(tr.target_name()))
+                    .map(|tr| tr.target_name().to_string());
                 if found.is_none() {
                     found = ctx.transitions.iter()
-                        .find_map(|tr| t.parent_of.get(&tr.target).cloned());
+                        .find_map(|tr| t.parent_of.get(tr.target_name()).cloned());
                 }
                 if let Some(p) = found {
                     t.parent_of.insert(ctx.name.clone(), p);
@@ -136,8 +136,8 @@ pub fn classify(program: &Program) -> Topology {
                 };
                 let Some(owner) = owner else { continue; };
                 for tr in &ctx.transitions {
-                    if t.sub_contexts.contains(&tr.target) && !t.parent_of.contains_key(&tr.target) {
-                        t.parent_of.insert(tr.target.clone(), owner.clone());
+                    if t.sub_contexts.contains(tr.target_name()) && !t.parent_of.contains_key(tr.target_name()) {
+                        t.parent_of.insert(tr.target_name().to_string(), owner.clone());
                         changed = true;
                     }
                 }

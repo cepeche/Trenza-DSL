@@ -24,7 +24,7 @@ system_sections = { context_list | concurrent_list | overlay_list | event_list_s
 context_list = { "contexts:" ~ section_ident* }
 concurrent_list = { "concurrent:" ~ (section_ident | anonymous_context_def)* }
 overlay_list = { "overlays:" ~ section_ident* }
-event_list_section = { "events:" ~ (!definition_kw ~ ident)* }
+event_list_section = { "events:" ~ section_ident* }
 
 definition_kw = _{ "system" | "context" | "data" | "external" }
 
@@ -35,7 +35,11 @@ event_list = { ident ~ ("," ~ ident)* }
 
 context_def = { "context" ~ ident ~ ":" ~ context_clause* }
 anonymous_context_def = { context_clause+ }
-context_clause = { input_def | initial_def | pub_kw? ~ (role_def | slot_def) | role_wildcard | transitions_def | effects_def | fills_def }
+context_clause = { input_def | initial_def | pub_kw? ~ (role_def | slot_def) | role_wildcard | transitions_def | effects_def | fills_def | context_pending }
+
+// `pending` como cláusula de contexto: el contexto está declarado pero aún
+// no se llega a él (trabajo pendiente). Silencia R3 con un aviso explícito.
+context_pending = @{ "pending" ~ !(ASCII_ALPHANUMERIC | "_") }
 
 // `initial:` inside an overlay context declares the sub-context that should
 // be auto-pushed on top whenever this overlay is pushed onto the stack.
@@ -58,7 +62,10 @@ role_wildcard = { "role" ~ "*" ~ ":" ~ action_target }
 
 ignored_kw = { "ignored" }
 forbidden_kw = { "forbidden" }
-action_target = { ignored_kw | forbidden_kw | action_call }
+// `pending`: comportamiento aún no decidido. Cuenta como declarado para R1,
+// pero el verificador lo señala con un aviso.
+pending_kw = @{ "pending" ~ !(ASCII_ALPHANUMERIC | "_") }
+action_target = { ignored_kw | forbidden_kw | pending_kw | action_call }
 
 decorator = { "@" ~ ident ~ "(" ~ string_literal ~ ")" }
 
@@ -71,7 +78,10 @@ number = @{ ASCII_DIGIT+ }
 
 transitions_def = { "transitions:" ~ transition_rule* }
 transition_rule = { decorator* ~ "on" ~ ident ~ "->" ~ transition_target ~ with_clause? }
-transition_target = { "[" ~ ident ~ "]" | ident }
+// `[replace] X`: cierra el overlay actual (como [close_overlay]) y abre X en
+// su lugar, en vez de apilarlo encima.
+transition_target = { replace_target | "[" ~ ident ~ "]" | ident }
+replace_target = { "[replace]" ~ ident }
 with_clause = { "with" ~ with_arg ~ ("," ~ with_arg)* }
 with_arg = { ident ~ ":" ~ ident }
 

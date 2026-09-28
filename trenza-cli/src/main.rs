@@ -23,7 +23,7 @@ fn get_all_trz_files(dir: &Path) -> Vec<PathBuf> {
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
-        eprintln!("Uso: trenza-cli [generate] [--profile=pro|pre] [--concurrency=composite|threads] <archivo_o_directorio>");
+        eprintln!("Uso: trenza-cli [check|generate] [--deny-warnings] [--profile=pro|pre] [--concurrency=composite|threads] <archivo_o_directorio>");
         std::process::exit(1);
     }
     
@@ -34,6 +34,7 @@ fn main() {
     let mut lang = "rust".to_string();
     let mut format = "text".to_string();
     let mut filepath = "".to_string();
+    let mut deny_warnings = false;
  
     for arg in &args[1..] {
         if arg == "generate" || arg == "check" {
@@ -46,6 +47,8 @@ fn main() {
             out_dir = arg.split('=').nth(1).unwrap().to_string();
         } else if arg.starts_with("--lang=") {
             lang = arg.split('=').nth(1).unwrap().to_string();
+        } else if arg == "--deny-warnings" {
+            deny_warnings = true;
         } else if arg.starts_with("--format=") {
             format = arg.split('=').nth(1).unwrap().to_string();
         } else {
@@ -119,17 +122,37 @@ fn main() {
 
     let program_ast = ast::Program { definitions: all_definitions };
 
-    match validator::verify(&program_ast) {
+    // Los avisos (severity "warning") no hacen fallar la verificación salvo
+    // con --deny-warnings (decisión 2026-09-28): un contexto inalcanzable o
+    // pendiente suele ser trabajo a medio hacer, no un defecto.
+    let diagnostics = validator::verify(&program_ast).err().unwrap_or_default();
+    let (warnings, errors): (Vec<_>, Vec<_>) =
+        diagnostics.into_iter().partition(|d| d.severity == "warning");
+    let result: Result<(), Vec<ast::Diagnostic>> = if errors.is_empty() && (!deny_warnings || warnings.is_empty()) {
+        Ok(())
+    } else {
+        Err(errors.into_iter().chain(warnings.clone()).collect())
+    };
+    let warnings = if result.is_ok() { warnings } else { Vec::new() };
+
+    match result {
         Ok(_) => {
             if format == "json" {
-                println!("[]");
+                println!("{}", serde_json::to_string_pretty(&warnings).unwrap());
                 return;
             }
-            if format == "text" {
-                println!("- ✅ Verificación Semántica: Superada impecablemente para {} archivos.", files_to_parse.len());
-            } else {
-                eprintln!("- ✅ Verificación Semántica: Superada impecablemente para {} archivos.", files_to_parse.len());
+            if !warnings.is_empty() {
+                eprintln!("⚠️  Avisos ({}):", warnings.len());
+                for w in &warnings {
+                    eprintln!("  [{}:{}] {} [{}]", w.span.start.line, w.span.start.col, w.message, w.code);
+                }
             }
+            let resumen = if warnings.is_empty() {
+                format!("- ✅ Verificación Semántica: Superada impecablemente para {} archivos.", files_to_parse.len())
+            } else {
+                format!("- ✅ Verificación Semántica: Superada con {} aviso(s) para {} archivos.", warnings.len(), files_to_parse.len())
+            };
+            if format == "text" { println!("{}", resumen); } else { eprintln!("{}", resumen); }
             if is_generate {
                 let logic_code = match lang.as_str() {
                     "ts"        => generator::generate_typescript(&program_ast, &profile, &concurrency),

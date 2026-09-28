@@ -1,5 +1,7 @@
 system SistemaSlotTest:
     initial: Base
+    -- Señales externas (no las produce ningún rol).
+    events: activar desactivar
     contexts:
         Base
     concurrent:

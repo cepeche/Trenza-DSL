@@ -253,8 +253,7 @@ fn parse_system(pair: pest::iterators::Pair<Rule>) -> SystemDef {
                         sections.push(SystemSection::Overlays(idents));
                     },
                     Rule::event_list_section => {
-                        let idents = sec_inner.into_inner().next().unwrap().into_inner()
-                            .map(|p| p.as_str().to_string()).collect();
+                        let idents = sec_inner.into_inner().map(|p| p.as_str().to_string()).collect();
                         sections.push(SystemSection::Events(idents));
                     },
                     _ => {}
@@ -300,6 +299,7 @@ fn parse_context_clauses(pairs: pest::iterators::Pairs<Rule>) -> ContextDef {
     let mut slots = Vec::new();
     let mut fills = Vec::new();
     let mut ignore_rest = false;
+    let mut pending = false;
     let mut initial_sub: Option<String> = None;
 
     for inner in pairs {
@@ -364,6 +364,9 @@ fn parse_context_clauses(pairs: pest::iterators::Pairs<Rule>) -> ContextDef {
                     Rule::role_wildcard => {
                         ignore_rest = true;
                     },
+                    Rule::context_pending => {
+                        pending = true;
+                    },
                     _ => {}
                 }
             },
@@ -375,7 +378,7 @@ fn parse_context_clauses(pairs: pest::iterators::Pairs<Rule>) -> ContextDef {
         name: "".into(),
         name_span: Span { start: Pos { line: 0, col: 0 }, end: Pos { line: 0, col: 0 } },
         is_public: false,
-        inputs, roles, transitions, effects, slots, fills, ignore_rest,
+        inputs, roles, transitions, effects, slots, fills, ignore_rest, pending,
         is_anonymous: false,
         initial_sub,
     }
@@ -429,6 +432,7 @@ fn parse_role_action(pair: pest::iterators::Pair<Rule>) -> RoleAction {
                     Rule::action_call => ActionTarget::Call(parse_action_call(target_inner)),
                     Rule::ident if target_inner.as_str() == "ignored" => ActionTarget::Ignored,
                     Rule::ident if target_inner.as_str() == "forbidden" => ActionTarget::Forbidden,
+                    Rule::pending_kw => ActionTarget::Pending,
                     _ => {
                         if target_inner.as_str() == "ignored" { ActionTarget::Ignored }
                         else if target_inner.as_str() == "forbidden" { ActionTarget::Forbidden }
@@ -452,7 +456,17 @@ fn parse_transition(pair: pest::iterators::Pair<Rule>) -> TransitionRule {
         match inner.as_rule() {
             Rule::decorator => decorators.push(parse_decorator(inner)),
             Rule::ident => event = inner.as_str().to_string(),
-            Rule::transition_target => target = inner.as_str().to_string(),
+            Rule::transition_target => {
+                let raw = inner.as_str().to_string();
+                target = match inner.into_inner().next() {
+                    Some(r) if r.as_rule() == Rule::replace_target => {
+                        let name = r.into_inner().next().map(|i| i.as_str().to_string()).unwrap_or_default();
+                        format!("{}{}", REPLACE_PREFIX, name)
+                    }
+                    // `[stay]`, `[close_overlay]`, `[deactivate]` y nombres simples.
+                    _ => raw,
+                };
+            },
             Rule::with_clause => {
                 for arg in inner.into_inner() {
                     let mut a_it = arg.into_inner();

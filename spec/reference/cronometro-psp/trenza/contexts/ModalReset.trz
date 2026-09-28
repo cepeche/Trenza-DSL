@@ -35,7 +35,6 @@ context ModalReset:
 
 
     transitions:
-        on iniciar -> ResetFase1
         on cerrar -> [close_overlay]
 
 

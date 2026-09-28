@@ -18,6 +18,14 @@ data ErrorCompilacion [clasificacion: stderr]:
 
 system CLI_Trenza:
     initial: EsperandoComando
+    -- Resultados de las fases: los devuelven las acciones externas
+    -- (leerYEvaluarArgumentos, leerYParsear, comprobarIntegridad...),
+    -- no un rol, así que se declaran como señales del sistema.
+    events:
+        comandoGenerate comandoInvalido
+        parseoExitoso errorSintaxis
+        validacionExitosa validacionFallida
+        generacionCompleta finalizar
 
 -- FASE 1: Inicialización
 context EsperandoComando:

@@ -114,6 +114,15 @@ fn classify_target_actions(
     initial_of: &BTreeMap<String, String>,
     decl_ctx: &str,
 ) -> Vec<String> {
+    // `[replace] X`: cerrar el overlay actual (igual que [close_overlay]) y
+    // entrar en X, en lugar de apilar X encima.
+    if let Some(name) = target.strip_prefix(REPLACE_PREFIX) {
+        let mut actions = classify_target_actions(
+            "[close_overlay]", bases, overlays, concurrents, sub_contexts, parent_of, initial_of, decl_ctx);
+        actions.extend(classify_target_actions(
+            name, bases, overlays, concurrents, sub_contexts, parent_of, initial_of, decl_ctx));
+        return actions;
+    }
     // Sub-context returning to its own parent overlay is a pop (go up one
     // level), not a push — a push would re-stack the parent on top of its
     // own sub-context, producing an oscillation bug instead of a clean
@@ -509,6 +518,18 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
                         ));
                         output.push_str("                    return;\n");
                     },
+                    t if t.starts_with(REPLACE_PREFIX) => {
+                        let target = trans.target_name();
+                        output.push_str(&format!(
+                            "                    this.state = this.stateStack.pop() ?? Contexto.{};\n",
+                            initial_state
+                        ));
+                        if overlay_set.contains(target) {
+                            output.push_str("                    this.stateStack.push(this.state);\n");
+                        }
+                        output.push_str(&format!("                    this.state = Contexto.{};\n", target));
+                        output.push_str("                    return;\n");
+                    },
                     target => {
                         if overlay_set.contains(target) {
                             output.push_str("                    this.stateStack.push(this.state);\n");
@@ -623,6 +644,9 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
                 },
                 ActionTarget::Forbidden => {
                     output.push_str(&format!("            throw new Error(`Forbidden action called in context ${{ctx}}`);\n"));
+                }
+                ActionTarget::Pending => {
+                    output.push_str("            return null; // pending: comportamiento aún no decidido\n");
                 }
             }
         }
@@ -958,7 +982,7 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
                 // If the transition leaves the concurrent towards a base,
                 // also deactivate the concurrent itself (otherwise SesionActiva
                 // would linger after `terminarSesion -> ModoNormal`).
-                if bases_set.contains(&trans.target) {
+                if bases_set.contains(trans.target_name()) {
                     output.push_str(&format!(
                         "                    self.concurrent.remove(&Contexto::{});\n",
                         cctx_name
@@ -1144,6 +1168,9 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
                 ActionTarget::Forbidden => {
                     output.push_str(&format!("            panic!(\"Forbidden action called in context {}\");\n", ctx_name));
                 }
+                ActionTarget::Pending => {
+                    output.push_str("            None // pending: comportamiento aún no decidido\n");
+                }
             }
             output.push_str("        },\n");
         }
@@ -1291,7 +1318,7 @@ pub fn generate_tests_ts(program: &Program) -> String {
                     "[stay]" => format!("expect(sys.state).toBe(Contexto.{});", ctx.name),
                     "[close_overlay]" => format!("expect(sys.state).toBe(Contexto.{});", meta.initial),
                     "[deactivate]" => format!("expect(sys.concurrent_states.has(Contexto.{})).toBe(false);", ctx.name),
-                    t => format!("expect(sys.state).toBe(Contexto.{t});"),
+                    _ => format!("expect(sys.state).toBe(Contexto.{});", trans.target_name()),
                 };
                 out.push_str(&format!(
                     "    it('{} on {} → {}', () => {{\n",
@@ -1358,6 +1385,8 @@ pub fn generate_tests_ts(program: &Program) -> String {
                     let safe_event = action.event.replace(".", "_");
                     let handler = format!("handle_{}_{}", role.name, safe_event);
                     match &action.target {
+                        // pending: sin test hasta que se decida el comportamiento.
+                        ActionTarget::Pending => {}
                         ActionTarget::Forbidden => {
                             out.push_str(&format!(
                                 "    it('{} {} {} throws Forbidden', () => {{\n",
@@ -1492,7 +1521,7 @@ fn generate_transition_tests(program: &Program, meta: &SystemMetadata, out: &mut
 
                 out.push_str(&format!("        sys.handle_event(\"{}\");\n", trans.event));
 
-                let target = &trans.target;
+                let target = trans.target_name();
                 if target == "[stay]" {
                     out.push_str(&format!("        assert_eq!(sys.current_state(), Contexto::{});\n", ctx.name));
                 } else if target == "[close_overlay]" {
@@ -1508,10 +1537,10 @@ fn generate_transition_tests(program: &Program, meta: &SystemMetadata, out: &mut
                     // Un overlay con `initial: Sub` apila también Sub, que pasa
                     // a ser el estado actual.
                     let initial_sub = program.definitions.iter().find_map(|d| match d {
-                        Definition::Context(c) if &c.name == target => c.initial_sub.clone(),
+                        Definition::Context(c) if c.name == target => c.initial_sub.clone(),
                         _ => None,
                     });
-                    let expected = initial_sub.as_ref().unwrap_or(target);
+                    let expected = initial_sub.as_deref().unwrap_or(target);
                     out.push_str(&format!("        assert_eq!(sys.current_state(), Contexto::{});\n", expected));
                 }
                 out.push_str("    }\n\n");
@@ -1529,6 +1558,8 @@ fn generate_handler_tests(program: &Program, _meta: &SystemMetadata, out: &mut S
                 for action in &role.actions {
                     let event_safe = action.event.replace(".", "_");
                     match &action.target {
+                        // pending: sin test hasta que se decida el comportamiento.
+                        ActionTarget::Pending => {}
                         ActionTarget::Forbidden => {
                             out.push_str("    #[test]\n");
                             out.push_str("    #[should_panic(expected = \"Forbidden\")]\n");
@@ -1591,8 +1622,8 @@ fn generate_on_entry_tests(program: &Program, meta: &SystemMetadata, out: &mut S
     for def in &program.definitions {
         if let Definition::Context(ctx) = def {
             for trans in &ctx.transitions {
-                if !trans.target.starts_with("[") {
-                    reachability.entry(trans.target.clone()).or_insert_with(Vec::new).push((ctx.name.clone(), trans.event.clone()));
+                if !trans.target_name().starts_with("[") {
+                    reachability.entry(trans.target_name().to_string()).or_insert_with(Vec::new).push((ctx.name.clone(), trans.event.clone()));
                 }
             }
         }
@@ -1665,7 +1696,7 @@ pub fn generate_mermaid_topology(program: &Program) -> String {
     for def in &program.definitions {
         if let Definition::Context(ctx) = def {
             for trans in &ctx.transitions {
-                let target = trans.target.replace("[", "").replace("]", "");
+                let target = trans.target_name().replace("[", "").replace("]", "");
                 output.push_str(&format!("    {} --> {} : {}\n", ctx.name, target, trans.event));
             }
         }
@@ -1694,6 +1725,7 @@ pub fn generate_mermaid_details(program: &Program) -> Vec<(String, String)> {
                             ActionTarget::Call(c) => c.function.clone(),
                             ActionTarget::Ignored => "ignored".to_string(),
                             ActionTarget::Forbidden => "forbidden".to_string(),
+                            ActionTarget::Pending => "pending".to_string(),
                         };
                         let event_safe = action.event.replace(".", "_");
                         output.push_str(&format!("        {}_{}_{} --> {}\n", ctx.name, event_safe, role.name, target_label));
@@ -1752,6 +1784,7 @@ pub fn generate_audit(program: &Program) -> String {
                         ActionTarget::Call(c) => format!("Call: `{}`", c.function),
                         ActionTarget::Ignored => "⚠️ Ignored".to_string(),
                         ActionTarget::Forbidden => "🚫 Forbidden".to_string(),
+                        ActionTarget::Pending => "⏳ Pending".to_string(),
                     };
                     output.push_str(&format!("| {} | {} | {} | {} |\n", ctx.name, role.name, action.event, result));
                 }
