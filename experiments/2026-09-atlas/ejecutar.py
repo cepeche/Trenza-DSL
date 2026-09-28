@@ -29,6 +29,11 @@ COMMIT = "2689bcb"                      # sello del pre-registro del primer expe
 FROZEN = ROOT / ".exp-congelado"        # worktree en ese commit (ignorado por git)
 EXP = FROZEN / "experiments/2026-09-disciplina"
 RES = HERE / "resultados"
+BASE_TRZ = None                         # B′: material/cronometro_limpio.trz (ver PREREGISTRO-BPRIMA.md)
+
+
+def trz_base():
+    return BASE_TRZ or base_dir("B") / "cronometro_full.trz"
 TASKS = {"T1": "T1-pausa.md", "T2": "T2-reordenar.md", "T3": "T3-pestanas.md", "T4": "T4-nuevo.md"}
 FILES_A = ["frontend/index.html", "frontend/js/app.js", "frontend/js/api-client.js"]
 EXE = ".exe" if os.name == "nt" else ""
@@ -66,7 +71,7 @@ def material(cond, work):
         shutil.copytree(orig / "frontend", work / "frontend")
         shutil.copytree(orig / "tests/js", work / "tests/js")
         return {f: (work / f).read_text(encoding="utf-8") for f in FILES_A}
-    shutil.copy2(base_dir("B") / "cronometro_full.trz", work / "cronometro.trz")
+    shutil.copy2(trz_base(), work / "cronometro.trz")
     return {"GUIA-TRENZA.md": (EXP / "GUIA-TRENZA.md").read_text(encoding="utf-8"),
             "cronometro.trz": (work / "cronometro.trz").read_text(encoding="utf-8")}
 
@@ -183,11 +188,11 @@ def replica(task, cond, rep, a):
     # diff frente a la línea base
     diff = []
     for rel in (FILES_A if cond == "A" else ["cronometro.trz"]):
-        orig = base_dir(cond) / (rel if cond == "A" else "cronometro_full.trz")
+        orig = base_dir("A") / rel if cond == "A" else trz_base()
         diff += difflib.unified_diff(orig.read_text(encoding="utf-8").splitlines(True),
                                      (work / rel).read_text(encoding="utf-8").splitlines(True), rel, rel)
     (out / "diff.patch").write_text("".join(diff), encoding="utf-8")
-    base = base_dir(cond) / ("frontend" if cond == "A" else "cronometro_full.trz")
+    base = base_dir("A") / "frontend" if cond == "A" else trz_base()
     cand = work / ("frontend" if cond == "A" else "cronometro.trz")
     ev = subprocess.run([sys.executable, str(EXP / "oraculo/evaluar.py"), task, cond, str(base), str(cand)],
                         capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=3600)
@@ -222,7 +227,7 @@ def resumen():
         if sel:
             lineas.append(f"\n**{c}:** {sum(bool(e.get('correcta')) for e in sel)}/{len(sel)} correctas.")
     texto = "\n".join(lineas)
-    (HERE / "RESUMEN.md").write_text("# Resumen automático\n\n" + texto + "\n", encoding="utf-8")
+    (RES.parent / ("RESUMEN-BPRIMA.md" if RES.name.endswith("bprima") else "RESUMEN.md")).write_text("# Resumen automático\n\n" + texto + "\n", encoding="utf-8")
     print(texto)
 
 
@@ -230,6 +235,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--preparar", action="store_true")
     ap.add_argument("--resumen", action="store_true")
+    ap.add_argument("--bprima", action="store_true",
+                    help="B′: solo condición B, con material/cronometro_limpio.trz; resultados en resultados-bprima/")
     ap.add_argument("--solo", help="una réplica, p. ej. T1-B-1")
     ap.add_argument("--reps", type=int, default=5)
     ap.add_argument("--rondas", type=int, default=3, help="rondas de corrección tras la primera respuesta")
@@ -237,6 +244,10 @@ def main():
     ap.add_argument("--url", default=os.environ.get("ATLAS_URL", "http://ATLAS-A9:11434").removesuffix("/v1").rstrip("/"))
     ap.add_argument("--model", default=os.environ.get("ATLAS_MODEL", "gpt-oss-120b:latest"))
     a = ap.parse_args()
+    global RES, BASE_TRZ
+    if a.bprima:
+        RES = HERE / "resultados-bprima"
+        BASE_TRZ = HERE / "material/cronometro_limpio.trz"
     if a.preparar:
         return preparar()
     if a.resumen:
@@ -250,7 +261,7 @@ def main():
     for rep in range(1, a.reps + 1):
         for i, task in enumerate(TASKS):
             conds = "AB" if (rep + i) % 2 else "BA"
-            for cond in conds:
+            for cond in ("B" if a.bprima else conds):
                 replica(task, cond, str(rep), a)
     resumen()
 

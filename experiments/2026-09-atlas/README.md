@@ -25,3 +25,14 @@ Variables: `ATLAS_URL` (por defecto `http://ATLAS-A9:11434`) y `ATLAS_MODEL`
 
 Se puede interrumpir y volver a lanzar: las réplicas con `evaluacion.json`
 se saltan.
+
+## B′ (material limpio)
+
+Ver `PREREGISTRO-BPRIMA.md`. Antes de empezar, anota en ese archivo el
+digest del modelo (`ollama show gpt-oss-120b:latest` en ATLAS, o
+`GET /api/tags`). Después:
+
+```bash
+python experiments/2026-09-atlas/ejecutar.py --bprima          # 20 réplicas B′
+python experiments/2026-09-atlas/ejecutar.py --bprima --resumen  # RESUMEN-BPRIMA.md
+```
