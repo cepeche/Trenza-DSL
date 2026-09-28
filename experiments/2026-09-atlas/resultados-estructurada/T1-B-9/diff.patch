@@ -1,0 +1,61 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -142,6 +142,7 @@
+     initial: ModoNormal
+     -- (1) Contextos base — mutuamente excluyentes (exactamente uno activo)
+     contexts:
++        ModoPausa
+         ModoEdicion
+         ModoNormal          -- base por defecto
+     -- (2) Contextos concurrentes — coexisten ortogonalmente con el base
+@@ -595,6 +596,8 @@
+         on tap -> abrirCrearTarea                  -- sigue disponible en modo edición
+     role boton_configuracion: Boton
+         on tap -> abrirMenuConfiguracion
++    role boton_pausa: Boton
++        on tap -> ignored
+     transitions:
+         on desactivarEdicion      -> ModoNormal
+         on abrirEditarTarea       -> ModalEditarTarea
+@@ -627,6 +630,8 @@
+         on tap -> abrirCrearTarea
+     role boton_configuracion: Boton
+         on tap -> abrirMenuConfiguracion
++    role boton_pausa: Boton
++        on tap -> activarPausa
+     transitions:
+         on activarEdicion        -> ModoEdicion
+         on abrirCrearTarea       -> ModalCrearTarea
+@@ -644,6 +649,7 @@
+         on iniciarTarea          -> SesionActiva
+         on seleccionarTipoTarea  -> ModalComentario         -- con EXACTAMENTE 1 actividad
+         on elegirActividad       -> ModalSeleccionActividad  -- con >1 actividades
++        on activarPausa -> ModoPausa
+     effects:
+         cambiarPestana  -> actualizarGridVisible()
+         iniciarTarea    -> iniciar_sesion(tarea_id, notas, minutos_retroactivos, sustituir)
+@@ -730,3 +736,24 @@
+     -- Las funciones externas pueden fallar (red, servidor caído, etc.).
+     -- El DSL actual no tiene sintaxis para declarar tipos de error
+     -- ni para modelar el flujo de error.
++
++context ModoPausa:
++    role boton_pausa: Boton
++        on tap -> desactivarPausa
++    role tarjeta_tipo: TipoTarea
++        on tap -> ignored
++    role tarjeta_tarea: Tarea
++        on tap -> ignored
++    role pestana_actividad: Actividad
++        on tap -> cambiarPestana(self.id)
++    role pestana_frecuentes: Pestana
++        on tap -> cambiarPestana('frecuentes')
++    role boton_edicion: Boton
++        on tap -> ignored
++    role boton_nuevo: Boton
++        on tap -> ignored
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion
++    transitions:
++        on desactivarPausa -> ModoNormal
++        on abrirMenuConfiguracion -> MenuConfiguracion

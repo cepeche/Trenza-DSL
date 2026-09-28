@@ -84,6 +84,11 @@ Secundarias:
    manejador, transición), no atajos para T1, pero el riesgo existe.
 3. **Diez réplicas de una sola tarea.** Es exploratorio.
 4. **Mismo diseñador**, como en los pre-registros anteriores.
+5. **Deriva del modelo.** *Anotado el 2026-09-28, antes de lanzar B″*
+   (`GET /api/tags` en 192.168.1.84): digest
+   `fb54b1336953877f4c31a3cb884254bda2d4c018d8d1d1a89db42be7833280b6`,
+   `modified_at` 2026-09-15T20:32:41+02:00. Es **idéntico** al anotado
+   antes de B′ en `PREREGISTRO-BPRIMA.md`.
 
 ## Desviaciones
 
