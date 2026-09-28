@@ -64,7 +64,7 @@ TrenzaSystem.dispatch(event, payload)
 npm test   # vitest: 10 tests, storage adapter
 ```
 
-## Estado verificado (2026-09-28)
+## Estado verificado (2026-09-28, tras `[replace]`)
 
 `e2e/golden-path.mjs` recorre la demo en Chromium con Playwright. Con
 `generated.rs` regenerado desde el `cronometro_full.trz` actual, pasan:
@@ -75,14 +75,15 @@ npm test   # vitest: 10 tests, storage adapter
 - parar la sesión;
 - abrir y cerrar el historial;
 - reset en 3 fases, incluida la cancelación en la fase 2 (decisión del
-  25 sep) y la ejecución con `BORRAR`.
+  25 sep) y la ejecución con `BORRAR`;
+- usar el modo edición justo después de un diálogo abierto desde el menú ⚙️.
 
-**Fallo conocido, anterior a esta regeneración.** Al abrir un diálogo desde
-el menú ⚙️, el menú se queda en la pila de overlays, porque la spec apila el
-modal sobre `MenuConfiguracion` en lugar de sustituirlo. Al cerrar el
-diálogo, el menú sigue abierto y el siguiente clic fuera de él solo lo
-cierra: por eso "modo edición tras usar el menú" falla. Si hay que
-corregirlo en la spec o en la demo está pendiente de decidir.
+**Fallo del menú, corregido el 2026-09-28.** Antes, el diálogo que se abría
+desde el menú ⚙️ se apilaba sobre `MenuConfiguracion`; al cerrarlo, el menú
+seguía abierto y se comía el siguiente clic. `MenuConfiguracion` usa ahora
+el destino `[replace] X` (cierra el menú y abre X en su lugar), y
+`generated.rs` se ha regenerado. Las 14 comprobaciones de
+`e2e/golden-path.mjs` pasan.
 
 **Corrección en `snapshot-bridge.ts`.** La UI despacha nombres de acción,
 pero el efecto de la propia acción no pasaba por `dispatch()`. Por eso

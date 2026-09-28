@@ -226,6 +226,7 @@ pub trait Effects {
     fn seleccionarIcono(&self, arg0: &String);
     fn seleccionarIconoNuevo(&self, arg0: &String);
     fn seleccionarTipoTarea(&self, arg0: &String);
+    fn terminarSesion(&self, );
     fn toggleActividadPermitida(&self, arg0: &String, arg1: &bool);
     fn toggleConservar(&self, arg0: &String, arg1: &bool);
     fn verificar_conexion(&self, );
@@ -290,6 +291,7 @@ impl Effects for NoOpEffects {
     fn seleccionarIcono(&self, _arg0: &String) {}
     fn seleccionarIconoNuevo(&self, _arg0: &String) {}
     fn seleccionarTipoTarea(&self, _arg0: &String) {}
+    fn terminarSesion(&self, ) {}
     fn toggleActividadPermitida(&self, _arg0: &String, _arg1: &bool) {}
     fn toggleConservar(&self, _arg0: &String, _arg1: &bool) {}
     fn verificar_conexion(&self, ) {}
@@ -478,6 +480,9 @@ impl Effects for RecordingEffects {
     fn seleccionarTipoTarea(&self, arg0: &String) {
         self.calls.borrow_mut().push(format!("seleccionarTipoTarea({:?})", arg0));
     }
+    fn terminarSesion(&self, ) {
+        self.calls.borrow_mut().push("terminarSesion".to_string());
+    }
     fn toggleActividadPermitida(&self, arg0: &String, arg1: &bool) {
         self.calls.borrow_mut().push(format!("toggleActividadPermitida({:?}, {:?})", arg0, arg1));
     }
@@ -579,8 +584,6 @@ impl<'a> System<'a> {
                     self.concurrent.remove(&Contexto::SesionActiva);
                 },
                 "terminarSesion" => {
-                    self.base = Contexto::ModoNormal;
-                    self.overlay_stack.clear();
                     self.concurrent.remove(&Contexto::SesionActiva);
                 },
                 "actualizarTimer" => {
@@ -597,16 +600,20 @@ impl<'a> System<'a> {
             Contexto::MenuConfiguracion => {
                 match event {
                     "abrirCrearActividad" => {
+                        self.overlay_stack.pop();
                         self.overlay_stack.push(Contexto::ModalCrearActividad);
                     },
                     "abrirHistorial" => {
+                        self.overlay_stack.pop();
                         self.overlay_stack.push(Contexto::ModalHistorial);
                         self.overlay_stack.push(Contexto::Historial7Dias);
                     },
                     "abrirAcercaDe" => {
+                        self.overlay_stack.pop();
                         self.overlay_stack.push(Contexto::ModalAcercaDe);
                     },
                     "abrirReset" => {
+                        self.overlay_stack.pop();
                         self.overlay_stack.push(Contexto::ModalReset);
                         self.overlay_stack.push(Contexto::ResetFase1);
                     },
@@ -686,9 +693,6 @@ impl<'a> System<'a> {
             },
             Contexto::ModalHistorial => {
                 match event {
-                    "iniciar" => {
-                        self.replace_top_or_push(Contexto::Historial7Dias);
-                    },
                     "cerrar" => {
                         self.overlay_stack.pop();
                     },
@@ -721,9 +725,6 @@ impl<'a> System<'a> {
             },
             Contexto::ModalReset => {
                 match event {
-                    "iniciar" => {
-                        self.replace_top_or_push(Contexto::ResetFase1);
-                    },
                     "cerrar" => {
                         self.overlay_stack.pop();
                     },
@@ -985,6 +986,16 @@ pub fn handle_boton_cerrar_tap(ctx: &Contexto, boton_cerrar: &Boton, effects: &d
         },
         Contexto::ModalHistorial => {
             println!("[telemetry] context=ModalHistorial, role=boton_cerrar, event=tap");
+            effects.cerrar();
+            Some("cerrar")
+        },
+        Contexto::Historial7Dias => {
+            println!("[telemetry] context=Historial7Dias, role=boton_cerrar, event=tap");
+            effects.cerrar();
+            Some("cerrar")
+        },
+        Contexto::Historial30Dias => {
+            println!("[telemetry] context=Historial30Dias, role=boton_cerrar, event=tap");
             effects.cerrar();
             Some("cerrar")
         },
@@ -1273,7 +1284,8 @@ pub fn handle_display_timer_tap(ctx: &Contexto, display_timer: &Boton, effects: 
     match ctx {
         Contexto::SesionActiva => {
             println!("[telemetry] context=SesionActiva, role=display_timer, event=tap");
-            None // ignored
+            effects.terminarSesion();
+            Some("terminarSesion")
         },
         _ => None,
     }

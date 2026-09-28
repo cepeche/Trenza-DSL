@@ -344,13 +344,13 @@ context MenuConfiguracion:
 
     transitions:
 
-        on abrirCrearActividad -> ModalCrearActividad
+        on abrirCrearActividad -> [replace] ModalCrearActividad
 
-        on abrirHistorial      -> ModalHistorial
+        on abrirHistorial      -> [replace] ModalHistorial
 
-        on abrirAcercaDe       -> ModalAcercaDe
+        on abrirAcercaDe       -> [replace] ModalAcercaDe
 
-        on abrirReset          -> ModalReset
+        on abrirReset          -> [replace] ModalReset
 
         on cerrar              -> [close_overlay]
 
@@ -363,6 +363,7 @@ context MenuConfiguracion:
     -- En app.js: el menÃº se cierra y el modal se abre (no se apilan).
 
     -- El modelo de pila necesita soporte para "cerrar y abrir" en una transiciÃ³n.
+    -- RESUELTO (2026-09-28): `[replace] X` cierra el menú y abre X.
 
 -- contexts/ModalAcercaDe.trz
 
