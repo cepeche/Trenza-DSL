@@ -135,3 +135,54 @@ y T4 (cambios locales), Trenza iguala a JS (5/5).
 3. El verificador hace su trabajo, porque ninguna especificación incorrecta
    se da por buena. Pero con un modelo débil, detectar el error no basta si
    no se sabe corregirlo.
+
+---
+
+# B″: edición estructurada en T1 (28 sep, noche)
+
+Pre-registro en `PREREGISTRO-ESTRUCTURADA.md`, sin desviaciones y con el
+mismo digest del modelo. Tabla en `RESUMEN-ESTRUCTURADA.md`.
+
+**Resultado: T1 3/10** (B′: 0/5; A: 5/5). Según el pre-registro, cae en la
+franja **no concluyente** (3 a 5).
+
+Aun así, los datos secundarios son muy claros:
+- **La barrera de edición desapareció.** Ninguna de las 133 operaciones se
+  rechazó, las 10 especificaciones verifican y no hay regresiones.
+- **Los 7 fallos son el mismo error de requisitos.** En `ModoPausa` el
+  modelo declara `boton_configuracion` con `on tap -> abrirMenuConfiguracion`,
+  pero no añade la transición `on abrirMenuConfiguracion -> MenuConfiguracion`.
+  La acción se produce y el menú no se abre. Ninguna regla actual lo
+  detecta, porque producir una acción sin transición es legítimo (así
+  funciona `cambiarPestana`).
+
+## Hallazgo post hoc (no pre-registrado): una regla de coherencia entre hermanos
+
+**Regla candidata (R11):** si una acción que produce un contexto base
+dispara una transición en otro contexto base hermano que también la
+produce, pero no en éste, se da un aviso ("ModoPausa produce
+abrirMenuConfiguracion sin transición; sí la tienen ModoEdicion y
+ModoNormal"). Prototipo: `posthoc_r11.py`.
+
+La regla se diseñó **mirando solo los fallos de B″**. Sobre las tres
+ejecuciones:
+
+| Ejecución | Incorrectas marcadas | Correctas marcadas (falsos positivos) | Incorrectas que verifican y no se marcan |
+|---|---|---|---|
+| B (mañana) | 4 | **0** | 4 (T3: otro tipo de error) |
+| B′ | 3 | **0** | **0** |
+| B″ | 7 | **0** | **0** |
+
+No marca la línea base ni la solución de referencia. En B y B′, que no se
+usaron para diseñarla, marca exactamente los fallos de este tipo: en B′
+los dos errores de ⚙️ de T1; en B, los dos fallos de T4
+(`abrirCrearTarea` sin transición en `ModoEdicion`).
+
+**Lectura, con cautela.** Con el material limpio, **todo** error de
+comportamiento que pasó el verificador en B′ y B″ era de este tipo y lo
+habría detectado R11. Es justo el tipo de comprobación que la estructura de
+Trenza permite y un lenguaje general no: comparar el comportamiento de un
+contexto con el de sus hermanos. **No está probado** que el modelo supiera
+corregirlo al recibir el aviso. Eso pide un experimento nuevo y
+pre-registrado (B‴ = B″ + R11 en la comprobación), y además la regla ya no
+es independiente de estos datos.
