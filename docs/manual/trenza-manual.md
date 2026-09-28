@@ -148,6 +148,18 @@ system CronometroPSP:
 
 `initial:` declares the base context active at system startup.
 
+`events:` (optional) declares **external signals**: actions that no role
+produces but that can still trigger transitions — a timer, a backend
+callback, the result of an external call. Without it, a transition on such
+an action is dead code (Rule 10).
+
+```trenza
+system CronometroPSP:
+    initial: ModoNormal
+    events:
+        sesionFinalizada      -- the backend ends the session
+```
+
 ### 3.2 Data File (`data.trz`)
 
 All data types are declared in a separate file:
@@ -308,6 +320,11 @@ of its own roles.
 |--------|---------|
 | `ignored` | The event is accounted for. It produces no action. |
 | `forbidden` | The event is explicitly prohibited. |
+| `pending` | Declared but not decided yet. Satisfies Rules 1 and 5, produces no action, and the verifier emits a warning. |
+
+A whole context can also be marked `pending` (a line `pending` inside the
+context): it is declared on purpose without an entry path yet, and the
+reachability warning is replaced by a `pending-context` warning.
 
 The difference: `ignored` means "nothing happens" (intentional). `forbidden`
 means "this should not occur here" (explicit denial, aligned with
@@ -373,6 +390,7 @@ transitions:
 | `[close_overlay]` | Closes the overlay; returns to the base context. |
 | `[stay]` | Remains in the current context. |
 | `[deactivate]` | Deactivates a concurrent context. |
+| `[replace] X` | Closes the current overlay and opens `X` in its place (e.g. a menu item that opens a dialog). |
 
 #### Post-result Guards
 
@@ -450,6 +468,12 @@ context ModoEdicion:
 
 **H1 — Implicit inheritance**: a child inherits all roles from the parent.
 
+> **Status (2026-09-28).** The code generator does not implement H1–H5:
+> while a sub-context is active, only the sub-context's own roles handle
+> events. Rules 1 and 5 are checked between *siblings* (all base contexts;
+> the sub-contexts of one overlay), and a sub-context that needs a parent's
+> button declares it itself.
+
 **H2 — Local roles**: a child can declare new roles, invisible
 to the parent and siblings.
 
@@ -510,11 +534,11 @@ one action in a given context.
 ERROR [determinism]: tarjeta.tap has two actions in ModoEdicion
 ```
 
-**Rule 3 — Reachability**: Every context is reachable from the
+**Rule 3 — Reachability** (warning): Every context is reachable from the
 initial one.
 
 ```
-ERROR [reachability]: ModoMantenimiento is not reachable from
+WARNING [reachability]: ModoMantenimiento is not reachable from
                       ModoNormal (initial context)
 ```
 
@@ -541,6 +565,19 @@ concurrent+overlay intersection.
 ```
 ERROR [slot-integrity]: SesionActiva fills ModalComentario.opts
                         but ModalComentario does not declare slot opts
+
+**Rule 10 — Dead transitions** (warning): a transition `on a -> X` in
+context `C` only fires if something can produce action `a` while `C` is
+active: a role of `C`, a role that another context contributes to `C`'s
+slots (`fills C.s`), or an external signal declared in `events:`.
+Concurrent contexts see actions from every context. Dead transitions do not
+count as edges for Rules 3 and 4, so a context whose only way back is dead
+fails Rule 4.
+
+```
+WARNING [dead-transition]: 'on node_down' in 'Scanning' never fires: no role
+                           of 'Scanning' produces action 'node_down'
+```
 
 **Rule 8 — Role Type Consistency**: Every role with the same name across all contexts and `fills` blocks must share the identical `datatype`. This prevents type safety violations in code generation and ensures predictable behavior for shared roles.
 
@@ -742,6 +779,11 @@ trenza check sistema.tzp          -- verify + generate + runs tests
 trenza inspect contexto.trz       -- shows expanded inheritance
 ```
 
+> **Implemented CLI (2026-09-28).** The binary is `trenza-cli` with two
+> commands: `check [--deny-warnings] <file|dir>` and `generate`. Warnings
+> (Rules 3 and 10, `pending`) are printed but do not make `check` fail
+> unless `--deny-warnings` is given; errors always do.
+
 Verifier output:
 
 ```
@@ -790,6 +832,9 @@ can be in any language.
 | `->` | Indicates consequence: event -> action |
 | `ignored` | The event is accounted for but produces no action |
 | `forbidden` | The event is explicitly prohibited |
+| `pending` | Handler or context declared but not decided yet (warning) |
+| `events` | External signals of the system (can trigger transitions) |
+| `[replace]` | Closes the current overlay and opens another |
 | `input` | Data the context requires to exist |
 | `bind` | Binds a model field to a role |
 | `mutable` | Marks a data item or field as modifiable |

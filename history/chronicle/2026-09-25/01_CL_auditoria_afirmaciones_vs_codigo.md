@@ -185,3 +185,34 @@ posibilidades:
 **Decisión 4 (César): se puede cancelar en todas las fases.** En
 `ResetFase2` y `ResetFase3`, `boton_cancelar` pasa a `on tap -> cerrar`, así
 que las transiciones `on cerrar` dejan de estar muertas.
+
+## 6. Seguimiento (28 sep): decisiones 3a, 3b y 7
+
+- **3a — los avisos no son fatales.** `trenza-cli check` pasa con avisos
+  (R3, R10, `pending`); `--deny-warnings` recupera el modo estricto. Cierra
+  la contradicción entre guía y CLI de la desviación 2 del experimento.
+- **3b — transiciones muertas (R10, aviso) y `pending`.** Una transición
+  `on a -> X` en `C` está viva si `a` la produce un rol de `C`, un rol que
+  otro contexto aporta a los slots de `C`, o es una señal externa declarada
+  en `events:` del sistema; los contextos concurrentes ven todas las
+  acciones. Las transiciones muertas no cuentan como aristas para R3/R4.
+  Cierra el hueco de R4 descrito en la sección 2. `pending` en manejadores
+  y contextos marca lo que aún no se ha decidido, con aviso.
+  - En el caso de estudio, R10 encontró siete transiciones muertas. Se
+    arreglaron así: sobraban dos `on iniciar` (ya cubiertos por
+    `initial:`); los sub-contextos del historial no tenían botón de cerrar
+    propio (el Rust generado no implementa la herencia H1); se declaró
+    `sesionFinalizada` como señal externa; y el timer produce
+    `terminarSesion`, como en la demo, que ahora lleva a `[deactivate]`.
+    Quedan dos avisos reales: `elegirActividad` depende de datos (GAP-5) y
+    `ModalSeleccionActividad` es inalcanzable desde la especificación.
+  - En MonitoreoRed (A14), R10 encontró el defecto original:
+    `on node_down -> Alerting` esperaba un evento, no una acción, y
+    `Alerting` era inalcanzable. Rehecho sin comodines; las cinco casillas
+    sin decidir quedan como `pending`.
+- **7 — `[replace] X`.** Cierra el overlay actual y abre X. El menú ⚙️ lo
+  usa; la demo pasa las 14 comprobaciones e2e.
+- **Descubierto por el camino:** el parser descartaba la lista de
+  `events:` (nunca se había usado); y el Rust generado para MonitoreoRed no
+  compila (literales entre comillas dobles, enums sin `Default`, aridad de
+  efectos). Esto último sigue abierto.

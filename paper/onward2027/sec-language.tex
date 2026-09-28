@@ -105,10 +105,10 @@ Layout is not significant; indentation in the listings is for the reader.
 \mathit{system}    &::= \texttt{system}\ \mathit{Id}\ \texttt{:}\ \texttt{initial:}\ \mathit{Id}\ \mathit{section}^{*}\\
 \mathit{section}   &::= \texttt{contexts:}\ \mathit{Id}^{*} \mid \texttt{overlays:}\ \mathit{Id}^{*} \mid \texttt{concurrent:}\ \mathit{Id}^{*} \mid \texttt{events:}\ \mathit{id}^{*}\\
 \mathit{context}   &::= \texttt{context}\ \mathit{Id}\ \texttt{:}\ \mathit{clause}^{*}\\
-\mathit{clause}    &::= \mathit{role} \mid \texttt{role * :}\ \mathit{target} \mid \texttt{transitions:}\ \mathit{trans}^{*} \mid \texttt{effects:}\ \mathit{effect}^{*} \mid \dots\\
+\mathit{clause}    &::= \mathit{role} \mid \texttt{role * :}\ \mathit{target} \mid \texttt{transitions:}\ \mathit{trans}^{*} \mid \texttt{effects:}\ \mathit{effect}^{*} \mid \texttt{pending} \mid \dots\\
 \mathit{role}      &::= \texttt{role}\ \mathit{id}\ \mathit{annot}^{?}\ \texttt{:}\ \mathit{Type}\ (\texttt{on}\ \mathit{event}\ \texttt{->}\ \mathit{target})^{*}\\
-\mathit{target}    &::= \texttt{ignored} \mid \texttt{forbidden} \mid \mathit{action}\ (\texttt{(}\ \mathit{args}\ \texttt{)})^{?}\\
-\mathit{trans}     &::= \texttt{on}\ \mathit{action}\ \texttt{->}\ (\mathit{Id} \mid \texttt{[stay]} \mid \texttt{[close\_overlay]} \mid \texttt{[deactivate]})\\
+\mathit{target}    &::= \texttt{ignored} \mid \texttt{forbidden} \mid \texttt{pending} \mid \mathit{action}\ (\texttt{(}\ \mathit{args}\ \texttt{)})^{?}\\
+\mathit{trans}     &::= \texttt{on}\ \mathit{action}\ \texttt{->}\ (\mathit{Id} \mid \texttt{[replace]}\ \mathit{Id} \mid \texttt{[stay]} \mid \texttt{[close\_overlay]} \mid \texttt{[deactivate]})\\
 \mathit{annot}     &::= \texttt{[}\ \mathit{key}\ \texttt{:}\ \mathit{value}\ \texttt{]}
 \end{align*}
 \caption{Core grammar of Trenza (simplified from the compiler's PEG).}
@@ -122,20 +122,25 @@ The verifier does not reason about the generated code. It reasons about the
 following abstraction of a specification, which the parser builds directly.
 A specification denotes a tuple
 \[
-  S = (C,\ c_0,\ R,\ E,\ A,\ \tau,\ H,\ T,\ W)
+  S = (C,\ c_0,\ R,\ E,\ A,\ \Sigma,\ \tau,\ H,\ T,\ W,\ N)
 \]
 where $C$ is the finite set of contexts and $c_0 \in C$ the initial one;
 $R$, $E$ and $A$ are the finite sets of role names, event names and action
-names; $\tau : R \rightharpoonup \mathit{Type}$ assigns data types to roles;
+names; $\Sigma \subseteq A$ is the set of \emph{external signals} declared
+under \texttt{events:} (actions that no role produces, such as a timer or a
+backend callback); $\tau : R \rightharpoonup \mathit{Type}$ assigns data types to roles;
 \[
-  H \subseteq C \times R \times E \times (A \cup \{\mathsf{ignored},\mathsf{forbidden}\})
+  H \subseteq C \times R \times E \times (A \cup \{\mathsf{ignored},\mathsf{forbidden},\mathsf{pending}\})
 \]
 is the handler relation (one element per \texttt{on} line inside a role);
 \[
-  T \subseteq C \times A \times (C \cup \{\mathsf{stay},\mathsf{close},\mathsf{deactivate}\})
+  T \subseteq C \times A \times (C \cup \{\mathsf{stay},\mathsf{close},\mathsf{deactivate}\} \cup \{\mathsf{replace}(c) \mid c \in C\})
 \]
-is the transition relation; and $W \subseteq C$ is the set of contexts that
-declare the wildcard \texttt{role *}. We write $\mathit{roles}(c)$ for the
+is the transition relation; $W \subseteq C$ is the set of contexts that
+declare the wildcard \texttt{role *}; and $N \subseteq C$ is the set of
+contexts marked \texttt{pending} (declared on purpose, without an entry
+path yet). A handler whose target is $\mathsf{pending}$ likewise records a
+decision not yet taken. We write $\mathit{roles}(c)$ for the
 roles declared in $c$ and
 $\mathit{pairs}(c) = \{(r,e) \mid \exists t.\ (c,r,e,t) \in H\}$ for the
 role--event pairs it handles.
@@ -153,10 +158,21 @@ We write $[c]$ for the group of $c$, and
 $R_{[c]} = \bigcup_{c' \in [c]} \mathit{roles}(c')$,
 $P_{[c]} = \bigcup_{c' \in [c]} \mathit{pairs}(c')$.
 
+An action can trigger a transition of $c$ only if something can produce it
+while $c$ is active. Let $\mathit{prod}(c)$ be the actions produced by the
+handlers of $c$ and by the roles that other contexts contribute to its slots
+(\texttt{fills c.s}). We say that $a$ is \emph{live} in $c$, written
+$\mathit{live}(c,a)$, iff $a \in \Sigma$, or $a \in \mathit{prod}(c)$, or
+$c$ is concurrent and $a \in \mathit{prod}(c')$ for some $c'$ (a concurrent
+context sees every action dispatched while it is active).
+
 From $T$ the verifier derives the \emph{context graph}
-$G = (C, \to)$ with $c \to c'$ iff $(c, a, c') \in T$ for some $a$, where
+$G = (C, \to)$ with $c \to c'$ iff $(c, a, c') \in T$ and
+$\mathit{live}(c,a)$ for some $a$, where
 the pseudo-targets are abstracted as follows: $\mathsf{stay}$ adds no edge,
-$\mathsf{close}$ and $\mathsf{deactivate}$ add an edge to $c_0$, and an
+$\mathsf{close}$ and $\mathsf{deactivate}$ add an edge to $c_0$,
+$\mathsf{replace}(c')$ (close the current overlay and open $c'$ in its
+place) adds an edge to $c'$, and an
 overlay with \texttt{initial: Sub} has an edge to \texttt{Sub}. The
 \texttt{close} abstraction
 abstraction is coarse (at run time, closing an overlay returns to whatever
@@ -167,7 +183,9 @@ discusses its consequences.
 \label{sec:rules}
 
 Each rule is a predicate over $S$. A specification is accepted iff all
-error-level predicates hold. All predicates are decidable in time
+error-level predicates hold; warnings (R3, R10 and \texttt{pending}) are
+reported but do not reject the specification unless the user asks for it
+(\texttt{-{}-deny-warnings}). All predicates are decidable in time
 polynomial in the size of the specification; Rules 3 and 4 are graph
 searches, the rest are set comparisons.
 
@@ -178,8 +196,9 @@ searches, the rest are set comparisons.
 \item[R2 Determinism.] Within a context, a role declares at most one
   handler per event: for every $(c,r,e)$ there is at most one \texttt{on}
   declaration, and hence at most one $t$ with $(c,r,e,t) \in H$.
-\item[R3 Reachability] (warning). Every context is reachable in $G$:
-  $\forall c \in C.\ c_0 \to^{*} c$.
+\item[R3 Reachability] (warning). Every context not marked
+  \texttt{pending} is reachable in $G$:
+  $\forall c \in C \setminus N.\ c_0 \to^{*} c$.
 \item[R4 Return.] From every context the initial one is reachable in $G$:
   $\forall c \in C.\ c \to^{*} c_0$. In particular R4 implies
   $G, c_0 \models \mathbf{AG}\,\mathbf{EF}\, c_0$ in CTL: along no path
@@ -195,7 +214,13 @@ searches, the rest are set comparisons.
   contexts; R2 holds inside each \texttt{fills} block.
 \item[R8 Role-type consistency.] $\tau$ is a function: a role name has the
   same data type in every context in which it appears.
+\item[R10 Dead transitions] (warning). Every declared transition can fire:
+  $\forall (c,a,t) \in T.\ \mathit{live}(c,a)$.
 \end{description}
+(The number R9 is reserved for a rule that is designed but not implemented.)
+Because dead transitions contribute no edge to $G$, R10 also sharpens R3
+and R4: a context whose only way back depends on an action that nothing
+produces now fails R4.
 
 In addition, the verifier rejects user identifiers beginning with
 \texttt{\_} (reserved for compiler-generated names), \texttt{initial:}
@@ -253,12 +278,19 @@ $c_0$ makes R4 sound only if every context beneath an overlay can itself
 return to $c_0$, which R4 checks for base contexts but not for arbitrary
 stacking. \TODO{State and check the stacking invariant.}
 
-\paragraph{Dead transitions and indirect access.} R4 inspects declared
-transitions but does not check that some handler of the context can produce
-the triggering action, so a context whose only way back is never triggered
-is still accepted. R6 recognises field accesses written as
-\texttt{role.field} but not as \texttt{self.field}. Both gaps are pinned
-by tests in \nolinkurl{trenza-core/tests/rules.rs}. \TODO{Close both.}
+\paragraph{Liveness is syntactic.} $\mathit{live}(c,a)$ asks whether some
+handler \emph{can} produce $a$, not whether it will: a branch that depends
+on data is outside the language. In the case study, choosing a task type
+opens a comment dialog if the type has one activity and an activity picker
+if it has several; the specification cannot say this, so the transition to
+the picker is dead and the picker unreachable, and the verifier reports
+both as warnings. We keep them as a documented finding rather than silence
+them with an external signal. Conversely, declaring an action in
+\texttt{events:} makes it live everywhere, so $\Sigma$ is trusted input.
+
+\paragraph{Indirect access.} R6 recognises field accesses written as
+\texttt{role.field} but not as \texttt{self.field}. The gap is pinned by a
+test in \nolinkurl{trenza-core/tests/rules.rs}. \TODO{Close it.}
 
 \paragraph{Generated code.} The verifier checks the specification, not the
 generated code, and we make no claim that \texttt{rustc} re-checks

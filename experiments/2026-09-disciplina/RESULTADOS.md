@@ -112,3 +112,29 @@ Cada uno requiere un pre-registro nuevo.
   se puede conectar), donde el efecto techo sea menos probable.
 - **Corregir la guía o el CLI** para que R3 sea realmente un aviso, y
   **cerrar el hueco de las transiciones muertas** antes de repetir.
+
+## Adenda posterior (2026-09-28): el verificador ha cambiado
+
+Esto no modifica los resultados, que se obtuvieron con el `trenza-cli` del
+commit del pre-registro. Explica cómo leerlos con el verificador actual.
+
+- **Avisos no fatales (3a).** Con el CLI actual, los avisos no hacen
+  fallar `check`. Con solo ese cambio, T3-B-2 habría pasado: su único
+  diagnóstico era la alcanzabilidad de `ModalEditarActividad`, que es un
+  aviso. Esto lo añadimos después, no forma parte del protocolo.
+- **Transiciones muertas (R10).** El rodeo de T3-B-1, 3, 4 y 5
+  (`on abrirEditarActividad -> ModalEditarActividad`, que ninguna acción
+  produce) ahora se marca como transición muerta, y `ModalEditarActividad`
+  aparece como inalcanzable, igual que en T3-B-2. Es decir, las cinco
+  réplicas de T3-B quedan en la misma situación: dos avisos que describen
+  la decisión, pedida por la tarea, de dejar el editor sin acceso.
+- **La línea base no verifica con el verificador actual.** El
+  `cronometro.trz` del experimento tenía transiciones muertas propias
+  (`on iniciar` en ModalHistorial y ModalReset, `on cerrar` en
+  Historial7Dias/30Dias, `on sesionFinalizada` y `on terminarSesion` en
+  SesionActiva). Como R10 no las cuenta como aristas, R4 da ahora tres
+  errores sobre el material de partida, en todas las réplicas B por igual.
+  La línea base corregida está en `examples/cronometro-wasm/src/cronometro_full.trz`;
+  cualquier repetición debe partir de ella y de `docs/manual/GUIA-TRENZA.md`.
+  `GUIA-TRENZA.md` de esta carpeta se conserva tal como la vieron los
+  agentes.
