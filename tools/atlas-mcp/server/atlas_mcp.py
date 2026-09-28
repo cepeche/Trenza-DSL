@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import os
 import time
+from datetime import datetime
 from pathlib import Path
 
 import httpx
@@ -53,6 +54,14 @@ FILES_ROOT = _env("ATLAS_FILES_ROOT")
 MAX_FILE_CHARS = int(_env("ATLAS_MAX_FILE_CHARS", "200000"))
 
 server = _Server("atlas")
+
+_DIAS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
+
+
+def _ahora() -> str:
+    # El modelo local no tiene reloj: se le da la fecha en cada petición.
+    t = datetime.now().astimezone()
+    return f"Fecha y hora actuales: {_DIAS[t.weekday()]} {t.isoformat(timespec='minutes')}."
 
 
 def _http_error(e: Exception) -> ToolError:
@@ -147,12 +156,14 @@ async def atlas_ask(
     razonamiento de Claude. El modelo local es más débil: comprueba lo que
     devuelva. `files` son rutas relativas a ATLAS_FILES_ROOT; el servidor
     las lee y las añade al prompt sin pasar por el contexto de Claude.
+    El servidor antepone la fecha y hora actuales al mensaje de sistema.
     """
     content = prompt
     attached = _read_files(files or [])
     if attached:
         content = f"{attached}\n\n{prompt}"
-    messages = ([{"role": "system", "content": system}] if system else []) + [
+    system = f"{_ahora()}\n\n{system}" if system else _ahora()
+    messages = [{"role": "system", "content": system}] + [
         {"role": "user", "content": content}
     ]
     t0 = time.monotonic()

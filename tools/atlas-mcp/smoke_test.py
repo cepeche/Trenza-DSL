@@ -35,8 +35,9 @@ class Fake(BaseHTTPRequestHandler):
 
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
-        last = body["messages"][-1]["content"]
-        self._send({"choices": [{"message": {"content": "ECO: " + last}, "finish_reason": "stop"}],
+        msgs = body["messages"]
+        eco = " | ".join(m["content"] for m in msgs)
+        self._send({"choices": [{"message": {"content": "ECO: " + eco}, "finish_reason": "stop"}],
                     "usage": {"prompt_tokens": 1, "completion_tokens": 1}})
 
 
@@ -75,6 +76,7 @@ async def main():
                 "prompt": "Resume el archivo en una frase.", "files": ["nota.txt"]}))
             print("atlas_ask:", out)
             assert not err and (REAL or "contenido de prueba" in out)
+            assert REAL or "Fecha y hora actuales:" in out, out
             err, out = text(await s.call_tool("atlas_ask", {"prompt": "x", "files": ["../fuera.txt"]}))
             assert err and "fuera de ATLAS_FILES_ROOT" in out, out
     print("OK")

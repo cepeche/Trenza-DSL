@@ -11,10 +11,25 @@ Herramientas:
 | Herramienta | Qué hace |
 |---|---|
 | `atlas_models` | Lista los modelos que sirve ATLAS y cuál se usa por defecto. |
-| `atlas_ask(prompt, system?, model?, files?, max_tokens?, temperature?)` | Envía la tarea al modelo y devuelve la respuesta con modelo, tiempo, tokens y `finish_reason` (si es `length`, la respuesta se cortó). `files` son rutas bajo `ATLAS_FILES_ROOT`: el servidor las lee y se las pasa al modelo **sin que Claude las lea**, que es lo que ahorra tokens. |
+| `atlas_ask(prompt, system?, model?, files?, max_tokens?, temperature?)` | Envía la tarea al modelo y devuelve la respuesta con modelo, tiempo, tokens y `finish_reason` (si es `length`, la respuesta se cortó). `files` son rutas bajo `ATLAS_FILES_ROOT`: el servidor las lee y se las pasa al modelo **sin que Claude las lea**, que es lo que ahorra tokens. El servidor antepone siempre la fecha y hora actuales al mensaje de sistema, porque el modelo local no tiene reloj. |
 
 Es deliberadamente de solo lectura: no hay herramientas para descargar ni
 borrar modelos.
+
+**Contexto, no herramientas (decisión del 28 sep 2026).** El modelo de
+ATLAS no recibe herramientas propias: quien delega es Claude, que sí tiene
+reloj, ficheros y red, y le pasa en el prompt lo que haga falta. La única
+excepción es la fecha, que el servidor añade siempre. Pregunta abierta: un
+bucle de herramientas dentro de `atlas_ask` (Ollama lo admite con
+`gpt-oss-120b`) lo convertiría en un agente pequeño con un modelo más
+débil. Si algún caso lo pide, solo con herramientas de lectura y cerradas
+(fecha, ficheros bajo `ATLAS_FILES_ROOT`, CMDB), nunca de escritura ni de
+ejecución. Para un ATLAS con herramientas ya existe Open WebUI.
+
+**Al cambiar el servidor:** el registro de Claude Code apunta al fichero
+del repositorio y basta con reiniciar la sesión. La extensión de Claude
+Desktop guarda su propia copia, así que hay que volver a empaquetarla e
+instalarla.
 
 ## Dónde funciona (verificado en la documentación, 28 sep 2026)
 
