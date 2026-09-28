@@ -1,0 +1,36 @@
+-- Listing 2 (Onward! 2027 paper): the original defect, reintroduced.
+-- Same as modes.trz, but EditMode omits the handler of frequent_tab.
+-- It MUST fail with exactly one [completeness] diagnostic
+-- (see trenza-core/tests/paper_listings.rs).
+
+data Task:
+    taskId: Id
+
+data Tab:
+    id: Id
+
+system Timer:
+    initial: NormalMode
+    events: tap
+    contexts:
+        NormalMode
+        EditMode
+
+context NormalMode:
+    role card: Task
+        on tap -> startTask(self.taskId)
+    role frequent_tab: Tab
+        on tap -> switchTab(self.id)
+    role edit_button: Tab
+        on tap -> enterEditMode
+    transitions:
+        on enterEditMode -> EditMode
+
+context EditMode:
+    role card: Task
+        on tap -> openTaskEditor(self.taskId)
+    role frequent_tab: Tab
+    role edit_button: Tab
+        on tap -> exitEditMode
+    transitions:
+        on exitEditMode -> NormalMode

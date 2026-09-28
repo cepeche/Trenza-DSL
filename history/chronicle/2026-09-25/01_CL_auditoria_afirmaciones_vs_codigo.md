@@ -22,7 +22,7 @@ experimentos mínimos. Las citas `G:NNN` son líneas de
 El núcleo de la tesis **se sostiene en un ejemplo mínimo**: si
 `ModoEdicion` olvida el manejador de `pestana_frecuentes.tap`, el verificador
 emite exactamente un error `[completeness]`
-(`paper/onward2027/listings/modos_olvido.trz`, comprobado por
+(`paper/onward2027/listings/modes_forgotten.trz`, comprobado por
 `trenza-core/tests/paper_listings.rs`).
 
 Pero varias afirmaciones del paper de 2026 **no corresponden al código**, y

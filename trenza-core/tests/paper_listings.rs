@@ -31,12 +31,12 @@ fn codes(name: &str) -> Vec<String> {
 
 #[test]
 fn listado_1_modos_verifica_sin_diagnosticos() {
-    assert_eq!(codes("modos.trz"), Vec::<String>::new());
+    assert_eq!(codes("modes.trz"), Vec::<String>::new());
 }
 
 #[test]
 fn listado_2_olvido_produce_exactamente_un_error_de_completitud() {
-    assert_eq!(codes("modos_olvido.trz"), vec!["completeness"]);
+    assert_eq!(codes("modes_forgotten.trz"), vec!["completeness"]);
 }
 
 /// Limitación conocida, documentada en el paper: `role *: ignored` exime
@@ -45,5 +45,5 @@ fn listado_2_olvido_produce_exactamente_un_error_de_completitud() {
 /// este test debe actualizarse junto con el texto del paper.
 #[test]
 fn listado_3_comodin_silencia_el_olvido() {
-    assert_eq!(codes("modos_comodin.trz"), Vec::<String>::new());
+    assert_eq!(codes("modes_wildcard.trz"), Vec::<String>::new());
 }

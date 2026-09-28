@@ -21,15 +21,12 @@
 
 This section presents Trenza concretely: a complete specification, the
 grammar it is written in, the abstract model the verifier works on, and the
-rules the verifier checks, stated as predicates over that model. Identifiers
-in the listings are Spanish because they are taken from the case study
-(Section~\ref{sec:validation}); \emph{Modo} means mode, \emph{tarjeta} card,
-\emph{pesta\~na} tab.
+rules the verifier checks, stated as predicates over that model.
 
 \subsection{A Complete Specification}
 \label{sec:example}
 
-Listing~\ref{lst:modos} is a complete Trenza specification, accepted by the
+Listing~\ref{lst:modes} is a complete Trenza specification, accepted by the
 verifier without diagnostics. It reduces the motivating defect of
 Section~\ref{sec:motivation} to its essentials: a timer application with a
 normal mode and an edit mode, in which the same three on-screen elements
@@ -41,9 +38,9 @@ react differently to the same tap.
   firstnumber=6,
   caption={A complete specification: two mutually exclusive modes.
            Verified without diagnostics
-           (\texttt{paper/onward2027/listings/modos.trz}).},
-  label={lst:modos}
-]{onward2027/listings/modos.trz}
+           (\texttt{paper/onward2027/listings/modes.trz}).},
+  label={lst:modes}
+]{onward2027/listings/modes.trz}
 
 A specification has three layers. (Line numbers are those of the source
 file, which begins with a comment header.) The \texttt{data} layer (lines 6--10)
@@ -51,10 +48,10 @@ declares what things \emph{are}: plain records with no behavior. The
 \texttt{system} block (lines 12--17) declares the contexts, which one is
 initial, and the external events the system receives. Each \texttt{context}
 declares what things \emph{do there}: a \emph{role} binds a data type to a
-name (\texttt{role tarjeta: Tarea}), and each handler
+name (\texttt{role card: Task}), and each handler
 \texttt{on \emph{event} -> \emph{target}} states what that role does when it
 receives that event in that context. A target is either an action call
-(\texttt{iniciarTarea(self.tareaId)}), or one of two keywords:
+(\texttt{startTask(self.taskId)}), or one of two keywords:
 \texttt{ignored} (the event is deliberately a no-op) and \texttt{forbidden}
 (receiving the event is a runtime error). The \texttt{transitions} section
 maps actions to the context that becomes active after them.
@@ -72,16 +69,15 @@ implementation the same information was spread across five \texttt{if
   firstline=6,
   linerange={29-36},
   firstnumber=29,
-  caption={The original defect, reintroduced: \texttt{ModoEdicion} no longer
+  caption={The original defect, reintroduced: \texttt{EditMode} no longer
            says what the frequent-items tab does on tap
-           (\texttt{modos\_olvido.trz}). The verifier reports
-           \texttt{[29:9] La acci\'on 'pestana\_frecuentes.tap' no est\'a
-           declarada en el contexto 'ModoEdicion' [completeness]}
-           and nothing else.},
-  label={lst:olvido}
-]{onward2027/listings/modos_olvido.trz}
+           (\texttt{modes\_forgotten.trz}). The verifier reports exactly one
+           diagnostic, \texttt{[completeness]} at line 29, column 9:
+           \texttt{frequent\_tab.tap} is not declared in \texttt{EditMode}.},
+  label={lst:forgotten}
+]{onward2027/listings/modes_forgotten.trz}
 
-Listing~\ref{lst:olvido} shows the same specification with the defect
+Listing~\ref{lst:forgotten} shows the same specification with the defect
 reintroduced: the edit mode omits the handler for the frequent-items tab. In
 the JavaScript original this omission was silent; the tab kept its
 normal-mode behavior in edit mode. In Trenza it is rejected with exactly one
@@ -226,8 +222,8 @@ context, an overlay stack and a set of active concurrent contexts); a
 TypeScript module with the same interface; one example-based test per
 transition and per (context, role, event) handler, in Rust and in Vitest;
 a Mermaid state diagram; and a Markdown report listing contexts,
-transitions and the role--event table. For Listing~\ref{lst:modos}
-\TODO{insert line counts and the generated \texttt{handle\_tarjeta\_tap}
+transitions and the role--event table. For Listing~\ref{lst:modes}
+\TODO{insert line counts and the generated \texttt{handle\_card\_tap}
 function once the generator changes below are in}.
 
 \subsection{Limits}
@@ -238,9 +234,9 @@ is a place where a specification can be accepted while the property a
 reader would expect does not hold.
 
 \paragraph{The wildcard.} A context that declares \texttt{role *: ignored}
-is exempt from R1 and R5. The specification of Listing~\ref{lst:olvido}
-with that single line added to \texttt{ModoEdicion} is accepted without
-diagnostics (\texttt{modos\_comodin.trz}). An earlier version of the
+is exempt from R1 and R5. The specification of Listing~\ref{lst:forgotten}
+with that single line added to \texttt{EditMode} is accepted without
+diagnostics (\texttt{modes\_wildcard.trz}). An earlier version of the
 verifier applied R1 and R5 to \emph{all} contexts, so that a modal dialog
 had to declare a handler for every role of the main screen it covers; every
 context of the case study then needed the wildcard, and R1 and R5 were

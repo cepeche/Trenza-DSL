@@ -1,0 +1,37 @@
+-- Listing 3 (Onward! 2027 paper): the escape hatch.
+-- Same as modes_forgotten.trz, but EditMode declares `role *: ignored`.
+-- With the current compiler it verifies with no diagnostics: the wildcard
+-- exempts the context from Rules 1 and 5, and the omission goes unnoticed.
+
+data Task:
+    taskId: Id
+
+data Tab:
+    id: Id
+
+system Timer:
+    initial: NormalMode
+    events: tap
+    contexts:
+        NormalMode
+        EditMode
+
+context NormalMode:
+    role card: Task
+        on tap -> startTask(self.taskId)
+    role frequent_tab: Tab
+        on tap -> switchTab(self.id)
+    role edit_button: Tab
+        on tap -> enterEditMode
+    transitions:
+        on enterEditMode -> EditMode
+
+context EditMode:
+    role *: ignored
+    role card: Task
+        on tap -> openTaskEditor(self.taskId)
+    role frequent_tab: Tab
+    role edit_button: Tab
+        on tap -> exitEditMode
+    transitions:
+        on exitEditMode -> NormalMode

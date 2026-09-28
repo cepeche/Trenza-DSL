@@ -34,5 +34,5 @@ TOML
   (cd "$crate" && CARGO_TARGET_DIR="$WORK/target" cargo test --quiet > /dev/null 2>&1)
 }
 
-check paper/onward2027/listings/modos.trz Cronometro scripts/generated-check/modos_accion.rs
+check paper/onward2027/listings/modes.trz Timer scripts/generated-check/modes_action.rs
 check examples/cronometro-wasm/src/cronometro_full.trz CronometroPSP

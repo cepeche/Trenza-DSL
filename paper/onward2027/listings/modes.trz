@@ -1,0 +1,37 @@
+-- Listing 1 (Onward! 2027 paper): running example.
+-- Two mutually exclusive modes of the CronometroPSP time tracker, reduced
+-- to the essentials. This file MUST verify with no diagnostics; checked by
+-- trenza-core/tests/paper_listings.rs.
+
+data Task:
+    taskId: Id
+
+data Tab:
+    id: Id
+
+system Timer:
+    initial: NormalMode
+    events: tap
+    contexts:
+        NormalMode
+        EditMode
+
+context NormalMode:
+    role card: Task
+        on tap -> startTask(self.taskId)
+    role frequent_tab: Tab
+        on tap -> switchTab(self.id)
+    role edit_button: Tab
+        on tap -> enterEditMode
+    transitions:
+        on enterEditMode -> EditMode
+
+context EditMode:
+    role card: Task
+        on tap -> openTaskEditor(self.taskId)
+    role frequent_tab: Tab
+        on tap -> ignored
+    role edit_button: Tab
+        on tap -> exitEditMode
+    transitions:
+        on exitEditMode -> NormalMode
