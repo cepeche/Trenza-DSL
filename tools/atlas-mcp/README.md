@@ -25,7 +25,8 @@ borrar modelos.
 | Cowork desde la app de escritorio, **sesión local** | Sí, con la app abierta | extensión `.mcpb`. Según Anthropic, *"Local MCP servers bundled with plugins and desktop extensions run on your computer"* |
 | Cowork desde la app de escritorio, **sesión en la nube** (hoy, la opción por defecto) | No | *"Cowork sessions run in the cloud by default"* y *"Local MCP servers don't run in sessions in the cloud"* (arquitectura de Cowork, consultada el 28 sep 2026). La sesión en la nube solo llega a tu ordenador para las carpetas conectadas, no a los MCP locales. La ejecución local *"remains available for existing desktop deployments"*. |
 | Cowork desde la web o el móvil | No | La sesión corre en los servidores de Anthropic y "can't reach your home or company network" |
-| Claude Code en la nube (esta sesión) | No | Igual que la anterior. La alternativa es `claude remote-control` en tu ordenador: la sesión corre ahí, con sus MCP locales, y la manejas desde la web o el móvil. |
+| Claude Code en la nube (CfW) | No | Igual que la anterior. |
+| Sesión de Claude Code de tu ordenador con **Remote Control**, manejada desde el móvil o la web | **Sí** (verificado desde el móvil el 28 sep 2026) | La sesión sigue corriendo en tu ordenador, con sus MCP locales y tu red; el móvil solo le manda texto a través de claude.ai. Se activa con el interruptor Remote Control de la barra de la sesión en la app de escritorio. `claude remote-control` en terminal hace lo mismo, pero exige que el CLI tenga sesión propia (`claude auth login`); el que trae la app no la tiene. Requisitos: ordenador encendido, app abierta y sesión sin archivar. |
 
 Fuentes:
 [arquitectura de Cowork](https://support.claude.com/en/articles/14479288-claude-cowork-architecture-overview),
