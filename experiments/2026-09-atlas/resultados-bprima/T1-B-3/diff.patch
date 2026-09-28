@@ -1,0 +1,57 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -144,6 +144,7 @@
+     contexts:
+         ModoEdicion
+         ModoNormal          -- base por defecto
++        ModoPausa           -- modo pausa
+     -- (2) Contextos concurrentes — coexisten ortogonalmente con el base
+     concurrent:
+         SesionActiva        -- activo cuando hay sesión en curso
+@@ -595,6 +596,8 @@
+         on tap -> abrirCrearTarea                  -- sigue disponible en modo edición
+     role boton_configuracion: Boton
+         on tap -> abrirMenuConfiguracion
++    role boton_pausa: Boton
++        on tap -> ignored
+     transitions:
+         on desactivarEdicion      -> ModoNormal
+         on abrirEditarTarea       -> ModalEditarTarea
+@@ -627,8 +630,11 @@
+         on tap -> abrirCrearTarea
+     role boton_configuracion: Boton
+         on tap -> abrirMenuConfiguracion
++    role boton_pausa: Boton
++        on tap -> activarPausa
+     transitions:
+         on activarEdicion        -> ModoEdicion
++        on activarPausa          -> ModoPausa
+         on abrirCrearTarea       -> ModalCrearTarea
+         on abrirMenuConfiguracion -> MenuConfiguracion
+         -- seleccionarTipoTarea puede ramificar:
+@@ -648,6 +654,25 @@
+         cambiarPestana  -> actualizarGridVisible()
+         iniciarTarea    -> iniciar_sesion(tarea_id, notas, minutos_retroactivos, sustituir)
+ 
++context ModoPausa:
++    role tarjeta_tipo: TipoTarea
++        on tap -> ignored
++    role tarjeta_tarea: Tarea
++        on tap -> ignored
++    role pestana_actividad: Actividad
++        on tap -> cambiarPestana(self.id)
++    role pestana_frecuentes: Pestana
++        on tap -> cambiarPestana('frecuentes')
++    role boton_edicion: Boton
++        on tap -> ignored
++    role boton_nuevo: Boton
++        on tap -> ignored
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion
++    role boton_pausa: Boton
++        on tap -> desactivarPausa
++    transitions:
++        on desactivarPausa       -> ModoNormal
+ -- Contexto CONCURRENTE: coexiste con ModoNormal o ModoEdicion.
+ 
+ -- Se activa cuando hay una sesión en curso; se desactiva cuando termina.

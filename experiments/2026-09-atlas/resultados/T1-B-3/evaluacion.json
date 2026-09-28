@@ -1,0 +1,8 @@
+{
+ "correcta": false,
+ "arranca": false,
+ "error": {
+  "error": "check",
+  "detail": "✅ Archivo 'C:\\Proyectos\\Trenza-DSL\\experiments\\2026-09-atlas\\resultados\\T1-B-3\\work\\cronometro.trz' leido y parseado.\n❌ Verificación Semántica Fallida:\n  [322:5] El rol 'tarjeta_tipo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [325:5] El rol 'tarjeta_tarea' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [328:5] El rol 'pestana_actividad' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [331:5] El rol 'pestana_frecuentes' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [334:5] El rol 'boton_edicion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [337:5] El rol 'boton_nuevo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [340:5] El rol 'boton_configuracion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [343:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [346:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [349:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n"
+ }
+}

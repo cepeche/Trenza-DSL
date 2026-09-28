@@ -27,7 +27,6 @@
 
 
 context ModalSeleccionActividad:
-    role *: ignored
 
 
 

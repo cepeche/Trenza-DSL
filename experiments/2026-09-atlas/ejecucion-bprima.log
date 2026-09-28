@@ -1,0 +1,44 @@
+T1-B-1: ya evaluada
+T2-B-1: 4b✓ 4b✓ ·→ correcta (134 s)
+T3-B-1: 1b✓ 1b✓ ·→ correcta (74 s)
+T4-B-1: 1b✓ 2b✓ ·→ correcta (110 s)
+T1-B-2: 6b✓ 4b✗ 3b✗ 4b✗ → NO correcta (319 s)
+T2-B-2: 4b✓ 4b✓ ·→ correcta (141 s)
+T3-B-2: 1b✓ 1b✓ ·→ correcta (68 s)
+T4-B-2: 2b✓ 1b✓ ·→ correcta (81 s)
+T1-B-3: 17b✓ 5b✗ 2b✓ ·→ NO correcta (273 s)
+T2-B-3: 5b✓ 4b✗ 1b✗ 1b✗ → NO correcta (162 s)
+T3-B-3: 1b✓ 1b✓ ·→ correcta (64 s)
+T4-B-3: 2b✓ ·→ correcta (84 s)
+T1-B-4: 5b✓ 5b✗ 2b✗ 2b✓ → NO correcta (259 s)
+T2-B-4: 4b✓ 4b✓ ·→ correcta (121 s)
+T3-B-4: 1b✓ 1b✓ ·→ correcta (64 s)
+T4-B-4: 2b✓ 2b✓ ·→ correcta (68 s)
+T1-B-5: 5b✓ 6b✓ 4b✓ 4b✗ → NO correcta (259 s)
+T2-B-5: 4b✓ 4b✗ 3b✓ ·→ NO correcta (190 s)
+T3-B-5: 1b✓ 1b✓ ·→ correcta (61 s)
+T4-B-5: 2b✓ 1b✓ ·→ correcta (76 s)
+| Réplica | Correcta | Arranca | Expectativas fallidas | Regresiones | Turnos | Máx. tokens prompt | s |
+|---|---|---|---|---|---|---|---|
+| T1-B-1 | no | no | 0 | 0 | 4 | 10358 | 289.0 |
+| T1-B-2 | no | no | 0 | 0 | 4 | 12322 | 318.7 |
+| T1-B-3 | no | sí | 1 | 0 | 4 | 10456 | 272.5 |
+| T1-B-4 | no | sí | 1 | 0 | 4 | 9597 | 259.3 |
+| T1-B-5 | no | no | 0 | 0 | 4 | 10107 | 259.4 |
+| T2-B-1 | sí | sí | 0 | 0 | 3 | 8809 | 134.2 |
+| T2-B-2 | sí | sí | 0 | 0 | 3 | 9169 | 141.1 |
+| T2-B-3 | no | no | 0 | 0 | 4 | 8890 | 161.6 |
+| T2-B-4 | sí | sí | 0 | 0 | 3 | 8894 | 120.8 |
+| T2-B-5 | no | no | 0 | 0 | 4 | 8921 | 189.6 |
+| T3-B-1 | sí | sí | 0 | 0 | 3 | 7976 | 74.3 |
+| T3-B-2 | sí | sí | 0 | 0 | 3 | 7872 | 68.2 |
+| T3-B-3 | sí | sí | 0 | 0 | 3 | 7872 | 63.9 |
+| T3-B-4 | sí | sí | 0 | 0 | 3 | 7994 | 63.9 |
+| T3-B-5 | sí | sí | 0 | 0 | 3 | 7976 | 60.8 |
+| T4-B-1 | sí | sí | 0 | 0 | 3 | 8412 | 110.1 |
+| T4-B-2 | sí | sí | 0 | 0 | 3 | 7918 | 81.2 |
+| T4-B-3 | sí | sí | 0 | 0 | 2 | 7739 | 83.7 |
+| T4-B-4 | sí | sí | 0 | 0 | 3 | 7971 | 68.2 |
+| T4-B-5 | sí | sí | 0 | 0 | 3 | 8141 | 76.4 |
+
+**B:** 13/20 correctas.

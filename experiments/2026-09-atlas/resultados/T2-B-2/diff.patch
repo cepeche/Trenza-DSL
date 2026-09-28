@@ -1,0 +1,49 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -289,6 +289,9 @@
+         ModalReset
+ 
+         ModalAcercaDe
++        ModalReordenarFrecuentes
++        ModalReordenarFrecuentes
++        ModalReordenarFrecuentes
+ 
+ -- contexts/MenuConfiguracion.trz
+ 
+@@ -1437,6 +1440,36 @@
+         actualizarTimer -> calcular_tiempo_transcurrido(sesion_activa.inicio)
+         terminarSesion  -> parar_sesion()
+ 
++-- contexts/ModalReordenarFrecuentes.trz
++
++context ModalReordenarFrecuentes:
++
++    role boton_cerrar: Boton
++        on tap -> cerrar
++
++    transitions:
++        on cerrar -> [close_overlay]
++
++-- contexts/ModalReordenarFrecuentes.trz
++
++context ModalReordenarFrecuentes:
++
++    role boton_cerrar: Boton
++        on tap -> cerrar
++
++    transitions:
++        on cerrar -> [close_overlay]
++
++-- contexts/ModalReordenarFrecuentes.trz
++
++context ModalReordenarFrecuentes:
++
++    role boton_cerrar: Boton
++        on tap -> cerrar
++
++    transitions:
++        on cerrar -> [close_overlay]
++
+ -- external/cronometro_api.trz
+ 
+ -- DeclaraciÃ³n de funciones externas (cÃ³digo convencional que el

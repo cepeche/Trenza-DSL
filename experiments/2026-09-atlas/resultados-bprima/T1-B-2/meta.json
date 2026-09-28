@@ -1,0 +1,76 @@
+{
+ "id": "T1-B-2",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 318.7,
+ "turnos": [
+  {
+   "prompt_eval_count": 7636,
+   "eval_count": 2759,
+   "total_duration": 93663701072,
+   "done_reason": "stop",
+   "bloques": 6,
+   "informe": [
+    "Bloque 1: transitions: no es un archivo que puedas cambiar.",
+    "5 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 9396,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 8265,
+   "eval_count": 1770,
+   "total_duration": 66075855698,
+   "done_reason": "stop",
+   "bloques": 4,
+   "informe": [
+    "Bloque 1 (cronometro.trz): aplicado.",
+    "Bloque 2 (cronometro.trz): aplicado.",
+    "Bloque 3 (cronometro.trz): aplicado.",
+    "Bloque 4 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 4653,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [600:5] El rol 'tarjeta_tarea' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoEdicion' [determinism]\n  [602:5] El rol 'pestana_actividad' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoEdicion' [determinism]\n  [604:5] El rol 'pestana_frecuentes' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoEdicion' [determinism]\n  [606:5] El rol 'boton_edicion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoEdicion' [determinism]\n  [608:5] El rol 'boton_nuevo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoEdicion' [determinism]\n  [610:5] El rol 'boton_configuracion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoEdicion' [determinism]\n  [649:5] El rol 'tarjeta_tipo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [651:5] El rol 'tarjeta_tarea' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [653:5] El rol 'pestana_actividad' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [655:5] El rol 'pestana_frecuentes' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [657:5] El rol 'boton_edicion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [659:5] El rol 'boton_nuevo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [661:5] El rol 'boton_configuracion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [663:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [665:5] El rol 'tarjeta_tarea' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [667:5] El rol 'pestana_actividad' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [669:5] El rol 'pestana_frecuentes' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [671:5] El rol 'boton_edicion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [673:5] El rol 'boton_nuevo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [675:5] El rol 'boton_configuracion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [285:9] El contexto 'ModalCrearTarea' es inalcanzable [reachability]\n  [415:9] El contexto 'Historial30Dias' es inalcanzable [reachability]\n  [403:9] El contexto 'Historial7Dias' es inalcanzable [reachability]\n  [455:9] El contexto 'ResetFase1' es inalcanzable [reachability]\n  [318:9] El contexto 'ModalEditarActividad' es inalcanzable [reachability]\n  [262:9] El contexto 'ModalCrearActividad' es inalcanzable [reachability]\n  [481:9] El contexto 'ResetFase2' es inalcanzable [reachability]\n  [195:9] El contexto 'ModalAcercaDe' es inalcanzable [reachability]\n  [556:9] El contexto 'ModalSeleccionActividad' es inalcanzable [reachability]\n  [629:9] El contexto 'ModoPausa' es inalcanzable [reachability]\n  [395:9] El contexto 'ModalHistorial' es inalcanzable [reachability]\n  [508:9] El contexto 'ResetFase3' es inalcanzable [reachability]\n  [169:9] El contexto 'MenuConfiguracion' es inalcanzable [reachability]\n  [445:9] El contexto 'ModalReset' es inalcanzable [reachability]\n  [228:9] El contexto 'ModalComentario' es inalcanzable [reachability]\n  [583:9] El contexto 'ModoEdicion' es inalcanzable [reachability]\n  [350:9] El contexto 'ModalEditarTarea' es inalcanzable [reachability]\n  [711:9] El contexto 'SesionActiva' es inalcanzable [reachability]"
+   }
+  },
+  {
+   "prompt_eval_count": 10235,
+   "eval_count": 2686,
+   "total_duration": 81758777246,
+   "done_reason": "stop",
+   "bloques": 3,
+   "informe": [
+    "Bloque 1 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 2 (cronometro.trz): aplicado.",
+    "Bloque 3 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 8702,
+   "check": {
+    "codigo": 1,
+    "salida": "jeta_tipo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [673:5] El rol 'tarjeta_tarea' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [675:5] El rol 'pestana_actividad' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [677:5] El rol 'pestana_frecuentes' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [679:5] El rol 'boton_edicion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [681:5] El rol 'boton_nuevo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [683:5] El rol 'boton_configuracion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [685:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [690:5] El rol 'tarjeta_tipo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [692:5] El rol 'tarjeta_tarea' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [694:5] El rol 'pestana_actividad' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [696:5] El rol 'pestana_frecuentes' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [698:5] El rol 'boton_edicion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [700:5] El rol 'boton_nuevo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [702:5] El rol 'boton_configuracion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [704:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [706:5] El rol 'tarjeta_tarea' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [708:5] El rol 'pestana_actividad' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [710:5] El rol 'pestana_frecuentes' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [712:5] El rol 'boton_edicion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [714:5] El rol 'boton_nuevo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [716:5] El rol 'boton_configuracion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [350:9] El contexto 'ModalEditarTarea' es inalcanzable [reachability]\n  [481:9] El contexto 'ResetFase2' es inalcanzable [reachability]\n  [583:9] El contexto 'ModoEdicion' es inalcanzable [reachability]\n  [752:9] El contexto 'SesionActiva' es inalcanzable [reachability]\n  [403:9] El contexto 'Historial7Dias' es inalcanzable [reachability]\n  [508:9] El contexto 'ResetFase3' es inalcanzable [reachability]\n  [395:9] El contexto 'ModalHistorial' es inalcanzable [reachability]\n  [262:9] El contexto 'ModalCrearActividad' es inalcanzable [reachability]\n  [415:9] El contexto 'Historial30Dias' es inalcanzable [reachability]\n  [445:9] El contexto 'ModalReset' es inalcanzable [reachability]\n  [651:9] El contexto 'ModoPausa' es inalcanzable [reachability]\n  [228:9] El contexto 'ModalComentario' es inalcanzable [reachability]\n  [195:9] El contexto 'ModalAcercaDe' es inalcanzable [reachability]\n  [318:9] El contexto 'ModalEditarActividad' es inalcanzable [reachability]\n  [455:9] El contexto 'ResetFase1' es inalcanzable [reachability]\n  [556:9] El contexto 'ModalSeleccionActividad' es inalcanzable [reachability]\n  [169:9] El contexto 'MenuConfiguracion' es inalcanzable [reachability]\n  [285:9] El contexto 'ModalCrearTarea' es inalcanzable [reachability]"
+   }
+  },
+  {
+   "prompt_eval_count": 12322,
+   "eval_count": 2392,
+   "total_duration": 76801576386,
+   "done_reason": "stop",
+   "bloques": 4,
+   "informe": [
+    "4 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 6975,
+   "check": {
+    "codigo": 1,
+    "salida": "jeta_tipo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [673:5] El rol 'tarjeta_tarea' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [675:5] El rol 'pestana_actividad' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [677:5] El rol 'pestana_frecuentes' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [679:5] El rol 'boton_edicion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [681:5] El rol 'boton_nuevo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [683:5] El rol 'boton_configuracion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [685:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [690:5] El rol 'tarjeta_tipo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [692:5] El rol 'tarjeta_tarea' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [694:5] El rol 'pestana_actividad' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [696:5] El rol 'pestana_frecuentes' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [698:5] El rol 'boton_edicion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [700:5] El rol 'boton_nuevo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [702:5] El rol 'boton_configuracion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [704:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [706:5] El rol 'tarjeta_tarea' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [708:5] El rol 'pestana_actividad' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [710:5] El rol 'pestana_frecuentes' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [712:5] El rol 'boton_edicion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [714:5] El rol 'boton_nuevo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [716:5] El rol 'boton_configuracion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [752:9] El contexto 'SesionActiva' es inalcanzable [reachability]\n  [651:9] El contexto 'ModoPausa' es inalcanzable [reachability]\n  [262:9] El contexto 'ModalCrearActividad' es inalcanzable [reachability]\n  [318:9] El contexto 'ModalEditarActividad' es inalcanzable [reachability]\n  [350:9] El contexto 'ModalEditarTarea' es inalcanzable [reachability]\n  [195:9] El contexto 'ModalAcercaDe' es inalcanzable [reachability]\n  [415:9] El contexto 'Historial30Dias' es inalcanzable [reachability]\n  [395:9] El contexto 'ModalHistorial' es inalcanzable [reachability]\n  [481:9] El contexto 'ResetFase2' es inalcanzable [reachability]\n  [228:9] El contexto 'ModalComentario' es inalcanzable [reachability]\n  [285:9] El contexto 'ModalCrearTarea' es inalcanzable [reachability]\n  [556:9] El contexto 'ModalSeleccionActividad' es inalcanzable [reachability]\n  [445:9] El contexto 'ModalReset' es inalcanzable [reachability]\n  [508:9] El contexto 'ResetFase3' es inalcanzable [reachability]\n  [583:9] El contexto 'ModoEdicion' es inalcanzable [reachability]\n  [403:9] El contexto 'Historial7Dias' es inalcanzable [reachability]\n  [455:9] El contexto 'ResetFase1' es inalcanzable [reachability]\n  [169:9] El contexto 'MenuConfiguracion' es inalcanzable [reachability]"
+   }
+  }
+ ],
+ "lineas_diff": 91,
+ "max_prompt_tokens": 12322
+}

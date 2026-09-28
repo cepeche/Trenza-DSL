@@ -10,7 +10,8 @@
 
 -- CONFORMIDAD H1–H5 (12 marzo 2026):
 
--- - H1: Historial7Dias y Historial30Dias heredan boton_cerrar del padre.
+-- - H1 (revisado 2026-09-28): el código generado no hereda roles del padre;
+--        Historial7Dias y Historial30Dias declaran su propio boton_cerrar.
 
 -- - H2: boton_7dias y boton_30dias son roles locales de cada sub-contexto.
 
@@ -26,7 +27,6 @@
 
 context ModalHistorial:
     initial: Historial7Dias
-    role *: ignored
 
 
 
@@ -38,15 +38,19 @@ context ModalHistorial:
 
 
     transitions:
-        on iniciar -> Historial7Dias
         on cerrar -> [close_overlay]
 
 
 
     -- Sub-contexto: vista de 7 días (activo por defecto)
 context Historial7Dias:
-    role *: ignored
 
+
+
+
+        role boton_cerrar: Boton
+
+            on tap -> cerrar
 
 
 
@@ -80,8 +84,13 @@ context Historial7Dias:
 
     -- Sub-contexto: vista de 30 días
 context Historial30Dias:
-    role *: ignored
 
+
+
+
+        role boton_cerrar: Boton
+
+            on tap -> cerrar
 
 
 

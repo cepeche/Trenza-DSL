@@ -27,7 +27,6 @@
 
 --       input: tipoTareaId: ID, tareaId: ID?
 context ModalComentario:
-    role *: ignored
 
 
 

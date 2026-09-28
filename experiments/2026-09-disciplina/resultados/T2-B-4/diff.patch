@@ -1,0 +1,60 @@
+--- examples/cronometro-wasm/src/cronometro_full.trz	2026-09-25 12:35:43.093702522 +0000
++++ T2-B-4/cronometro.trz	2026-09-25 12:59:31.233197210 +0000
+@@ -290,6 +290,8 @@
+ 
+         ModalAcercaDe
+ 
++        ModalReordenarFrecuentes
++
+ -- contexts/MenuConfiguracion.trz
+ 
+ -- Overlay: menÃº desplegable del botÃ³n de configuraciÃ³n.
+@@ -1194,6 +1196,30 @@
+ 
+     -- Ambos deben llegar a ModalComentario.
+ 
++-- contexts/ModalReordenarFrecuentes.trz
++
++-- Overlay: reordenar las tarjetas de la pestaña Frecuentes.
++
++-- Se abre desde ModoEdicion (tap en la pestaña Frecuentes).
++
++-- Por ahora solo tiene un botón de cierre; sin contenido adicional.
++
++
++
++context ModalReordenarFrecuentes:
++
++
++
++    role boton_cerrar: Boton
++
++        on tap -> cerrar
++
++
++
++    transitions:
++
++        on cerrar -> [close_overlay]
++
+ -- contexts/ModoEdicion.trz
+ 
+ -- Modo ediciÃ³n: tap en tarjeta abre modal de ediciÃ³n.
+@@ -1231,7 +1257,7 @@
+ 
+     role pestana_frecuentes: Pestana
+ 
+-        on tap -> ignored                          -- explÃ­cito: Frecuentes no es editable
++        on tap -> abrirReordenarFrecuentes
+ 
+ 
+ 
+@@ -1265,6 +1291,8 @@
+ 
+         on abrirMenuConfiguracion -> MenuConfiguracion
+ 
++        on abrirReordenarFrecuentes -> ModalReordenarFrecuentes
++
+ 
+ 
+     -- NOTA: abrirEditarTarea y abrirEditarActividad necesitan

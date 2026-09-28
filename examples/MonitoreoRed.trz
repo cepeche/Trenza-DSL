@@ -1,6 +1,15 @@
 -- MonitoreoRed.trz
 -- Minimum example for ONWARDS! paper
 -- Skeleton for a network monitoring system
+--
+-- 2026-09-28: sin comodines (`role *: ignored`). Cada contexto declara los
+-- tres roles y cada evento; las casillas que el autor aún no ha decidido
+-- quedan como `pending` (aviso), para una revisión posterior. R10 encontró
+-- el defecto original: `on node_down -> Alerting` en Scanning esperaba el
+-- EVENTO node_down, pero las transiciones las dispara la ACCIÓN, y ninguna
+-- se llamaba así; Alerting era inalcanzable. Ahora node_down produce
+-- reportNodeDown. Los `effects:` finales, que el parser adjuntaba a
+-- Alerting, se reparten entre los contextos que producen cada acción.
 
 type NodeStatus:
     | Up
@@ -28,33 +37,55 @@ system MonitoreoRed:
         Alerting
 
 context Idle:
-    role *: ignored
     role admin: NetworkNode
         on start_scan -> start_scanning
+    role system: NetworkNode
+        on node_up       -> update_node_status(self.id, "Up")
+        on node_down     -> update_node_status(self.id, "Down")
+        on scan_complete -> ignored
+    role monitor: Alert
+        on send_alert  -> pending
+        on acknowledge -> ignored
 
     transitions:
         on start_scanning -> Scanning
 
+    effects:
+        update_node_status -> update_db(id, status)
+
 context Scanning:
-    role *: ignored
+    role admin: NetworkNode
+        on start_scan -> ignored
     role system: NetworkNode
-        on node_up   -> update_node_status(self.id, "Up")
-        on node_down -> update_node_status(self.id, "Down")
+        on node_up       -> update_node_status(self.id, "Up")
+        on node_down     -> reportNodeDown(self.id)
         on scan_complete -> finish_scan
+    role monitor: Alert
+        on send_alert  -> pending
+        on acknowledge -> pending
 
     transitions:
-        on finish_scan -> Idle
-        on node_down   -> Alerting
+        on finish_scan    -> Idle
+        on reportNodeDown -> Alerting
+
+    effects:
+        update_node_status -> update_db(id, status)
+        reportNodeDown     -> update_db(id, "Down")
 
 context Alerting:
-    role *: ignored
+    role admin: NetworkNode
+        on start_scan -> pending
+    role system: NetworkNode
+        on node_up       -> pending
+        on node_down     -> update_node_status(self.id, "Down")
+        on scan_complete -> ignored
     role monitor: Alert
-        on send_alert -> notify_admin(self.node_id, self.message)
+        on send_alert  -> notify_admin(self.node_id, self.message)
         on acknowledge -> clear_alert
 
     transitions:
         on clear_alert -> Idle
 
-effects:
-    update_node_status -> update_db(id, status)
-    notify_admin       -> send_email(node, msg)
+    effects:
+        update_node_status -> update_db(id, status)
+        notify_admin       -> send_email(node, msg)

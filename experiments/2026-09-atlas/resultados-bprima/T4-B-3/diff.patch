@@ -1,0 +1,18 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -592,13 +592,14 @@
+     role boton_edicion: Boton
+         on tap -> desactivarEdicion
+     role boton_nuevo: Boton
+-        on tap -> abrirCrearTarea                  -- sigue disponible en modo edición
++        on tap -> abrirCrearActividad               -- ahora abre crear actividad en modo edición
+     role boton_configuracion: Boton
+         on tap -> abrirMenuConfiguracion
+     transitions:
+         on desactivarEdicion      -> ModoNormal
+         on abrirEditarTarea       -> ModalEditarTarea
+         on abrirEditarActividad   -> ModalEditarActividad
++        on abrirCrearActividad   -> ModalCrearActividad
+         on abrirCrearTarea        -> ModalCrearTarea
+         on abrirMenuConfiguracion -> MenuConfiguracion
+     -- NOTA: abrirEditarTarea y abrirEditarActividad necesitan

@@ -1,0 +1,13 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -1261,7 +1261,9 @@
+ 
+         on abrirEditarActividad   -> ModalEditarActividad
+ 
+-        on abrirCrearTarea        -> ModalCrearTarea
++        on abrirCrearActividad    -> ModalCrearActividad
++        on abrirCrearActividad    -> ModalCrearActividad
++        on abrirCrearActividad    -> ModalCrearActividad
+ 
+         on abrirMenuConfiguracion -> MenuConfiguracion
+ 

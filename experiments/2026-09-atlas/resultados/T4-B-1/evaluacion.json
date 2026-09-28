@@ -1,0 +1,20 @@
+{
+ "correcta": false,
+ "arranca": true,
+ "fallos_expectativa": [
+  {
+   "pre": "edicion",
+   "tap": "boton_nuevo",
+   "obs": {
+    "action": "abrirCrearTarea",
+    "base": "ModoEdicion",
+    "concurrent": [],
+    "forbidden": false,
+    "missing": false,
+    "overlays": []
+   }
+  }
+ ],
+ "regresiones": [],
+ "forbidden_como_nada": 0
+}

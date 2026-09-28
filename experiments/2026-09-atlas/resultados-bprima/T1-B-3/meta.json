@@ -1,0 +1,70 @@
+{
+ "id": "T1-B-3",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 272.5,
+ "turnos": [
+  {
+   "prompt_eval_count": 7636,
+   "eval_count": 2750,
+   "total_duration": 93198450759,
+   "done_reason": "stop",
+   "bloques": 17,
+   "informe": [
+    "17 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 6554,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 8920,
+   "eval_count": 2301,
+   "total_duration": 82902859511,
+   "done_reason": "stop",
+   "bloques": 5,
+   "informe": [
+    "Bloque 1 (cronometro.trz): el texto de BUSCAR aparece 2 veces; no se aplicó.",
+    "Bloque 2 (cronometro.trz): aplicado.",
+    "Bloque 3 (cronometro.trz): el texto de BUSCAR aparece 2 veces; no se aplicó.",
+    "Bloque 4 (cronometro.trz): aplicado.",
+    "Bloque 5 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 7898,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [584:9] La acción 'boton_pausa.tap' no está declarada en el contexto 'ModoEdicion' (se maneja en los contextos base) [completeness]\n  [616:9] La acción 'boton_pausa.tap' no está declarada en el contexto 'ModoNormal' (se maneja en los contextos base) [completeness]\n  [584:9] role 'boton_pausa' appears in los contextos base but is absent from context 'ModoEdicion' [exhaustiveness]\n  [616:9] role 'boton_pausa' appears in los contextos base but is absent from context 'ModoNormal' [exhaustiveness]"
+   }
+  },
+  {
+   "prompt_eval_count": 9649,
+   "eval_count": 3151,
+   "total_duration": 92583946565,
+   "done_reason": "stop",
+   "bloques": 2,
+   "informe": [
+    "Bloque 1 (cronometro.trz): aplicado.",
+    "Bloque 2 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 10366,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 10456,
+   "eval_count": 7,
+   "total_duration": 3638997107,
+   "done_reason": "stop",
+   "bloques": 0,
+   "informe": [],
+   "thinking_chars": 0,
+   "check": null
+  }
+ ],
+ "lineas_diff": 25,
+ "max_prompt_tokens": 10456
+}

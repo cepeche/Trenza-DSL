@@ -1,0 +1,1 @@
+app.js, generarPestanasActividades(): se elimina la rama `if (AppState.modoEdicion) { mostrarModalEditarActividad(act.id); return; }` del listener de las pestañas de actividad. Comprobación: runner.js 29/29; script con DOM simulado escrito en el scratchpad de la sesión (fuera del directorio de trabajo, contra la instrucción).

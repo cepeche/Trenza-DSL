@@ -1,0 +1,8 @@
+{
+ "correcta": false,
+ "arranca": false,
+ "error": {
+  "error": "check",
+  "detail": "✅ Archivo '/tmp/trenza-exp/T3-B-2/cronometro.trz' leido y parseado.\n❌ Verificación Semántica Fallida:\n  [670:9] El contexto 'ModalEditarActividad' es inalcanzable [reachability]\n"
+ }
+}

@@ -9,7 +9,6 @@
 
 
 context ModoNormal:
-    role *: ignored
 
 
 

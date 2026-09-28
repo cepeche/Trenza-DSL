@@ -114,6 +114,15 @@ fn classify_target_actions(
     initial_of: &BTreeMap<String, String>,
     decl_ctx: &str,
 ) -> Vec<String> {
+    // `[replace] X`: cerrar el overlay actual (igual que [close_overlay]) y
+    // entrar en X, en lugar de apilar X encima.
+    if let Some(name) = target.strip_prefix(REPLACE_PREFIX) {
+        let mut actions = classify_target_actions(
+            "[close_overlay]", bases, overlays, concurrents, sub_contexts, parent_of, initial_of, decl_ctx);
+        actions.extend(classify_target_actions(
+            name, bases, overlays, concurrents, sub_contexts, parent_of, initial_of, decl_ctx));
+        return actions;
+    }
     // Sub-context returning to its own parent overlay is a pop (go up one
     // level), not a push — a push would re-stack the parent on top of its
     // own sub-context, producing an oscillation bug instead of a clean
@@ -509,6 +518,18 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
                         ));
                         output.push_str("                    return;\n");
                     },
+                    t if t.starts_with(REPLACE_PREFIX) => {
+                        let target = trans.target_name();
+                        output.push_str(&format!(
+                            "                    this.state = this.stateStack.pop() ?? Contexto.{};\n",
+                            initial_state
+                        ));
+                        if overlay_set.contains(target) {
+                            output.push_str("                    this.stateStack.push(this.state);\n");
+                        }
+                        output.push_str(&format!("                    this.state = Contexto.{};\n", target));
+                        output.push_str("                    return;\n");
+                    },
                     target => {
                         if overlay_set.contains(target) {
                             output.push_str("                    this.stateStack.push(this.state);\n");
@@ -623,6 +644,9 @@ pub fn generate_typescript(program: &Program, _profile: &str, _concurrency: &str
                 },
                 ActionTarget::Forbidden => {
                     output.push_str(&format!("            throw new Error(`Forbidden action called in context ${{ctx}}`);\n"));
+                }
+                ActionTarget::Pending => {
+                    output.push_str("            return null; // pending: comportamiento aún no decidido\n");
                 }
             }
         }
@@ -834,78 +858,12 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
     // Topology classification (Runtime model 13_CO_runtime_model.md §3):
     //   bases / overlays / concurrents come straight from the system: block.
     //   sub_contexts = all declared contexts \ (bases ∪ overlays ∪ concurrents).
-    let mut bases_set: HashSet<String> = HashSet::new();
-    let mut overlays_set: HashSet<String> = HashSet::new();
-    let mut concurrents_set: HashSet<String> = HashSet::new();
-    for def in &program.definitions {
-        if let Definition::System(sys) = def {
-            for sec in &sys.sections {
-                match sec {
-                    SystemSection::Contexts(v) => { bases_set.extend(v.iter().cloned()); },
-                    SystemSection::Overlays(v) => { overlays_set.extend(v.iter().cloned()); },
-                    SystemSection::Concurrent(entries) => {
-                        for e in entries {
-                            match e {
-                                ConcurrentEntry::Name(n) => { concurrents_set.insert(n.clone()); },
-                                ConcurrentEntry::Anonymous(c) => { concurrents_set.insert(c.name.clone()); },
-                            }
-                        }
-                    },
-                    _ => {}
-                }
-            }
-        }
-    }
-    let mut sub_contexts_set: HashSet<String> = HashSet::new();
-    for c in &contexts {
-        if !bases_set.contains(c) && !overlays_set.contains(c) && !concurrents_set.contains(c) {
-            sub_contexts_set.insert(c.clone());
-        }
-    }
-
-    // Derive parent_overlay_of via fixed-point: direct (`on cerrar -> Overlay`)
-    // then indirect (transition to a sibling sub-context with known parent).
-    // Seed: any overlay with `initial: Sub` declares Sub as its child outright,
-    // so we know the parent without needing a transition out of Sub. This
-    // matters when Sub uses `[close_overlay]` (no explicit named target).
-    let mut parent_of: BTreeMap<String, String> = BTreeMap::new();
-    for def in &program.definitions {
-        if let Definition::Context(ctx) = def {
-            if !overlays_set.contains(&ctx.name) { continue; }
-            if let Some(sub) = &ctx.initial_sub {
-                parent_of.insert(sub.clone(), ctx.name.clone());
-            }
-        }
-    }
-    let mut changed = true;
-    while changed {
-        changed = false;
-        for def in &program.definitions {
-            if let Definition::Context(ctx) = def {
-                if !sub_contexts_set.contains(&ctx.name) { continue; }
-                if parent_of.contains_key(&ctx.name) { continue; }
-                let mut found: Option<String> = None;
-                for trans in &ctx.transitions {
-                    if overlays_set.contains(&trans.target) {
-                        found = Some(trans.target.clone());
-                        break;
-                    }
-                }
-                if found.is_none() {
-                    for trans in &ctx.transitions {
-                        if let Some(p) = parent_of.get(&trans.target) {
-                            found = Some(p.clone());
-                            break;
-                        }
-                    }
-                }
-                if let Some(p) = found {
-                    parent_of.insert(ctx.name.clone(), p);
-                    changed = true;
-                }
-            }
-        }
-    }
+    let topo = crate::topology::classify(program);
+    let bases_set = topo.bases;
+    let overlays_set = topo.overlays;
+    let concurrents_set = topo.concurrents;
+    let sub_contexts_set = topo.sub_contexts;
+    let parent_of = topo.parent_of;
 
     // Collect `initial:` declarations from overlay contexts. This drives the
     // auto-push emitted by classify_target_actions for any transition whose
@@ -1024,7 +982,7 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
                 // If the transition leaves the concurrent towards a base,
                 // also deactivate the concurrent itself (otherwise SesionActiva
                 // would linger after `terminarSesion -> ModoNormal`).
-                if bases_set.contains(&trans.target) {
+                if bases_set.contains(trans.target_name()) {
                     output.push_str(&format!(
                         "                    self.concurrent.remove(&Contexto::{});\n",
                         cctx_name
@@ -1155,6 +1113,7 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
         }
     }
 
+    let mut role_dispatchers: Vec<(String, String, String)> = Vec::new();
     for ((role_name, event_name), handlers) in grouped_actions {
         // Encontrar el tipo de dato del rol (asumimos consistencia por Regla 8)
         let mut role_type = "String".to_string();
@@ -1177,7 +1136,11 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
             }
         }
 
-        output.push_str(&format!("pub fn handle_{}_{}(ctx: &Contexto, {}: &{}, effects: &dyn Effects) {{\n", role_name, event_name.replace(".", "_"), role_name, role_type));
+        role_dispatchers.push((role_name.clone(), event_name.replace(".", "_"), role_type.clone()));
+        // Devuelve la acción producida (si la hay): es la acción, no el
+        // evento, la que dispara transiciones (decisión 2026-09-25; misma
+        // semántica que el generador TypeScript).
+        output.push_str(&format!("pub fn handle_{}_{}(ctx: &Contexto, {}: &{}, effects: &dyn Effects) -> Option<&'static str> {{\n", role_name, event_name.replace(".", "_"), role_name, role_type));
         output.push_str("    match ctx {\n");
         for (ctx_name, action) in handlers {
             output.push_str(&format!("        Contexto::{} => {{\n", ctx_name));
@@ -1197,18 +1160,41 @@ pub fn generate_rust(program: &Program, profile: &str, concurrency: &str) -> Str
                         }
                     }
                     output.push_str(&format!("            effects.{}({});\n", call.function.replace(".", "_"), args.join(", ")));
+                    output.push_str(&format!("            Some(\"{}\")\n", call.function.replace(".", "_")));
                 },
                 ActionTarget::Ignored => {
-                    output.push_str("            // ignored\n");
+                    output.push_str("            None // ignored\n");
                 },
                 ActionTarget::Forbidden => {
                     output.push_str(&format!("            panic!(\"Forbidden action called in context {}\");\n", ctx_name));
                 }
+                ActionTarget::Pending => {
+                    output.push_str("            None // pending: comportamiento aún no decidido\n");
+                }
             }
             output.push_str("        },\n");
         }
-        output.push_str("        _ => {},\n");
+        // Contextos donde el rol no maneja el evento (p. ej. otro grupo de
+        // hermanos, ver topology.rs): no se produce acción.
+        output.push_str("        _ => None,\n");
         output.push_str("    }\n");
+        output.push_str("}\n\n");
+    }
+
+    // Entrada por rol·evento: ejecuta el manejador del contexto activo y, si
+    // produce una acción, la despacha (transiciones + efectos). `dispatch`
+    // sigue disponible como entrada por acción.
+    if !role_dispatchers.is_empty() {
+        output.push_str("impl<'a> System<'a> {\n");
+        for (role, event, ty) in &role_dispatchers {
+            output.push_str(&format!("    pub fn dispatch_{r}_{e}(&mut self, {r}: &{t}) -> Option<&'static str> {{\n", r = role, e = event, t = ty));
+            output.push_str(&format!("        let action = handle_{r}_{e}(&self.current_state(), {r}, self.effects);\n", r = role, e = event));
+            output.push_str("        if let Some(a) = action {\n");
+            output.push_str("            self.dispatch(a, &serde_json::Value::Null);\n");
+            output.push_str("        }\n");
+            output.push_str("        action\n");
+            output.push_str("    }\n");
+        }
         output.push_str("}\n\n");
     }
 
@@ -1332,7 +1318,7 @@ pub fn generate_tests_ts(program: &Program) -> String {
                     "[stay]" => format!("expect(sys.state).toBe(Contexto.{});", ctx.name),
                     "[close_overlay]" => format!("expect(sys.state).toBe(Contexto.{});", meta.initial),
                     "[deactivate]" => format!("expect(sys.concurrent_states.has(Contexto.{})).toBe(false);", ctx.name),
-                    t => format!("expect(sys.state).toBe(Contexto.{t});"),
+                    _ => format!("expect(sys.state).toBe(Contexto.{});", trans.target_name()),
                 };
                 out.push_str(&format!(
                     "    it('{} on {} → {}', () => {{\n",
@@ -1399,6 +1385,8 @@ pub fn generate_tests_ts(program: &Program) -> String {
                     let safe_event = action.event.replace(".", "_");
                     let handler = format!("handle_{}_{}", role.name, safe_event);
                     match &action.target {
+                        // pending: sin test hasta que se decida el comportamiento.
+                        ActionTarget::Pending => {}
                         ActionTarget::Forbidden => {
                             out.push_str(&format!(
                                 "    it('{} {} {} throws Forbidden', () => {{\n",
@@ -1461,7 +1449,7 @@ pub fn generate_tests(program: &Program) -> String {
     let mut output = String::new();
     let metadata = extract_system_metadata(program);
 
-    output.push_str("// Auto-generated algebraic tests by Trenza DSL Compiler (Strand 2)\n");
+    output.push_str("// Auto-generated example-based tests by Trenza DSL Compiler (Strand 2):\n// one per transition and per (context, role, event) handler.\n");
     output.push_str("// DO NOT EDIT — regenerate from .trz source\n\n");
     output.push_str("#[cfg(test)]\nmod algebraic_tests {\n");
     output.push_str("    use super::*;\n\n");
@@ -1533,7 +1521,7 @@ fn generate_transition_tests(program: &Program, meta: &SystemMetadata, out: &mut
 
                 out.push_str(&format!("        sys.handle_event(\"{}\");\n", trans.event));
 
-                let target = &trans.target;
+                let target = trans.target_name();
                 if target == "[stay]" {
                     out.push_str(&format!("        assert_eq!(sys.current_state(), Contexto::{});\n", ctx.name));
                 } else if target == "[close_overlay]" {
@@ -1546,7 +1534,14 @@ fn generate_transition_tests(program: &Program, meta: &SystemMetadata, out: &mut
                     // changing current_state.
                     out.push_str(&format!("        assert!(sys.concurrent.contains(&Contexto::{}));\n", target));
                 } else {
-                    out.push_str(&format!("        assert_eq!(sys.current_state(), Contexto::{});\n", target));
+                    // Un overlay con `initial: Sub` apila también Sub, que pasa
+                    // a ser el estado actual.
+                    let initial_sub = program.definitions.iter().find_map(|d| match d {
+                        Definition::Context(c) if c.name == target => c.initial_sub.clone(),
+                        _ => None,
+                    });
+                    let expected = initial_sub.as_deref().unwrap_or(target);
+                    out.push_str(&format!("        assert_eq!(sys.current_state(), Contexto::{});\n", expected));
                 }
                 out.push_str("    }\n\n");
             }
@@ -1563,6 +1558,8 @@ fn generate_handler_tests(program: &Program, _meta: &SystemMetadata, out: &mut S
                 for action in &role.actions {
                     let event_safe = action.event.replace(".", "_");
                     match &action.target {
+                        // pending: sin test hasta que se decida el comportamiento.
+                        ActionTarget::Pending => {}
                         ActionTarget::Forbidden => {
                             out.push_str("    #[test]\n");
                             out.push_str("    #[should_panic(expected = \"Forbidden\")]\n");
@@ -1625,8 +1622,8 @@ fn generate_on_entry_tests(program: &Program, meta: &SystemMetadata, out: &mut S
     for def in &program.definitions {
         if let Definition::Context(ctx) = def {
             for trans in &ctx.transitions {
-                if !trans.target.starts_with("[") {
-                    reachability.entry(trans.target.clone()).or_insert_with(Vec::new).push((ctx.name.clone(), trans.event.clone()));
+                if !trans.target_name().starts_with("[") {
+                    reachability.entry(trans.target_name().to_string()).or_insert_with(Vec::new).push((ctx.name.clone(), trans.event.clone()));
                 }
             }
         }
@@ -1699,7 +1696,7 @@ pub fn generate_mermaid_topology(program: &Program) -> String {
     for def in &program.definitions {
         if let Definition::Context(ctx) = def {
             for trans in &ctx.transitions {
-                let target = trans.target.replace("[", "").replace("]", "");
+                let target = trans.target_name().replace("[", "").replace("]", "");
                 output.push_str(&format!("    {} --> {} : {}\n", ctx.name, target, trans.event));
             }
         }
@@ -1728,6 +1725,7 @@ pub fn generate_mermaid_details(program: &Program) -> Vec<(String, String)> {
                             ActionTarget::Call(c) => c.function.clone(),
                             ActionTarget::Ignored => "ignored".to_string(),
                             ActionTarget::Forbidden => "forbidden".to_string(),
+                            ActionTarget::Pending => "pending".to_string(),
                         };
                         let event_safe = action.event.replace(".", "_");
                         output.push_str(&format!("        {}_{}_{} --> {}\n", ctx.name, event_safe, role.name, target_label));
@@ -1786,6 +1784,7 @@ pub fn generate_audit(program: &Program) -> String {
                         ActionTarget::Call(c) => format!("Call: `{}`", c.function),
                         ActionTarget::Ignored => "⚠️ Ignored".to_string(),
                         ActionTarget::Forbidden => "🚫 Forbidden".to_string(),
+                        ActionTarget::Pending => "⏳ Pending".to_string(),
                     };
                     output.push_str(&format!("| {} | {} | {} | {} |\n", ctx.name, role.name, action.event, result));
                 }

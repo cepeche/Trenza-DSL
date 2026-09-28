@@ -8,6 +8,7 @@ pub mod interpreter;
 pub mod pub_surface;
 pub mod serializer;
 pub mod identity;
+pub mod topology;
 
 #[cfg(feature = "wasm")]
 pub mod wasm;

@@ -1,0 +1,8 @@
+{
+ "correcta": false,
+ "arranca": false,
+ "error": {
+  "error": "check",
+  "detail": "✅ Archivo 'C:\\Proyectos\\Trenza-DSL\\experiments\\2026-09-atlas\\resultados\\T2-B-5\\work\\cronometro.trz' leido y parseado.\n❌ Verificación Semántica Fallida:\n  [398:9] El contexto 'ModalReordenarFrecuentes' es inalcanzable [reachability]\n"
+ }
+}

@@ -1,0 +1,72 @@
+diff -ruN history/inspirations/cronometro-psp-original/frontend/index.html T2-A-1/frontend/index.html
+--- history/inspirations/cronometro-psp-original/frontend/index.html	2026-09-25 10:20:08.480219147 +0000
++++ T2-A-1/frontend/index.html	2026-09-25 12:51:01.605166916 +0000
+@@ -29,6 +29,7 @@
+     #editTaskModal        Editar tipo de tarea  → PATCH /api/tipos-tarea
+     #editActivityModal    Editar actividad      → PUT /api/actividades?id=
+     #historialModal       Historial 7/30 días   → GET /api/historial?dias=N
++    #reorderModal         Reordenar frecuentes  → pestaña Frecuentes en modo edición
+     ══════════════════════════════════════════════════════════════
+     -->
+ 
+@@ -350,6 +351,19 @@
+             </div>
+         </div>
+     </div>
++
++    <!-- Modal reordenar frecuentes -->
++    <div class="modal-overlay" id="reorderModal">
++        <div class="modal-content">
++            <div class="modal-header">
++                <div class="modal-task-name">Reordenar frecuentes</div>
++            </div>
++
++            <div class="form-buttons">
++                <button class="btn-primary" id="btnReorderClose" onclick="cerrarModalReordenar()">Cerrar</button>
++            </div>
++        </div>
++    </div>
+ 
+     <!-- Scripts -->
+     <script src="js/api-client.js?v=7"></script>
+diff -ruN history/inspirations/cronometro-psp-original/frontend/js/app.js T2-A-1/frontend/js/app.js
+--- history/inspirations/cronometro-psp-original/frontend/js/app.js	2026-09-25 10:20:08.480478387 +0000
++++ T2-A-1/frontend/js/app.js	2026-09-25 12:51:16.357167793 +0000
+@@ -320,7 +320,10 @@
+     const tabFrecuentesNuevo = tabFrecuentes.cloneNode(true);
+     tabFrecuentes.replaceWith(tabFrecuentesNuevo);
+     tabFrecuentesNuevo.addEventListener('click', () => {
+-        if (AppState.modoEdicion) return; // Frecuentes no tiene edición propia; ignorar en modo edición
++        if (AppState.modoEdicion) {
++            mostrarModalReordenar();
++            return;
++        }
+         AppState.pestanaActual = 'frecuentes';
+         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+         tabFrecuentesNuevo.classList.add('active');
+@@ -507,6 +510,14 @@
+     document.getElementById('activityModal').classList.remove('active');
+ }
+ 
++function mostrarModalReordenar() {
++    document.getElementById('reorderModal').classList.add('active');
++}
++
++function cerrarModalReordenar() {
++    document.getElementById('reorderModal').classList.remove('active');
++}
++
+ function toggleSettingsMenu() {
+     const menu = document.getElementById('settingsMenu');
+     menu.classList.toggle('active');
+@@ -901,6 +912,10 @@
+         if (e.target === this) cerrarModalHistorial();
+     });
+ 
++    document.getElementById('reorderModal').addEventListener('click', function(e) {
++        if (e.target === this) cerrarModalReordenar();
++    });
++
+     // Cerrar settings menu al hacer click fuera
+     document.addEventListener('click', function(e) {
+         const menu = document.getElementById('settingsMenu');

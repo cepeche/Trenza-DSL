@@ -5,12 +5,43 @@ use pest::Parser;
  
 fn get_span(pair: &pest::iterators::Pair<Rule>) -> Span {
     let span = pair.as_span();
-    let (line_start, col_start) = span.start_pos().line_col();
-    let (line_end, col_end) = span.end_pos().line_col();
+    let input = span.get_input();
+    let (line_start, col_start) = line_col(input, span.start());
+    let (line_end, col_end) = line_col(input, span.end());
     Span {
         start: Pos { line: line_start, col: col_start },
         end: Pos { line: line_end, col: col_end },
     }
+}
+
+thread_local! {
+    /// Índice de inicios de línea de la última entrada parseada, identificada
+    /// por (puntero, longitud). `pest::Position::line_col` recorre la entrada
+    /// desde el principio en cada llamada, lo que hacía el parseo cuadrático
+    /// en el tamaño del archivo (ver scripts/bench-verify.sh).
+    static LINE_INDEX: std::cell::RefCell<(usize, usize, Vec<usize>)> =
+        std::cell::RefCell::new((0, 0, Vec::new()));
+}
+
+/// (línea, columna) 1-based de un offset en bytes, con la misma convención
+/// que `pest::Position::line_col` (la columna cuenta caracteres, no bytes).
+fn line_col(input: &str, offset: usize) -> (usize, usize) {
+    LINE_INDEX.with(|cell| {
+        let mut idx = cell.borrow_mut();
+        let key = (input.as_ptr() as usize, input.len());
+        if (idx.0, idx.1) != key {
+            let mut starts = vec![0];
+            starts.extend(input.match_indices('\n').map(|(i, _)| i + 1));
+            *idx = (key.0, key.1, starts);
+        }
+        let starts = &idx.2;
+        let line = match starts.binary_search(&offset) {
+            Ok(i) => i,
+            Err(i) => i - 1,
+        };
+        let col = input[starts[line]..offset].chars().count() + 1;
+        (line + 1, col)
+    })
 }
 
 pub fn parse_file(content: &str) -> std::result::Result<Program, pest::error::Error<Rule>> {
@@ -222,8 +253,7 @@ fn parse_system(pair: pest::iterators::Pair<Rule>) -> SystemDef {
                         sections.push(SystemSection::Overlays(idents));
                     },
                     Rule::event_list_section => {
-                        let idents = sec_inner.into_inner().next().unwrap().into_inner()
-                            .map(|p| p.as_str().to_string()).collect();
+                        let idents = sec_inner.into_inner().map(|p| p.as_str().to_string()).collect();
                         sections.push(SystemSection::Events(idents));
                     },
                     _ => {}
@@ -269,6 +299,7 @@ fn parse_context_clauses(pairs: pest::iterators::Pairs<Rule>) -> ContextDef {
     let mut slots = Vec::new();
     let mut fills = Vec::new();
     let mut ignore_rest = false;
+    let mut pending = false;
     let mut initial_sub: Option<String> = None;
 
     for inner in pairs {
@@ -333,6 +364,9 @@ fn parse_context_clauses(pairs: pest::iterators::Pairs<Rule>) -> ContextDef {
                     Rule::role_wildcard => {
                         ignore_rest = true;
                     },
+                    Rule::context_pending => {
+                        pending = true;
+                    },
                     _ => {}
                 }
             },
@@ -344,7 +378,7 @@ fn parse_context_clauses(pairs: pest::iterators::Pairs<Rule>) -> ContextDef {
         name: "".into(),
         name_span: Span { start: Pos { line: 0, col: 0 }, end: Pos { line: 0, col: 0 } },
         is_public: false,
-        inputs, roles, transitions, effects, slots, fills, ignore_rest,
+        inputs, roles, transitions, effects, slots, fills, ignore_rest, pending,
         is_anonymous: false,
         initial_sub,
     }
@@ -398,6 +432,7 @@ fn parse_role_action(pair: pest::iterators::Pair<Rule>) -> RoleAction {
                     Rule::action_call => ActionTarget::Call(parse_action_call(target_inner)),
                     Rule::ident if target_inner.as_str() == "ignored" => ActionTarget::Ignored,
                     Rule::ident if target_inner.as_str() == "forbidden" => ActionTarget::Forbidden,
+                    Rule::pending_kw => ActionTarget::Pending,
                     _ => {
                         if target_inner.as_str() == "ignored" { ActionTarget::Ignored }
                         else if target_inner.as_str() == "forbidden" { ActionTarget::Forbidden }
@@ -421,7 +456,17 @@ fn parse_transition(pair: pest::iterators::Pair<Rule>) -> TransitionRule {
         match inner.as_rule() {
             Rule::decorator => decorators.push(parse_decorator(inner)),
             Rule::ident => event = inner.as_str().to_string(),
-            Rule::transition_target => target = inner.as_str().to_string(),
+            Rule::transition_target => {
+                let raw = inner.as_str().to_string();
+                target = match inner.into_inner().next() {
+                    Some(r) if r.as_rule() == Rule::replace_target => {
+                        let name = r.into_inner().next().map(|i| i.as_str().to_string()).unwrap_or_default();
+                        format!("{}{}", REPLACE_PREFIX, name)
+                    }
+                    // `[stay]`, `[close_overlay]`, `[deactivate]` y nombres simples.
+                    _ => raw,
+                };
+            },
             Rule::with_clause => {
                 for arg in inner.into_inner() {
                     let mut a_it = arg.into_inner();
@@ -597,5 +642,22 @@ context C:
         
         let reparsed = parse_file(&serialized).unwrap();
         assert_eq!(reparsed.to_trz(), serialized);
+    }
+}
+
+#[cfg(test)]
+mod line_col_tests {
+    use super::line_col;
+
+    #[test]
+    fn coincide_con_pest_en_entrada_multibyte() {
+        let input = "data Pestaña:\n    año: Entero\r\n\n  é\tx\nfin";
+        for offset in 0..=input.len() {
+            if !input.is_char_boundary(offset) {
+                continue;
+            }
+            let expected = pest::Position::new(input, offset).unwrap().line_col();
+            assert_eq!(line_col(input, offset), expected, "offset {offset}");
+        }
     }
 }

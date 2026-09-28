@@ -1,0 +1,78 @@
+{
+ "id": "T1-B-5",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 259.4,
+ "turnos": [
+  {
+   "prompt_eval_count": 7636,
+   "eval_count": 2329,
+   "total_duration": 81457542182,
+   "done_reason": "stop",
+   "bloques": 5,
+   "informe": [
+    "5 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 5203,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 8874,
+   "eval_count": 1722,
+   "total_duration": 66644060472,
+   "done_reason": "stop",
+   "bloques": 6,
+   "informe": [
+    "Bloque 1 (cronometro.trz): aplicado.",
+    "Bloque 2 (cronometro.trz): el texto de BUSCAR aparece 2 veces; no se aplicó.",
+    "Bloque 3 (cronometro.trz): aplicado.",
+    "Bloque 4 (cronometro.trz): el texto de BUSCAR aparece 2 veces; no se aplicó.",
+    "Bloque 5 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 6 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó."
+   ],
+   "thinking_chars": 5715,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 9478,
+   "eval_count": 2312,
+   "total_duration": 68162293503,
+   "done_reason": "stop",
+   "bloques": 4,
+   "informe": [
+    "4 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 8183,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 10107,
+   "eval_count": 1405,
+   "total_duration": 42679184566,
+   "done_reason": "stop",
+   "bloques": 4,
+   "informe": [
+    "Bloque 1 (cronometro.trz): el texto de BUSCAR aparece 2 veces; no se aplicó.",
+    "Bloque 2 (cronometro.trz): el texto de BUSCAR aparece 2 veces; no se aplicó.",
+    "Bloque 3 (cronometro.trz): aplicado.",
+    "1 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 4338,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Verificación Semántica Fallida:\n  [635:5] El rol 'tarjeta_tipo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [637:5] El rol 'tarjeta_tarea' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [639:5] El rol 'pestana_actividad' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [641:5] El rol 'pestana_frecuentes' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [643:5] El rol 'boton_edicion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [645:5] El rol 'boton_nuevo' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [647:5] El rol 'boton_configuracion' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [584:9] La acción 'boton_pausa.tap' no está declarada en el contexto 'ModoEdicion' (se maneja en los contextos base) [completeness]\n  [446:9] El contexto 'ModalReset' es inalcanzable [reachability]\n  [557:9] El contexto 'ModalSeleccionActividad' es inalcanzable [reachability]\n  [263:9] El contexto 'ModalCrearActividad' es inalcanzable [reachability]\n  [416:9] El contexto 'Historial30Dias' es inalcanzable [reachability]\n  [229:9] El contexto 'ModalComentario' es inalcanzable [reachability]\n  [196:9] El contexto 'ModalAcercaDe' es inalcanzable [reachability]\n  [319:9] El contexto 'ModalEditarActividad' es inalcanzable [reachability]\n  [584:9] El contexto 'ModoEdicion' es inalcanzable [reachability]\n  [170:9] El contexto 'MenuConfiguracion' es inalcanzable [reachability]\n  [509:9] El contexto 'ResetFase3' es inalcanzable [reachability]\n  [396:9] El contexto 'ModalHistorial' es inalcanzable [reachability]\n  [683:9] El contexto 'SesionActiva' es inalcanzable [reachability]\n  [351:9] El contexto 'ModalEditarTarea' es inalcanzable [reachability]\n  [286:9] El contexto 'ModalCrearTarea' es inalcanzable [reachability]\n  [404:9] El contexto 'Historial7Dias' es inalcanzable [reachability]\n  [616:9] El contexto 'ModoPausa' es inalcanzable [reachability]\n  [456:9] El contexto 'ResetFase1' es inalcanzable [reachability]\n  [482:9] El contexto 'ResetFase2' es inalcanzable [reachability]\n  [584:9] role 'boton_pausa' appears in los contextos base but is absent from context 'ModoEdicion' [exhaustiveness]"
+   }
+  }
+ ],
+ "lineas_diff": 22,
+ "max_prompt_tokens": 10107
+}

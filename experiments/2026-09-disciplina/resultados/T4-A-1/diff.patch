@@ -1,0 +1,30 @@
+diff -ruN history/inspirations/cronometro-psp-original/frontend/index.html T4-A-1/frontend/index.html
+--- history/inspirations/cronometro-psp-original/frontend/index.html	2026-09-25 10:20:08.480219147 +0000
++++ T4-A-1/frontend/index.html	2026-09-25 12:51:09.145167364 +0000
+@@ -15,7 +15,8 @@
+     Pestañas:  #tabs (generadas dinámicamente por generarPestanasActividades en app.js)
+     Contenido: #tabsContent (generado dinámicamente por generarPestanasActividades)
+     Pie:       .bottom-bar → #bottomComment (notas sesión activa) + #totalToday
+-    FABs:      #editModeButton ✏️ (modo edición), .fab-button + (nueva tarea)
++    FABs:      #editModeButton ✏️ (modo edición), .fab-button + (nueva tarea;
++               en modo edición abre #createActivityModal en su lugar)
+ 
+     MODALES — class="modal-overlay", se activan añadiendo class "active"
+     ──────────────────────────────────────────────────────────────
+diff -ruN history/inspirations/cronometro-psp-original/frontend/js/app.js T4-A-1/frontend/js/app.js
+--- history/inspirations/cronometro-psp-original/frontend/js/app.js	2026-09-25 10:20:08.480478387 +0000
++++ T4-A-1/frontend/js/app.js	2026-09-25 12:51:15.149167721 +0000
+@@ -512,7 +512,13 @@
+     menu.classList.toggle('active');
+ }
+ 
++// Handler del botón FAB +. En modo edición abre el diálogo de crear actividad
++// (el mismo que #settingsMenu → "Nueva actividad"); en modo normal, crear tarea.
+ function mostrarModalCrear() {
++    if (AppState.modoEdicion) {
++        mostrarModalCrearActividad();
++        return;
++    }
+     if (AppState.pestanaActual === 'frecuentes') {
+         mostrarModalCrearTarea();
+     } else {

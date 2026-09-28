@@ -1,0 +1,8 @@
+{
+ "correcta": false,
+ "arranca": false,
+ "error": {
+  "error": "check",
+  "detail": "✅ Archivo 'C:\\Proyectos\\Trenza-DSL\\experiments\\2026-09-atlas\\resultados-bprima\\T1-B-1\\work\\cronometro.trz' leido y parseado.\n❌ Verificación Semántica Fallida:\n  [585:9] La acción 'boton_pausa.tap' no está declarada en el contexto 'ModoEdicion' (se maneja en los contextos base) [completeness]\n  [617:9] La acción 'boton_pausa.tap' no está declarada en el contexto 'ModoNormal' (se maneja en los contextos base) [completeness]\n  [687:9] El contexto 'ModoPausa' es inalcanzable [reachability]\n  [585:9] role 'boton_pausa' appears in los contextos base but is absent from context 'ModoEdicion' [exhaustiveness]\n  [617:9] role 'boton_pausa' appears in los contextos base but is absent from context 'ModoNormal' [exhaustiveness]\n"
+ }
+}

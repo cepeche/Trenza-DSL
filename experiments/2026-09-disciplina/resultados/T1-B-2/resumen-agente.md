@@ -1,0 +1,1 @@
+Único archivo: cronometro.trz. ModoPausa como contexto base; ModoNormal: boton_pausa → entrarPausa → ModoPausa; ModoEdicion: boton_pausa ignored; ModoPausa: tarjetas, boton_edicion y boton_nuevo ignored; pestañas cambiarPestana; boton_configuracion abrirMenuConfiguracion; boton_pausa salirPausa → ModoNormal. Comprobación: trenza-cli check superado y revisión manual.

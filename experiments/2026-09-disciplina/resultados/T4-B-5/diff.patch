@@ -1,0 +1,20 @@
+--- examples/cronometro-wasm/src/cronometro_full.trz	2026-09-25 12:35:43.093702522 +0000
++++ T4-B-5/cronometro.trz	2026-09-25 12:59:47.141198155 +0000
+@@ -1243,7 +1243,7 @@
+ 
+     role boton_nuevo: Boton
+ 
+-        on tap -> abrirCrearTarea                  -- sigue disponible en modo ediciÃ³n
++        on tap -> abrirCrearActividad               -- en modo ediciÃ³n abre crear actividad, no crear tarea
+ 
+ 
+ 
+@@ -1261,7 +1261,7 @@
+ 
+         on abrirEditarActividad   -> ModalEditarActividad
+ 
+-        on abrirCrearTarea        -> ModalCrearTarea
++        on abrirCrearActividad    -> ModalCrearActividad
+ 
+         on abrirMenuConfiguracion -> MenuConfiguracion
+ 

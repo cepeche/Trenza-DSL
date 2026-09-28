@@ -107,10 +107,27 @@ pub type Estado:
 
     #[test]
     fn test_parse_cimbra_spec() {
-        let path = "c:\\Proyectos\\Cimbra\\spec\\cimbra.trz";
-        let source = std::fs::read_to_string(path).expect("failed to read cimbra.trz");
-        let program = parse_file(&source).expect("failed to parse cimbra.trz with new features");
-        
+        // Antes leía c:\\Proyectos\\Cimbra\\spec\\cimbra.trz, que sólo existe en
+        // la máquina del autor. Se sustituye por un fragmento con las mismas
+        // construcciones que el test quería cubrir: tipos suma y listas tipadas.
+        let source = "
+type StrandType:
+    | Implementation
+    | Tests
+    | Schematic
+    | Requirements
+
+type ComponentStatus:
+    | Draft
+    | Verified
+
+data Component:
+    name: Texto
+    strands: Lista<StrandType>
+    status: ComponentStatus
+";
+        let program = parse_file(source).expect("failed to parse enum + typed list fragment");
+
         // Verificar que encontramos los nuevos tipos
         let names: Vec<_> = program.definitions.iter().map(|d| d.name()).collect();
         assert!(names.contains(&"StrandType"));

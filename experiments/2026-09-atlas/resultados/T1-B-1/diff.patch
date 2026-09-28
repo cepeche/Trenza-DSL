@@ -1,0 +1,80 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -1384,6 +1384,41 @@
+ 
+ -- contexts/SesionActiva.trz
+ 
++context ModoPausa:
++
++    role tarjeta_tipo: TipoTarea
++        on tap -> ignored
++
++    role tarjeta_tarea: Tarea
++        on tap -> ignored
++
++    role pestana_actividad: Actividad
++        on tap -> cambiarPestana(self.id)
++
++    role pestana_frecuentes: Pestana
++        on tap -> cambiarPestana('frecuentes')
++
++    role boton_edicion: Boton
++        on tap -> ignored
++
++    role boton_nuevo: Boton
++        on tap -> ignored
++
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion
++
++    role boton_pausa: Boton
++        on tap -> ignored
++
++    role boton_pausa: Boton
++        on tap -> pausar
++
++    role boton_pausa: Boton
++        on tap -> reanudar
++
++    transitions:
++        on reanudar -> ModoNormal
++
+ -- Contexto CONCURRENTE: coexiste con ModoNormal o ModoEdicion.
+ 
+ -- Se activa cuando hay una sesiÃ³n en curso; se desactiva cuando termina.
+@@ -1437,6 +1472,35 @@
+         actualizarTimer -> calcular_tiempo_transcurrido(sesion_activa.inicio)
+         terminarSesion  -> parar_sesion()
+ 
++context ModoPausa:
++
++    role tarjeta_tipo: TipoTarea
++        on tap -> ignored
++
++    role tarjeta_tarea: Tarea
++        on tap -> ignored
++
++    role pestana_actividad: Actividad
++        on tap -> cambiarPestana(self.id)
++
++    role pestana_frecuentes: Pestana
++        on tap -> cambiarPestana('frecuentes')
++
++    role boton_edicion: Boton
++        on tap -> ignored
++
++    role boton_nuevo: Boton
++        on tap -> ignored
++
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion
++
++    role boton_pausa: Boton
++        on tap -> reanudar
++
++    transitions:
++        on reanudar -> ModoNormal
++
+ -- external/cronometro_api.trz
+ 
+ -- DeclaraciÃ³n de funciones externas (cÃ³digo convencional que el

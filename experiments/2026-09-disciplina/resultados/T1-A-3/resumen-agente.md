@@ -1,0 +1,1 @@
+index.html: #pauseButton → togglePausa(); cache-bust. app.js: modoPausa; togglePausa (no-op en edición); guardas en tarjetaClick, tarjetaTouchEnd, toggleModoEdicion y mostrarModalCrear. styles.css: .pause-button y fondo de pausa. Comprobación: runner.js 29/29 y script con DOM simulado escrito en el scratchpad de la sesión (fuera del directorio de trabajo).

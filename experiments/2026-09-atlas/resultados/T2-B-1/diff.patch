@@ -1,0 +1,35 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -289,6 +289,7 @@
+         ModalReset
+ 
+         ModalAcercaDe
++        ModalReordenarFrecuentes
+ 
+ -- contexts/MenuConfiguracion.trz
+ 
+@@ -393,6 +394,24 @@
+         [on_entry] -> verificar_conexion()
+ 
+         [on_entry] -> cargar_tiempo_acumulado()
++
++    -- Nuevo overlay: reordenar la lista de tareas frecuentes.
++    context ModalReordenarFrecuentes:
++    
++        role boton_cerrar: Boton
++            on tap -> cerrar
++    
++        transitions:
++            on cerrar -> [close_overlay]
++
++    -- Nuevo overlay: reordenar la lista de tareas frecuentes.
++    context ModalReordenarFrecuentes:
++    
++        role boton_cerrar: Boton
++            on tap -> cerrar
++    
++        transitions:
++            on cerrar -> [close_overlay]
+ 
+ -- contexts/ModalComentario.trz
+ 

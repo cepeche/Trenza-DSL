@@ -1,0 +1,20 @@
+{
+ "correcta": false,
+ "arranca": true,
+ "fallos_expectativa": [
+  {
+   "pre": "pausa",
+   "tap": "boton_configuracion",
+   "obs": {
+    "action": "abrirMenuConfiguracion",
+    "base": "ModoPausa",
+    "concurrent": [],
+    "forbidden": false,
+    "missing": false,
+    "overlays": []
+   }
+  }
+ ],
+ "regresiones": [],
+ "forbidden_como_nada": 0
+}

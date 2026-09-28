@@ -1,0 +1,82 @@
+{
+ "id": "T1-B-5",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 299.6,
+ "turnos": [
+  {
+   "prompt_eval_count": 10049,
+   "eval_count": 1908,
+   "total_duration": 59836022622,
+   "done_reason": "stop",
+   "bloques": 8,
+   "informe": [
+    "8 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 5432,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 10789,
+   "eval_count": 2551,
+   "total_duration": 76706987126,
+   "done_reason": "stop",
+   "bloques": 5,
+   "informe": [
+    "Bloque 1 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 2: contexts/ModoNormal.trz no es un archivo que puedas cambiar.",
+    "Bloque 3: contexts/ModoNormal.trz no es un archivo que puedas cambiar.",
+    "Bloque 4: contexts/ModoEdicion.trz no es un archivo que puedas cambiar.",
+    "1 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 7670,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 11690,
+   "eval_count": 3304,
+   "total_duration": 98404324759,
+   "done_reason": "stop",
+   "bloques": 5,
+   "informe": [
+    "Bloque 1 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 2 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 3 (cronometro.trz): el texto de BUSCAR aparece 2 veces; no se aplicó.",
+    "Bloque 4 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 5 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó."
+   ],
+   "thinking_chars": 11780,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 12445,
+   "eval_count": 2131,
+   "total_duration": 64538566076,
+   "done_reason": "stop",
+   "bloques": 5,
+   "informe": [
+    "Bloque 1 (cronometro.trz): aplicado.",
+    "Bloque 2 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 3 (cronometro.trz): el texto de BUSCAR aparece 2 veces; no se aplicó.",
+    "Bloque 4 (cronometro.trz): el texto de BUSCAR aparece 0 veces; no se aplicó.",
+    "Bloque 5 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 7160,
+   "check": {
+    "codigo": 1,
+    "salida": "❌ Error de sintaxis en 'cronometro.trz':\n    --> 1505:5\n     |\n1505 |     iniciar_sesion(\n     |     ^---\n     |\n     = expected EOI, definition, external_def, context_clause, decorator, or with_clause"
+   }
+  }
+ ],
+ "lineas_diff": 49,
+ "max_prompt_tokens": 12445
+}

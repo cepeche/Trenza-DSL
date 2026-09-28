@@ -1,0 +1,1 @@
+app.js: mostrarModalCrear() empieza con `if (AppState.modoEdicion) { mostrarModalCrearActividad(); return; }`. index.html: solo comentario de cabecera. tests/js/app.functions.test.js: 2 tests nuevos (modo edición → crear actividad; normal → crear tarea). Comprobación: runner.js 31/31.

@@ -1,0 +1,8 @@
+{
+ "correcta": false,
+ "arranca": false,
+ "error": {
+  "error": "check",
+  "detail": "✅ Archivo 'C:\\Proyectos\\Trenza-DSL\\experiments\\2026-09-atlas\\resultados\\T1-B-4\\work\\cronometro.trz' leido y parseado.\n❌ Verificación Semántica Fallida:\n  [1479:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [1482:5] El rol 'boton_pausa' tiene manejadores duplicados para el evento 'tap' en el contexto 'ModoPausa' [determinism]\n  [1488:9] El contexto 'ModoPausa' es inalcanzable [reachability]\n"
+ }
+}

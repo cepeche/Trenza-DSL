@@ -1,0 +1,55 @@
+{
+ "id": "T2-B-4",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 120.8,
+ "turnos": [
+  {
+   "prompt_eval_count": 7586,
+   "eval_count": 1527,
+   "total_duration": 59239625536,
+   "done_reason": "stop",
+   "bloques": 4,
+   "informe": [
+    "Bloque 1: transitions: no es un archivo que puedas cambiar.",
+    "Bloque 2: overlays: no es un archivo que puedas cambiar.",
+    "2 bloque(s) con la cabecera mal formada; no se aplicaron. Tras «<<<<<<< BUSCAR» va solo la ruta del archivo, y el texto a buscar empieza en la línea siguiente."
+   ],
+   "thinking_chars": 4079,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 8319,
+   "eval_count": 1490,
+   "total_duration": 58557301696,
+   "done_reason": "stop",
+   "bloques": 4,
+   "informe": [
+    "Bloque 1 (cronometro.trz): aplicado.",
+    "Bloque 2 (cronometro.trz): aplicado.",
+    "Bloque 3 (cronometro.trz): aplicado.",
+    "Bloque 4 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 4609,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 8894,
+   "eval_count": 7,
+   "total_duration": 2682337922,
+   "done_reason": "stop",
+   "bloques": 0,
+   "informe": [],
+   "thinking_chars": 0,
+   "check": null
+  }
+ ],
+ "lineas_diff": 10,
+ "max_prompt_tokens": 8894
+}

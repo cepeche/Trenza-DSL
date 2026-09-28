@@ -1,0 +1,7 @@
+{
+ "id": "T1-A-1",
+ "tokens": 79295,
+ "ms": 101083,
+ "tool_uses": 25,
+ "lineas_diff": 62
+}

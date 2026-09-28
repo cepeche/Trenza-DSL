@@ -1,0 +1,85 @@
+{
+  "manifest_version": "0.3",
+  "name": "atlas-mcp",
+  "display_name": "ATLAS (modelo local)",
+  "version": "0.1.0",
+  "description": "Delega tareas acotadas en un modelo local servido por ATLAS (API compatible con OpenAI: Ollama, llama.cpp, LM Studio, vLLM).",
+  "author": {
+    "name": "César Pérez-Chirinos"
+  },
+  "license": "MIT",
+  "server": {
+    "type": "python",
+    "entry_point": "server/atlas_mcp.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--script",
+        "${__dirname}/server/atlas_mcp.py"
+      ],
+      "env": {
+        "ATLAS_URL": "${user_config.atlas_url}",
+        "ATLAS_API_KEY": "${user_config.atlas_api_key}",
+        "ATLAS_MODEL": "${user_config.atlas_model}",
+        "ATLAS_TIMEOUT": "${user_config.atlas_timeout}",
+        "ATLAS_FILES_ROOT": "${user_config.atlas_files_root}"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "atlas_models",
+      "description": "Lista los modelos que sirve ATLAS."
+    },
+    {
+      "name": "atlas_ask",
+      "description": "Delega una tarea en el modelo local y devuelve su respuesta."
+    }
+  ],
+  "user_config": {
+    "atlas_url": {
+      "type": "string",
+      "title": "URL de la API de ATLAS",
+      "description": "Base compatible con OpenAI, p. ej. http://atlas.local:11434/v1",
+      "required": true
+    },
+    "atlas_api_key": {
+      "type": "string",
+      "title": "Clave de API (opcional)",
+      "description": "Se envía como Bearer. Ollama no la usa; llama.cpp/vLLM con --api-key sí.",
+      "sensitive": true,
+      "required": false,
+      "default": ""
+    },
+    "atlas_model": {
+      "type": "string",
+      "title": "Modelo por defecto (opcional)",
+      "required": false,
+      "default": "",
+      "description": "Si se deja vacío, se usa el primero que anuncie /models."
+    },
+    "atlas_timeout": {
+      "type": "number",
+      "title": "Tiempo máximo por petición (s)",
+      "required": false,
+      "default": 600,
+      "min": 10,
+      "max": 3600,
+      "description": "Los modelos locales pueden tardar, sobre todo al cargarse por primera vez."
+    },
+    "atlas_files_root": {
+      "type": "directory",
+      "title": "Carpeta que ATLAS puede leer (opcional)",
+      "description": "Si se define, atlas_ask puede adjuntar archivos de esta carpeta sin pasar por el contexto de Claude.",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ]
+  }
+}

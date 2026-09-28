@@ -1,0 +1,17 @@
+--- frontend/js/app.js
++++ frontend/js/app.js
+@@ -513,6 +513,14 @@
+ }
+ 
+ function mostrarModalCrear() {
++    // En modo edición, el botón + debe abrir el diálogo de crear actividad.
++    if (AppState.modoEdicion) {
++        mostrarModalCrearActividad();
++        return;
++    }
++
++    // Modo normal: comportamiento original – crear tarea,
++    // preseleccionando la actividad actual si no estamos en la pestaña "frecuentes".
+     if (AppState.pestanaActual === 'frecuentes') {
+         mostrarModalCrearTarea();
+     } else {

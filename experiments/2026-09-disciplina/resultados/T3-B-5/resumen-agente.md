@@ -1,0 +1,1 @@
+Único archivo: cronometro.trz (ModoEdicion). pestana_actividad pasa a cambiarPestana(self.id); conserva la transición abrirEditarActividad → ModalEditarActividad, que queda muerta. Comprobación: trenza-cli check superado.

@@ -1,0 +1,23 @@
+--- frontend/js/app.js
++++ frontend/js/app.js
+@@ -282,16 +282,15 @@
+         tab.className = 'tab';
+         tab.dataset.tab = act.id;
+         tab.textContent = act.nombre;
++        // En modo edición, la pestaña de actividad sigue comportándose como en modo normal:
++        // cambia a esa pestaña y muestra sus tareas.
+         tab.addEventListener('click', () => {
+-            if (AppState.modoEdicion) {
+-                mostrarModalEditarActividad(act.id);
+-                return;
+-            }
+             AppState.pestanaActual = act.id;
+             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+             tab.classList.add('active');
+             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+-            document.querySelector(`.tab-content[data-tab="${act.id}"]`).classList.add('active');
++            const contentEl = document.querySelector(`.tab-content[data-tab="${act.id}"]`);
++            if (contentEl) contentEl.classList.add('active');
+             renderGrid(`grid-${act.id}`, getTareasPorActividad(act.id));
+         });
+         tabsContainer.appendChild(tab);

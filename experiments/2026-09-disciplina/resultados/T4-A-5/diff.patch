@@ -1,0 +1,14 @@
+diff -ruN history/inspirations/cronometro-psp-original/frontend/js/app.js T4-A-5/frontend/js/app.js
+--- history/inspirations/cronometro-psp-original/frontend/js/app.js	2026-09-25 10:20:08.480478387 +0000
++++ T4-A-5/frontend/js/app.js	2026-09-25 12:59:39.149197680 +0000
+@@ -513,6 +513,10 @@
+ }
+ 
+ function mostrarModalCrear() {
++    if (AppState.modoEdicion) {
++        mostrarModalCrearActividad();
++        return;
++    }
+     if (AppState.pestanaActual === 'frecuentes') {
+         mostrarModalCrearTarea();
+     } else {

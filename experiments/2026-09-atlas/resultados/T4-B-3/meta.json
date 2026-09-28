@@ -1,0 +1,68 @@
+{
+ "id": "T4-B-3",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 93.6,
+ "turnos": [
+  {
+   "prompt_eval_count": 9919,
+   "eval_count": 703,
+   "total_duration": 23417089930,
+   "done_reason": "stop",
+   "bloques": 2,
+   "informe": [
+    "Bloque 1: contexts/ModoEdicion.trz no es un archivo que puedas cambiar.",
+    "Bloque 2: transitions: no es un archivo que puedas cambiar."
+   ],
+   "thinking_chars": 2231,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 10264,
+   "eval_count": 1246,
+   "total_duration": 38231031020,
+   "done_reason": "stop",
+   "bloques": 2,
+   "informe": [
+    "Bloque 1: contexts/ModoEdicion.trz no es un archivo que puedas cambiar.",
+    "Bloque 2: contexts/ModoEdicion.trz no es un archivo que puedas cambiar."
+   ],
+   "thinking_chars": 4914,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 10516,
+   "eval_count": 986,
+   "total_duration": 29815449878,
+   "done_reason": "stop",
+   "bloques": 2,
+   "informe": [
+    "Bloque 1 (cronometro.trz): aplicado.",
+    "Bloque 2 (cronometro.trz): aplicado."
+   ],
+   "thinking_chars": 3664,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 10775,
+   "eval_count": 7,
+   "total_duration": 1990934881,
+   "done_reason": "stop",
+   "bloques": 0,
+   "informe": [],
+   "thinking_chars": 0,
+   "check": null
+  }
+ ],
+ "lineas_diff": 3,
+ "max_prompt_tokens": 10775
+}

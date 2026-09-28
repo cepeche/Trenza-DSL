@@ -246,6 +246,11 @@ system CronometroPSP:
 
     initial: ModoNormal
 
+    -- Señales que no produce ningún rol: el backend avisa de que la sesión
+    -- terminó por su cuenta (p. ej. desde otro dispositivo).
+    events:
+        sesionFinalizada
+
 
 
     -- (1) Contextos base â€” mutuamente excluyentes (exactamente uno activo)
@@ -303,7 +308,6 @@ system CronometroPSP:
 
 
 context MenuConfiguracion:
-    role *: ignored
 
 
 
@@ -340,13 +344,13 @@ context MenuConfiguracion:
 
     transitions:
 
-        on abrirCrearActividad -> ModalCrearActividad
+        on abrirCrearActividad -> [replace] ModalCrearActividad
 
-        on abrirHistorial      -> ModalHistorial
+        on abrirHistorial      -> [replace] ModalHistorial
 
-        on abrirAcercaDe       -> ModalAcercaDe
+        on abrirAcercaDe       -> [replace] ModalAcercaDe
 
-        on abrirReset          -> ModalReset
+        on abrirReset          -> [replace] ModalReset
 
         on cerrar              -> [close_overlay]
 
@@ -359,6 +363,7 @@ context MenuConfiguracion:
     -- En app.js: el menÃº se cierra y el modal se abre (no se apilan).
 
     -- El modelo de pila necesita soporte para "cerrar y abrir" en una transiciÃ³n.
+    -- RESUELTO (2026-09-28): `[replace] X` cierra el menú y abre X.
 
 -- contexts/ModalAcercaDe.trz
 
@@ -371,7 +376,6 @@ context MenuConfiguracion:
 
 
 context ModalAcercaDe:
-    role *: ignored
 
 
 
@@ -425,7 +429,6 @@ context ModalAcercaDe:
 
 --       input: tipoTareaId: Id, tareaId: Id?
 context ModalComentario:
-    role *: ignored
 
 
 
@@ -513,7 +516,6 @@ context ModalComentario:
 
 
 context ModalCrearActividad:
-    role *: ignored
 
 
 
@@ -577,7 +579,6 @@ context ModalCrearActividad:
 
 
 context ModalCrearTarea:
-    role *: ignored
 
 
 
@@ -659,7 +660,6 @@ context ModalCrearTarea:
 
 
 context ModalEditarActividad:
-    role *: ignored
 
 
 
@@ -737,7 +737,6 @@ context ModalEditarActividad:
 
 
 context ModalEditarTarea:
-    role *: ignored
 
 
 
@@ -816,7 +815,8 @@ context ModalEditarTarea:
 
 -- CONFORMIDAD H1â€“H5 (12 marzo 2026):
 
--- - H1: Historial7Dias y Historial30Dias heredan boton_cerrar del padre.
+-- - H1 (revisado 2026-09-28): el código generado no hereda roles del padre;
+--        Historial7Dias y Historial30Dias declaran su propio boton_cerrar.
 
 -- - H2: boton_7dias y boton_30dias son roles locales de cada sub-contexto.
 
@@ -832,7 +832,6 @@ context ModalEditarTarea:
 
 context ModalHistorial:
     initial: Historial7Dias
-    role *: ignored
 
 
 
@@ -844,15 +843,19 @@ context ModalHistorial:
 
 
     transitions:
-        on iniciar -> Historial7Dias
         on cerrar -> [close_overlay]
 
 
 
     -- Sub-contexto: vista de 7 dÃ­as (activo por defecto)
 context Historial7Dias:
-    role *: ignored
 
+
+
+
+        role boton_cerrar: Boton
+
+            on tap -> cerrar
 
 
 
@@ -886,8 +889,13 @@ context Historial7Dias:
 
     -- Sub-contexto: vista de 30 dÃ­as
 context Historial30Dias:
-    role *: ignored
 
+
+
+
+        role boton_cerrar: Boton
+
+            on tap -> cerrar
 
 
 
@@ -943,7 +951,6 @@ context Historial30Dias:
 
 context ModalReset:
     initial: ResetFase1
-    role *: ignored
 
 
 
@@ -955,7 +962,6 @@ context ModalReset:
 
 
     transitions:
-        on iniciar -> ResetFase1
         on cerrar -> [close_overlay]
 
 
@@ -966,7 +972,16 @@ context ModalReset:
 
     -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 context ResetFase1:
-    role *: ignored
+    -- Botones de otras fases del asistente: no existen en esta fase,
+    -- así que recibir su evento es un error (decisión 2026-09-25).
+        role boton_atras: Boton
+            on tap -> forbidden
+        role boton_ejecutar: Boton
+            on tap -> forbidden
+        role campo_confirmacion: CampoTexto
+            on cambio -> forbidden
+        role checkbox_actividad: OpcionActividad
+            on cambio -> forbidden
 
 
 
@@ -1011,7 +1026,16 @@ context ResetFase1:
 
     -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 context ResetFase2:
-    role *: ignored
+    -- Botones de otras fases del asistente: no existen en esta fase,
+    -- así que recibir su evento es un error (decisión 2026-09-25).
+        role boton_cancelar: Boton
+            on tap -> cerrar
+        role boton_ejecutar: Boton
+            on tap -> forbidden
+        role boton_exportar_csv: Boton
+            on tap -> forbidden
+        role campo_confirmacion: CampoTexto
+            on cambio -> forbidden
 
 
 
@@ -1056,7 +1080,16 @@ context ResetFase2:
 
     -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 context ResetFase3:
-    role *: ignored
+    -- Botones de otras fases del asistente: no existen en esta fase,
+    -- así que recibir su evento es un error (decisión 2026-09-25).
+        role boton_cancelar: Boton
+            on tap -> cerrar
+        role boton_continuar: Boton
+            on tap -> forbidden
+        role boton_exportar_csv: Boton
+            on tap -> forbidden
+        role checkbox_actividad: OpcionActividad
+            on cambio -> forbidden
 
 
 
@@ -1128,7 +1161,6 @@ context ResetFase3:
 
 
 context ModalSeleccionActividad:
-    role *: ignored
 
 
 
@@ -1192,7 +1224,6 @@ context ModalSeleccionActividad:
 
 
 context ModoEdicion:
-    role *: ignored
 
 
 
@@ -1278,7 +1309,6 @@ context ModoEdicion:
 
 
 context ModoNormal:
-    role *: ignored
 
 
 
@@ -1388,7 +1418,6 @@ context ModoNormal:
 
 
 context SesionActiva:
-    role *: ignored
 
 
 
@@ -1397,7 +1426,7 @@ context SesionActiva:
 
     role display_timer: Boton          -- rol de solo lectura (Boton es aproximaciÃ³n)
 
-        on tap -> ignored              -- el timer no responde a tap
+        on tap -> terminarSesion       -- tocar el timer para la sesión (como la demo)
 
 
 
@@ -1414,7 +1443,7 @@ context SesionActiva:
     transitions:
 
         on sesionFinalizada -> [deactivate]
-        on terminarSesion   -> ModoNormal
+        on terminarSesion   -> [deactivate]
 
 
 

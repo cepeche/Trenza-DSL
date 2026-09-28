@@ -1,0 +1,65 @@
+# Réplica con ATLAS: cómo ejecutarla
+
+El diseño está en `PREREGISTRO.md`. Todo corre en el portátil y habla
+directamente con Ollama en ATLAS, sin pasar por Claude ni gastar crédito.
+
+Requisitos: `git`, `cargo`, `node` y `npm`, Python 3.10 o posterior, y
+ATLAS encendido. Desde la raíz del repositorio:
+
+```bash
+python experiments/2026-09-atlas/ejecutar.py --preparar        # worktree congelado en 2689bcb, trenza-cli y jsdom
+python experiments/2026-09-atlas/ejecutar.py --solo T1-B-1     # piloto B
+python experiments/2026-09-atlas/ejecutar.py --solo T1-A-1     # piloto A
+python experiments/2026-09-atlas/ejecutar.py                   # las 40 (se salta las ya hechas)
+python experiments/2026-09-atlas/ejecutar.py --resumen         # tabla en RESUMEN.md
+```
+
+Variables: `ATLAS_URL` (por defecto `http://ATLAS-A9:11434`) y `ATLAS_MODEL`
+(por defecto `gpt-oss-120b:latest`). Cada réplica deja en
+`resultados/<id>/`:
+- `conversacion.json`;
+- `meta.json`, con turnos, tokens, tiempos y salida de cada comprobación;
+- `diff.patch`;
+- `evaluacion.json`, con el veredicto del oráculo;
+- `work/`, el material modificado.
+
+Se puede interrumpir y volver a lanzar: las réplicas con `evaluacion.json`
+se saltan.
+
+## B′ (material limpio)
+
+Ver `PREREGISTRO-BPRIMA.md`. Antes de empezar, anota en ese archivo el
+digest del modelo (`ollama show gpt-oss-120b:latest` en ATLAS, o
+`GET /api/tags`). Después:
+
+```bash
+python experiments/2026-09-atlas/ejecutar.py --bprima          # 20 réplicas B′
+python experiments/2026-09-atlas/ejecutar.py --bprima --resumen  # RESUMEN-BPRIMA.md
+```
+
+## B″ (edición estructurada, solo T1)
+
+Ver `PREREGISTRO-ESTRUCTURADA.md`. Anota antes el digest del modelo en su
+sección de amenazas o de desviaciones. Después:
+
+```bash
+python experiments/2026-09-atlas/ejecutar.py --estructurada            # 10 réplicas de T1-B
+python experiments/2026-09-atlas/ejecutar.py --estructurada --resumen  # RESUMEN-ESTRUCTURADA.md
+```
+
+## Registro en la AGENDA del par
+
+La AGENDA del par César ⇄ Claude (`M:/arneses/AGENDA.md`) solo existe en
+el portátil de César. Una sesión en la nube no la ve. Sobre este
+experimento dice, a 28-sep-2026:
+
+- **Parte de novedades (Cronista, 28-sep):** réplica con gpt-oss-120b en
+  tres rondas pre-registradas. A 19/20 frente a B 4/20; B′ 13/20 (la
+  presentación era el cuello de botella); B″ T1 3/10, no concluyente. Se
+  citan los commits `f1da1e7`, `83d3b11` y `8ab8e16` de esta rama.
+- **Estado del Cronista:** «Réplica con ATLAS hecha el 28-sep; el análisis
+  sigue en `experiments/2026-09-atlas`».
+
+La AGENDA guarda decisiones y estado; el detalle vive aquí. Si hace falta
+cambiar lo que dice o consultar otra cosa de ella, hay que pedírselo a
+César. Esta sección se actualiza cuando cambie la entrada de la AGENDA.

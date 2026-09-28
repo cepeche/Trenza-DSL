@@ -1,0 +1,62 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -144,6 +144,7 @@
+     contexts:
+         ModoEdicion
+         ModoNormal          -- base por defecto
++        ModoPausa           -- nuevo modo pausa
+     -- (2) Contextos concurrentes — coexisten ortogonalmente con el base
+     concurrent:
+         SesionActiva        -- activo cuando hay sesión en curso
+@@ -581,6 +582,8 @@
+ -- dispersos en app.js desaparecen aquí.
+ 
+ context ModoEdicion:
++    role boton_pausa: Boton
++        on tap -> ignored
+     role tarjeta_tipo: TipoTarea
+         on tap -> abrirEditarTarea(self.tipoId)
+     role tarjeta_tarea: Tarea
+@@ -613,6 +616,8 @@
+ -- No hay edición de tareas ni actividades.
+ 
+ context ModoNormal:
++    role boton_pausa: Boton
++        on tap -> activarModoPausa
+     role tarjeta_tipo: TipoTarea
+         on tap -> seleccionarTipoTarea(self.tipoId)
+     role tarjeta_tarea: Tarea
+@@ -629,6 +634,7 @@
+         on tap -> abrirMenuConfiguracion
+     transitions:
+         on activarEdicion        -> ModoEdicion
++        on activarModoPausa      -> ModoPausa
+         on abrirCrearTarea       -> ModalCrearTarea
+         on abrirMenuConfiguracion -> MenuConfiguracion
+         -- seleccionarTipoTarea puede ramificar:
+@@ -648,6 +654,25 @@
+         cambiarPestana  -> actualizarGridVisible()
+         iniciarTarea    -> iniciar_sesion(tarea_id, notas, minutos_retroactivos, sustituir)
+ 
++context ModoPausa:
++    role tarjeta_tipo: TipoTarea
++        on tap -> ignored
++    role tarjeta_tarea: Tarea
++        on tap -> ignored
++    role pestana_actividad: Actividad
++        on tap -> cambiarPestana(self.id)
++    role pestana_frecuentes: Pestana
++        on tap -> cambiarPestana('frecuentes')
++    role boton_edicion: Boton
++        on tap -> ignored
++    role boton_nuevo: Boton
++        on tap -> ignored
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion
++    role boton_pausa: Boton
++        on tap -> desactivarModoPausa
++    transitions:
++        on desactivarModoPausa -> ModoNormal
+ -- Contexto CONCURRENTE: coexiste con ModoNormal o ModoEdicion.
+ 
+ -- Se activa cuando hay una sesión en curso; se desactiva cuando termina.

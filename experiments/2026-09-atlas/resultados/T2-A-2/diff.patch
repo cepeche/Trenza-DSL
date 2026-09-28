@@ -1,0 +1,72 @@
+--- frontend/index.html
++++ frontend/index.html
+@@ -329,6 +329,17 @@
+         </div>
+     </div>
+ 
++    <!-- Modal Reordenar frecuentes -->
++    <div class="modal-overlay" id="reorderModal">
++        <div class="modal-content">
++            <div class="modal-header">
++                <div class="modal-task-name">Reordenar frecuentes</div>
++            </div>
++            <p style="padding:1rem;">(Contenido por implementar)</p>
++            <button class="btn-primary" id="btnReorderClose">Cerrar</button>
++        </div>
++    </div>
++
+     <!-- Modal Historial -->
+     <div class="modal-overlay historial-overlay" id="historialModal">
+         <div class="modal-content historial-content">
+--- frontend/js/app.js
++++ frontend/js/app.js
+@@ -320,7 +320,10 @@
+     const tabFrecuentesNuevo = tabFrecuentes.cloneNode(true);
+     tabFrecuentes.replaceWith(tabFrecuentesNuevo);
+     tabFrecuentesNuevo.addEventListener('click', () => {
+-        if (AppState.modoEdicion) return; // Frecuentes no tiene edición propia; ignorar en modo edición
++        if (AppState.modoEdicion) {
++            mostrarReorderModal();
++            return;
++        }
+         AppState.pestanaActual = 'frecuentes';
+         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+         tabFrecuentesNuevo.classList.add('active');
+@@ -751,6 +754,15 @@
+     document.getElementById('editActivityModal').classList.remove('active');
+ }
+ 
++// Reordenar frecuentes (modo edición)
++function mostrarReorderModal() {
++    document.getElementById('reorderModal').classList.add('active');
++}
++
++function cerrarReorderModal() {
++    document.getElementById('reorderModal').classList.remove('active');
++}
++
+ function seleccionarColorEdit(color) {
+     AppState.colorEditSeleccionado = color;
+     document.querySelectorAll('#editColorPicker .color-option').forEach(opt => {
+@@ -901,6 +913,11 @@
+         if (e.target === this) cerrarModalHistorial();
+     });
+ 
++    // Cerrar modal Reordenar frecuentes al click en overlay
++    document.getElementById('reorderModal').addEventListener('click', function(e) {
++        if (e.target === this) cerrarReorderModal();
++    });
++
+     // Cerrar settings menu al hacer click fuera
+     document.addEventListener('click', function(e) {
+         const menu = document.getElementById('settingsMenu');
+@@ -909,6 +926,9 @@
+             menu.classList.remove('active');
+         }
+     });
++
++    // Botón Cerrar del modal Reordenar frecuentes
++    document.getElementById('btnReorderClose').addEventListener('click', cerrarReorderModal);
+ }
+ 
+ // === UI HELPERS ===

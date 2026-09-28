@@ -56,6 +56,11 @@ system CronometroPSP:
 
     initial: ModoNormal
 
+    -- Señales que no produce ningún rol: el backend avisa de que la sesión
+    -- terminó por su cuenta (p. ej. desde otro dispositivo).
+    events:
+        sesionFinalizada
+
 
 
     -- (1) Contextos base — mutuamente excluyentes (exactamente uno activo)

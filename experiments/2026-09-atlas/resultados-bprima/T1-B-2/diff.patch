@@ -1,0 +1,116 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -595,6 +595,42 @@
+         on tap -> abrirCrearTarea                  -- sigue disponible en modo edición
+     role boton_configuracion: Boton
+         on tap -> abrirMenuConfiguracion
++    role boton_pausa: Boton
++        on tap -> ignored
++    transitions:
++        on desactivarEdicion      -> ModoNormal
++        on abrirEditarTarea       -> ModalEditarTarea
++        on abrirEditarActividad   -> ModalEditarActividad
++        on abrirCrearTarea        -> ModalCrearTarea
++        on abrirMenuConfiguracion -> MenuConfiguracion
++    role tarjeta_tipo: TipoTarea
++        on tap -> abrirEditarTarea(self.tipoId)
++    role tarjeta_tarea: Tarea
++        on tap -> abrirEditarTarea(self.tipoId)    -- edita el tipo, no la combinación
++    role pestana_actividad: Actividad
++        on tap -> abrirEditarActividad(self.id)
++    role pestana_frecuentes: Pestana
++        on tap -> ignored                          -- explícito: Frecuentes no es editable
++    role boton_edicion: Boton
++        on tap -> desactivarEdicion
++    role boton_nuevo: Boton
++        on tap -> abrirCrearTarea                  -- sigue disponible en modo edición
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion
++    role boton_pausa: Boton
++        on tap -> ignored
++    role tarjeta_tarea: Tarea
++        on tap -> abrirEditarTarea(self.tipoId)    -- edita el tipo, no la combinación
++    role pestana_actividad: Actividad
++        on tap -> abrirEditarActividad(self.id)
++    role pestana_frecuentes: Pestana
++        on tap -> ignored                          -- explícito: Frecuentes no es editable
++    role boton_edicion: Boton
++        on tap -> desactivarEdicion
++    role boton_nuevo: Boton
++        on tap -> abrirCrearTarea                  -- sigue disponible en modo edición
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion
+     transitions:
+         on desactivarEdicion      -> ModoNormal
+         on abrirEditarTarea       -> ModalEditarTarea
+@@ -612,7 +648,45 @@
+ 
+ -- No hay edición de tareas ni actividades.
+ 
+-context ModoNormal:
++context ModoPausa:
++    role tarjeta_tipo: TipoTarea
++        on tap -> ignored
++    role tarjeta_tarea: Tarea
++        on tap -> ignored
++    role pestana_actividad: Actividad
++        on tap -> cambiarPestana(self.id)
++    role pestana_frecuentes: Pestana
++        on tap -> cambiarPestana('frecuentes')
++    role boton_edicion: Boton
++        on tap -> ignored
++    role boton_nuevo: Boton
++        on tap -> ignored
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion
++    role boton_pausa: Boton
++        on tap -> desactivarPausa
++    transitions:
++        on desactivarPausa -> ModoNormal
++        on abrirMenuConfiguracion -> MenuConfiguracion
++    role tarjeta_tipo: TipoTarea
++        on tap -> ignored
++    role tarjeta_tarea: Tarea
++        on tap -> ignored
++    role pestana_actividad: Actividad
++        on tap -> cambiarPestana(self.id)
++    role pestana_frecuentes: Pestana
++        on tap -> cambiarPestana('frecuentes')
++    role boton_edicion: Boton
++        on tap -> ignored
++    role boton_nuevo: Boton
++        on tap -> ignored
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion
++    role boton_pausa: Boton
++        on tap -> desactivarPausa
++    transitions:
++        on desactivarPausa -> ModoNormal
++        on abrirMenuConfiguracion -> MenuConfiguracion
+     role tarjeta_tipo: TipoTarea
+         on tap -> seleccionarTipoTarea(self.tipoId)
+     role tarjeta_tarea: Tarea
+@@ -627,8 +701,23 @@
+         on tap -> abrirCrearTarea
+     role boton_configuracion: Boton
+         on tap -> abrirMenuConfiguracion
++    role boton_pausa: Boton
++        on tap -> activarPausa
++    role tarjeta_tarea: Tarea
++        on tap -> iniciarTarea(self.tareaId)
++    role pestana_actividad: Actividad
++        on tap -> cambiarPestana(self.id)
++    role pestana_frecuentes: Pestana
++        on tap -> cambiarPestana('frecuentes')
++    role boton_edicion: Boton
++        on tap -> activarEdicion
++    role boton_nuevo: Boton
++        on tap -> abrirCrearTarea
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion
+     transitions:
+         on activarEdicion        -> ModoEdicion
++        on activarPausa          -> ModoPausa
+         on abrirCrearTarea       -> ModalCrearTarea
+         on abrirMenuConfiguracion -> MenuConfiguracion
+         -- seleccionarTipoTarea puede ramificar:

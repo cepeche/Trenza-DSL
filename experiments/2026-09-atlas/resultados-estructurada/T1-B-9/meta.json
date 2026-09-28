@@ -1,0 +1,62 @@
+{
+ "id": "T1-B-9",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 145.1,
+ "turnos": [
+  {
+   "prompt_eval_count": 7919,
+   "eval_count": 2213,
+   "total_duration": 77487317392,
+   "done_reason": "stop",
+   "bloques": 13,
+   "informe": [
+    "Operación 1 (CONTEXTO): contexto base ModoPausa creado.",
+    "Operación 2 (MANEJADOR): rol boton_pausa creado en ModoNormal con on tap.",
+    "Operación 3 (MANEJADOR): rol boton_pausa creado en ModoEdicion con on tap.",
+    "Operación 4 (MANEJADOR): rol boton_pausa creado en ModoPausa con on tap.",
+    "Operación 5 (TRANSICION): ModoNormal on activarPausa añadida.",
+    "Operación 6 (TRANSICION): transitions: creada en ModoPausa con on desactivarPausa.",
+    "Operación 7 (MANEJADOR): rol tarjeta_tipo creado en ModoPausa con on tap.",
+    "Operación 8 (MANEJADOR): rol tarjeta_tarea creado en ModoPausa con on tap.",
+    "Operación 9 (MANEJADOR): rol pestana_actividad creado en ModoPausa con on tap.",
+    "Operación 10 (MANEJADOR): rol pestana_frecuentes creado en ModoPausa con on tap.",
+    "Operación 11 (MANEJADOR): rol boton_edicion creado en ModoPausa con on tap.",
+    "Operación 12 (MANEJADOR): rol boton_nuevo creado en ModoPausa con on tap.",
+    "Operación 13 (MANEJADOR): rol boton_configuracion creado en ModoPausa con on tap."
+   ],
+   "thinking_chars": 7597,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 8567,
+   "eval_count": 1715,
+   "total_duration": 65337949884,
+   "done_reason": "stop",
+   "bloques": 1,
+   "informe": [
+    "Operación 1 (TRANSICION): ModoPausa on abrirMenuConfiguracion añadida."
+   ],
+   "thinking_chars": 7246,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 8696,
+   "eval_count": 7,
+   "total_duration": 2125427273,
+   "done_reason": "stop",
+   "bloques": 0,
+   "informe": [],
+   "thinking_chars": 0,
+   "check": null
+  }
+ ],
+ "lineas_diff": 27,
+ "max_prompt_tokens": 8696
+}

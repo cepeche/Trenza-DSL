@@ -17,7 +17,6 @@
 
 
 context SesionActiva:
-    role *: ignored
 
 
 

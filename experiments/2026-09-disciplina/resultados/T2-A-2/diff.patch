@@ -1,0 +1,71 @@
+diff -ruN history/inspirations/cronometro-psp-original/frontend/index.html T2-A-2/frontend/index.html
+--- history/inspirations/cronometro-psp-original/frontend/index.html	2026-09-25 10:20:08.480219147 +0000
++++ T2-A-2/frontend/index.html	2026-09-25 12:53:47.985176806 +0000
+@@ -351,8 +351,21 @@
+         </div>
+     </div>
+ 
++    <!-- Modal reordenar frecuentes -->
++    <div class="modal-overlay" id="reorderModal">
++        <div class="modal-content">
++            <div class="modal-header">
++                <div class="modal-task-name">Reordenar frecuentes</div>
++            </div>
++
++            <div class="form-buttons">
++                <button class="btn-primary" id="btnReorderClose" onclick="cerrarModalReordenar()">Cerrar</button>
++            </div>
++        </div>
++    </div>
++
+     <!-- Scripts -->
+     <script src="js/api-client.js?v=7"></script>
+-    <script src="js/app.js?v=17"></script>
++    <script src="js/app.js?v=18"></script>
+ </body>
+ </html>
+diff -ruN history/inspirations/cronometro-psp-original/frontend/js/app.js T2-A-2/frontend/js/app.js
+--- history/inspirations/cronometro-psp-original/frontend/js/app.js	2026-09-25 10:20:08.480478387 +0000
++++ T2-A-2/frontend/js/app.js	2026-09-25 12:54:00.581177555 +0000
+@@ -320,7 +320,10 @@
+     const tabFrecuentesNuevo = tabFrecuentes.cloneNode(true);
+     tabFrecuentes.replaceWith(tabFrecuentesNuevo);
+     tabFrecuentesNuevo.addEventListener('click', () => {
+-        if (AppState.modoEdicion) return; // Frecuentes no tiene edición propia; ignorar en modo edición
++        if (AppState.modoEdicion) {
++            mostrarModalReordenar();
++            return;
++        }
+         AppState.pestanaActual = 'frecuentes';
+         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+         tabFrecuentesNuevo.classList.add('active');
+@@ -901,6 +904,10 @@
+         if (e.target === this) cerrarModalHistorial();
+     });
+ 
++    document.getElementById('reorderModal').addEventListener('click', function(e) {
++        if (e.target === this) cerrarModalReordenar();
++    });
++
+     // Cerrar settings menu al hacer click fuera
+     document.addEventListener('click', function(e) {
+         const menu = document.getElementById('settingsMenu');
+@@ -1142,6 +1149,18 @@
+     }
+ }
+ 
++// === MODAL REORDENAR FRECUENTES ===
++// HTML: #reorderModal, #btnReorderClose | Trigger: modo edición + click en pestaña Frecuentes
++// Cerrar deja la app en modo edición, como estaba (no lo desactiva).
++
++function mostrarModalReordenar() {
++    document.getElementById('reorderModal').classList.add('active');
++}
++
++function cerrarModalReordenar() {
++    document.getElementById('reorderModal').classList.remove('active');
++}
++
+ // === MODAL HISTORIAL ===
+ // HTML: #historialModal, #historialContenido | API: GET /api/historial?dias=N
+ // Muestra barras de colores por día + tabla resumen | Var: _historialDias (7 ó 30)

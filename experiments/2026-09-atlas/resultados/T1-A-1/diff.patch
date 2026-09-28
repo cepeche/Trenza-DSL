@@ -1,0 +1,65 @@
+--- frontend/index.html
++++ frontend/index.html
+@@ -92,6 +92,7 @@
+ 
+     <!-- Botón flotante + -->
+     <button class="fab-button" onclick="mostrarModalCrear()" title="Nueva tarea">+</button>
++    <button class="pause-button" id="pauseButton" onclick="togglePauseMode()" title="Pausa">⏸</button>
+ 
+     <!-- Modal selector de actividad -->
+     <div class="modal-overlay" id="activityModal">
+--- frontend/js/app.js
++++ frontend/js/app.js
+@@ -39,6 +39,7 @@
+     timerInterval: null,
+     pestanaActual: 'frecuentes',
+     modoEdicion: false,
++    pauseMode: false,
+     iconoSeleccionado: 'draft',
+     iconoEditSeleccionado: 'draft',
+     colorSeleccionado: '#667eea',
+@@ -394,6 +395,7 @@
+ // API: POST /api/sesiones | Estado: sesionActiva, notasActivas, tareaIdPendiente
+ 
+ function seleccionarTipoTarea(tipoTareaId) {
++    if (AppState.pauseMode) return; // no iniciar en modo pausa
+     const tipoTarea = AppState.tiposTarea.find(t => t.id === tipoTareaId);
+ 
+     // Si solo hay una actividad permitida, iniciar directamente
+@@ -408,6 +410,7 @@
+ }
+ 
+ function iniciarTarea(tareaId) {
++    if (AppState.pauseMode) return; // bloquear inicio en modo pausa
+     if (AppState.modoEdicion) return; // defensivo: no iniciar en modo edición
+     // Guardar tarea pendiente y abrir modal de comentario
+     const tarea = AppState.tareas.find(t => t.id === tareaId);
+@@ -513,6 +516,7 @@
+ }
+ 
+ function mostrarModalCrear() {
++    if (AppState.pauseMode) return; // no crear en modo pausa
+     if (AppState.pestanaActual === 'frecuentes') {
+         mostrarModalCrearTarea();
+     } else {
+@@ -668,11 +672,20 @@
+     }
+ }
+ 
++function togglePauseMode() {
++    if (AppState.modoEdicion) return; // no cambiar en modo edición
++    AppState.pauseMode = !AppState.pauseMode;
++    document.body.classList.toggle('pause-mode', AppState.pauseMode);
++    const btn = document.getElementById('pauseButton');
++    if (btn) btn.classList.toggle('active', AppState.pauseMode);
++}
++
+ // === MODO EDICIÓN ===
+ // HTML: #editModeButton | CSS: body.edit-mode (fondo rosa, ✏️ en pestañas de actividad)
+ // Activo: click en tarjeta → MODAL EDITAR TAREA | click en pestaña → MODAL EDITAR ACTIV.
+ 
+ function toggleModoEdicion() {
++    if (AppState.pauseMode) return; // no cambiar modo edición en pausa
+     AppState.modoEdicion = !AppState.modoEdicion;
+     document.getElementById('editModeButton').classList.toggle('active', AppState.modoEdicion);
+     document.body.classList.toggle('edit-mode', AppState.modoEdicion);

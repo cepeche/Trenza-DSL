@@ -1,0 +1,1 @@
+app.js, generarPestanasActividades(): se elimina la rama de modoEdicion del listener de las pestañas de actividad. Comprobación: runner.js 29/29 y grep. (Creó una sugerencia de tarea en la interfaz del usuario, que se retiró.)

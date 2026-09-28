@@ -1,0 +1,79 @@
+--- cronometro.trz
++++ cronometro.trz
+@@ -289,6 +289,68 @@
+         ModalReset
+ 
+         ModalAcercaDe
++
++context ModoPausa:
++
++    role tarjeta_tipo: TipoTarea
++        on tap -> ignored              -- no iniciar sesión ni editar
++
++    role tarjeta_tarea: Tarea
++        on tap -> ignored              -- no iniciar tarea
++
++    role pestana_actividad: Actividad
++        on tap -> cambiarPestana(self.id)   -- cambiar pestaña permitido
++
++    role pestana_frecuentes: Pestana
++        on tap -> cambiarPestana('frecuentes')   -- cambiar a frecuentes permitido
++
++    role boton_edicion: Boton
++        on tap -> ignored              -- no entrar en modo edición
++
++    role boton_nuevo: Boton
++        on tap -> ignored              -- no crear tareas
++
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion   -- menú sigue accesible
++
++    role boton_pausa: Boton
++        on tap -> desactivarPausa          -- volver a modo normal
++
++    transitions:
++        on desactivarPausa -> ModoNormal
++
++    role tarjeta_tipo: TipoTarea
++        on tap -> ignored              -- no iniciar sesión ni editar
++
++    role tarjeta_tarea: Tarea
++        on tap -> ignored              -- no iniciar tarea
++
++    role pestana_actividad: Actividad
++        on tap -> cambiarPestana(self.id)   -- cambiar pestaña permitido
++
++    role pestana_frecuentes: Pestana
++        on tap -> cambiarPestana('frecuentes')   -- cambiar a frecuentes permitido
++
++    role boton_edicion: Boton
++        on tap -> ignored              -- no entrar en modo edición
++
++    role boton_nuevo: Boton
++        on tap -> ignored              -- no crear tareas
++
++    role boton_configuracion: Boton
++        on tap -> abrirMenuConfiguracion
++
++    role boton_pausa: Boton
++        on tap -> ignored   -- en modo edición, pausa no hace nada
++
++    role boton_pausa: Boton
++        on tap -> activarPausa   -- menú sigue accesible
++
++    role boton_pausa: Boton
++        on tap -> desactivarPausa          -- volver a modo normal
++
++    transitions:
++        on desactivarPausa -> ModoNormal
+ 
+ -- contexts/MenuConfiguracion.trz
+ 
+@@ -1343,6 +1405,7 @@
+         on activarEdicion        -> ModoEdicion
+ 
+         on abrirCrearTarea       -> ModalCrearTarea
++        on activarPausa          -> ModoPausa
+ 
+         on abrirMenuConfiguracion -> MenuConfiguracion
+ 

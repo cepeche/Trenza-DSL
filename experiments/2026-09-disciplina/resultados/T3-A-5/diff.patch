@@ -1,0 +1,24 @@
+diff -ruN history/inspirations/cronometro-psp-original/frontend/js/app.js T3-A-5/frontend/js/app.js
+--- history/inspirations/cronometro-psp-original/frontend/js/app.js	2026-09-25 10:20:08.480478387 +0000
++++ T3-A-5/frontend/js/app.js	2026-09-25 13:00:01.929199035 +0000
+@@ -283,10 +283,6 @@
+         tab.dataset.tab = act.id;
+         tab.textContent = act.nombre;
+         tab.addEventListener('click', () => {
+-            if (AppState.modoEdicion) {
+-                mostrarModalEditarActividad(act.id);
+-                return;
+-            }
+             AppState.pestanaActual = act.id;
+             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+             tab.classList.add('active');
+@@ -670,7 +666,8 @@
+ 
+ // === MODO EDICIÓN ===
+ // HTML: #editModeButton | CSS: body.edit-mode (fondo rosa, ✏️ en pestañas de actividad)
+-// Activo: click en tarjeta → MODAL EDITAR TAREA | click en pestaña → MODAL EDITAR ACTIV.
++// Activo: click en tarjeta → MODAL EDITAR TAREA | click en pestaña de actividad → cambia
++// de pestaña igual que en modo normal (la edición de actividades llega por otra vía).
+ 
+ function toggleModoEdicion() {
+     AppState.modoEdicion = !AppState.modoEdicion;

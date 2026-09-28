@@ -1,0 +1,3 @@
+Único archivo: cronometro.trz. En ModoEdicion: pestana_actividad pasa a cambiarPestana(self.id); ELIMINA `on abrirEditarActividad -> ModalEditarActividad`; añade `effects: cambiarPestana -> actualizarGridVisible()`; deja un comentario en ModalEditarActividad.
+Resultado del check según el agente: FALLA con un único diagnóstico, [reachability] 'ModalEditarActividad' es inalcanzable. El agente lo deja así a propósito: entiende que el enunciado pide no implementar la otra vía de edición y no quiere borrar el contexto.
+Nota del experimentador: GUIA-TRENZA.md describe R3 como "aviso", pero trenza-cli check devuelve fallo ante un aviso. Esa discrepancia de la guía pudo influir en la decisión.

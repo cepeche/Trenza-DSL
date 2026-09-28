@@ -1,0 +1,47 @@
+{
+ "id": "T1-B-5",
+ "modelo": "gpt-oss-120b:latest",
+ "num_ctx": 40960,
+ "segundos": 122.2,
+ "turnos": [
+  {
+   "prompt_eval_count": 7919,
+   "eval_count": 2137,
+   "total_duration": 75297263137,
+   "done_reason": "stop",
+   "bloques": 13,
+   "informe": [
+    "Operación 1 (CONTEXTO): contexto base ModoPausa creado.",
+    "Operación 2 (MANEJADOR): rol tarjeta_tipo creado en ModoPausa con on tap.",
+    "Operación 3 (MANEJADOR): rol tarjeta_tarea creado en ModoPausa con on tap.",
+    "Operación 4 (MANEJADOR): rol pestana_actividad creado en ModoPausa con on tap.",
+    "Operación 5 (MANEJADOR): rol pestana_frecuentes creado en ModoPausa con on tap.",
+    "Operación 6 (MANEJADOR): rol boton_edicion creado en ModoPausa con on tap.",
+    "Operación 7 (MANEJADOR): rol boton_nuevo creado en ModoPausa con on tap.",
+    "Operación 8 (MANEJADOR): rol boton_configuracion creado en ModoPausa con on tap.",
+    "Operación 9 (MANEJADOR): rol boton_pausa creado en ModoPausa con on tap.",
+    "Operación 10 (TRANSICION): transitions: creada en ModoPausa con on desactivarPausa.",
+    "Operación 11 (MANEJADOR): rol boton_pausa creado en ModoNormal con on tap.",
+    "Operación 12 (TRANSICION): ModoNormal on activarPausa añadida.",
+    "Operación 13 (MANEJADOR): rol boton_pausa creado en ModoEdicion con on tap."
+   ],
+   "thinking_chars": 7321,
+   "check": {
+    "codigo": 0,
+    "salida": "- ✅ Verificación Semántica: Superada impecablemente para 1 archivos.\n- IEFBR14 completado: El programa es válido y la hebra es limpia."
+   }
+  },
+  {
+   "prompt_eval_count": 8567,
+   "eval_count": 1059,
+   "total_duration": 46773256747,
+   "done_reason": "stop",
+   "bloques": 0,
+   "informe": [],
+   "thinking_chars": 4532,
+   "check": null
+  }
+ ],
+ "lineas_diff": 26,
+ "max_prompt_tokens": 8567
+}

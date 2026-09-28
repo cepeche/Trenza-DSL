@@ -1,0 +1,8 @@
+{
+ "correcta": false,
+ "arranca": false,
+ "error": {
+  "error": "check",
+  "detail": "❌ Error de sintaxis en 'C:\\Proyectos\\Trenza-DSL\\experiments\\2026-09-atlas\\resultados\\T1-B-5\\work\\cronometro.trz':\n    --> 1505:5\n     |\n1505 |     iniciar_sesion(\n     |     ^---\n     |\n     = expected EOI, definition, external_def, context_clause, decorator, or with_clause\n"
+ }
+}

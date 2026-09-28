@@ -1,0 +1,56 @@
+--- frontend/index.html
++++ frontend/index.html
+@@ -74,6 +74,19 @@
+         <button class="tab active" data-tab="frecuentes">⭐ Frecuentes</button>
+     </div>
+ 
++    <!-- Modal Reordenar frecuentes (solo modo edición) -->
++    <div class="modal-overlay" id="reorderModal">
++        <div class="modal-content">
++            <div class="modal-header">
++                <div class="modal-task-name">Reordenar frecuentes</div>
++            </div>
++            <!-- Contenido futuro -->
++            <div class="form-buttons">
++                <button class="btn-primary" id="btnReorderClose" onclick="cerrarReorderModal()">Cerrar</button>
++            </div>
++        </div>
++    </div>
++
+     <!-- Contenido de pestañas (las de actividades se generan dinámicamente) -->
+     <div id="tabsContent">
+         <div class="tab-content active" data-tab="frecuentes">
+--- frontend/js/app.js
++++ frontend/js/app.js
+@@ -320,7 +320,11 @@
+     const tabFrecuentesNuevo = tabFrecuentes.cloneNode(true);
+     tabFrecuentes.replaceWith(tabFrecuentesNuevo);
+     tabFrecuentesNuevo.addEventListener('click', () => {
+-        if (AppState.modoEdicion) return; // Frecuentes no tiene edición propia; ignorar en modo edición
++        if (AppState.modoEdicion) {
++            // En modo edición, abrir diálogo de reordenar frecuentes
++            mostrarReorderModal();
++            return;
++        }
+         AppState.pestanaActual = 'frecuentes';
+         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+         tabFrecuentesNuevo.classList.add('active');
+@@ -1002,6 +1006,18 @@
+     document.getElementById('aboutModal').classList.remove('active');
+ }
+ 
++/* ==== DIÁLOGO REORDENAR FRECUENTES ==== */
++
++function mostrarReorderModal() {
++    const modal = document.getElementById('reorderModal');
++    if (modal) modal.classList.add('active');
++}
++
++function cerrarReorderModal() {
++    const modal = document.getElementById('reorderModal');
++    if (modal) modal.classList.remove('active');
++}
++
+ // === MODAL PUESTA A CERO ===
+ // HTML: #resetModal → #resetStep1 → #resetStep2 → #resetStep3 (3 fases)
+ // API: POST /api/reset | Descarga CSV antes de borrar | Var de estado: _resetFase

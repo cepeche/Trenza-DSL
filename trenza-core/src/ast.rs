@@ -142,6 +142,8 @@ pub struct ContextDef {
     pub slots: Vec<SlotDef>,
     pub fills: Vec<FillsDef>,
     pub ignore_rest: bool,
+    /// Cláusula `pending`: contexto declarado al que todavía no se llega.
+    pub pending: bool,
     pub is_anonymous: bool,
     /// Overlay-only: name of the sub-context to auto-enter when this overlay
     /// is pushed. Resolved statically at generation time (double push emitted
@@ -195,6 +197,8 @@ pub enum ActionTarget {
     Call(ActionCall),
     Ignored,
     Forbidden,
+    /// Comportamiento aún no decidido (cuenta como declarado para R1).
+    Pending,
 }
 
 #[derive(Debug, Clone)]
@@ -213,8 +217,23 @@ pub struct ActionCall {
 pub struct TransitionRule {
     pub decorators: Vec<Decorator>,
     pub event: String,
+    /// Nombre de contexto, pseudo-destino (`[stay]`, `[close_overlay]`,
+    /// `[deactivate]`) o `[replace] Nombre`.
     pub target: String,
     pub with_clause: Vec<(String, String)>,
+}
+
+pub const REPLACE_PREFIX: &str = "[replace] ";
+
+impl TransitionRule {
+    /// `true` si el destino es `[replace] X`.
+    pub fn is_replace(&self) -> bool {
+        self.target.starts_with(REPLACE_PREFIX)
+    }
+    /// El destino sin el prefijo `[replace] `.
+    pub fn target_name(&self) -> &str {
+        self.target.strip_prefix(REPLACE_PREFIX).unwrap_or(&self.target)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -364,8 +383,9 @@ impl RoleDef {
             out.push_str(&format!("{}  on {} -> ", indent, action.event));
             match &action.target {
                 ActionTarget::Call(c) => out.push_str(&format!("{}({})\n", c.function, c.args.join(", "))),
-                ActionTarget::Ignored => out.push_str("ignore\n"),
+                ActionTarget::Ignored => out.push_str("ignored\n"),
                 ActionTarget::Forbidden => out.push_str("forbidden\n"),
+                ActionTarget::Pending => out.push_str("pending\n"),
             }
         }
         out
